@@ -1,0 +1,85 @@
+<?php
+
+namespace App\Providers\Filament;
+
+use Filament\Http\Middleware\Authenticate;
+use Filament\Http\Middleware\AuthenticateSession;
+use Filament\Http\Middleware\DisableBladeIconComponents;
+use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use App\Filament\Pages\Comandas;
+use App\Filament\Auth\EditProfile;
+use App\Models\NegocioSetting;
+use Filament\Panel;
+use Filament\PanelProvider;
+use Filament\Support\Colors\Color;
+use Filament\Support\Facades\FilamentView;
+use Filament\Widgets\AccountWidget;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Session\Middleware\StartSession;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
+
+class AdminPanelProvider extends PanelProvider
+{
+    public function panel(Panel $panel): Panel
+    {
+        return $panel
+            ->default()
+            ->id('admin')
+            ->path('admin')
+            ->login()
+            ->passwordReset()
+            ->profile(EditProfile::class)
+            ->brandName("Diego's Pizza")
+            ->brandLogo(fn (): string => NegocioSetting::first()?->logo
+                ? asset('storage/' . NegocioSetting::first()->logo)
+                : asset('images/logo.svg'))
+            ->brandLogoHeight('2.5rem')
+            ->homeUrl('/admin/comandas')
+            ->colors([
+                'primary' => Color::Red,
+            ])
+            ->navigationGroups([
+                'Punto de Venta',
+                'Ventas',
+                'Menu',
+                'Configuración',
+            ])
+            ->navigationItems([])
+            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
+            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
+            ->pages([
+                Comandas::class,
+            ])
+            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+            ->widgets([
+                AccountWidget::class,
+            ])
+            ->middleware([
+                EncryptCookies::class,
+                AddQueuedCookiesToResponse::class,
+                StartSession::class,
+                AuthenticateSession::class,
+                ShareErrorsFromSession::class,
+                PreventRequestForgery::class,
+                SubstituteBindings::class,
+                DisableBladeIconComponents::class,
+                DispatchServingFilamentEvent::class,
+            ])
+            ->authMiddleware([
+                Authenticate::class,
+            ]);
+    }
+
+    public function boot(): void
+    {
+        FilamentView::registerRenderHook(
+            'panels::body.end',
+            fn (): string => auth()->check() && in_array(auth()->user()->role, ['admin', 'cajero'])
+                ? view('partials.global-notifications')->render()
+                : ''
+        );
+    }
+}

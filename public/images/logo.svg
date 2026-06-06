@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
+  <rect width="200" height="60" rx="8" fill="#DC2626"/>
+  <text x="100" y="38" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="white" text-anchor="middle">Diego's Pizza</text>
+  <circle cx="30" cy="30" r="12" fill="white"/>
+  <text x="30" y="35" font-size="16" text-anchor="middle">🍕</text>
+</svg>

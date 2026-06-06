@@ -1,0 +1,72 @@
+services:
+  app:
+    build:
+      context: .
+      target: app
+    container_name: diegospizza-app
+    restart: unless-stopped
+    volumes:
+      - storage_data:/var/www/storage
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=${APP_DEBUG:-false}
+      - APP_KEY=${APP_KEY}
+      - APP_URL=${APP_URL}
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=diegospizza
+      - DB_USERNAME=diegospizza
+      - DB_PASSWORD=${DB_PASSWORD}
+      - LOG_LEVEL=error
+      - SESSION_DRIVER=database
+      - QUEUE_CONNECTION=database
+      - CACHE_STORE=database
+      - TZ=America/Bogota
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - diegospizza
+
+  nginx:
+    build:
+      context: .
+      target: nginx
+    container_name: diegospizza-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - storage_data:/var/www/storage:ro
+    depends_on:
+      - app
+    networks:
+      - diegospizza
+
+  db:
+    image: mariadb:11
+    container_name: diegospizza-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: diegospizza
+      MYSQL_USER: diegospizza
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      TZ: America/Bogota
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - diegospizza
+
+volumes:
+  dbdata:
+  storage_data:
+
+networks:
+  diegospizza:
