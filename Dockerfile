@@ -5,8 +5,8 @@ RUN npm ci --frozen-lockfile && npm run build
 
 FROM php:8.3-fpm AS app_base
 RUN apt-get update && apt-get install -y \
-    libzip-dev zip unzip git curl libpng-dev libonig-dev libxml2-dev supervisor \
-    && docker-php-ext-install pdo_mysql mbstring zip gd xml bcmath \
+    libzip-dev zip unzip git curl libpng-dev libonig-dev libxml2-dev libicu-dev supervisor \
+    && docker-php-ext-install pdo_mysql mbstring zip gd xml bcmath intl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www
