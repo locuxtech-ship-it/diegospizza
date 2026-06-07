@@ -9,6 +9,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Skip if migration was already applied (table has updated enums)
+        if (Schema::hasColumn('pedidos', 'origen')) {
+            return;
+        }
+
         if (DB::getDriverName() === 'sqlite') {
             DB::statement('PRAGMA foreign_keys=off');
         } else {
