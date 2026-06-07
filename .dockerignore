@@ -9,10 +9,7 @@ storage/framework/views/
 storage/logs/
 storage/debugbar/
 docker-compose.yml
-supervisord.conf
-docker-entrypoint.sh
 backup.sh
-nginx/
 ssl/
 .github/
 README.md
