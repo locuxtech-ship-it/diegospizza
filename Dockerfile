@@ -1,6 +1,7 @@
 FROM node:20-alpine AS node
 WORKDIR /app
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json vite.config.js ./
+COPY resources/ resources/
 RUN npm ci --frozen-lockfile && npm run build
 
 FROM php:8.3-fpm AS app_base
