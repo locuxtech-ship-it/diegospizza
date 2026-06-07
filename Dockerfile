@@ -8,7 +8,7 @@ WORKDIR /var/www
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 COPY --chown=www-data:www-data . .
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN mkdir -p bootstrap/cache && composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
 FROM app_base AS app
 RUN mkdir -p /var/log/supervisor
