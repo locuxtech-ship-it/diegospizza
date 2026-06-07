@@ -35,6 +35,7 @@ class NegocioSetting extends Model
         'ticket_negritas',
         'ticket_margen',
         'ticket_fuente',
+        'horarios_por_dia',
     ];
 
     protected function casts(): array
@@ -54,6 +55,7 @@ class NegocioSetting extends Model
             'puntos_ganancia_monto' => 'decimal:2',
             'puntos_ganancia_valor' => 'integer',
             'puntos_recompensas' => 'array',
+            'horarios_por_dia' => 'array',
         ];
     }
 
@@ -74,27 +76,47 @@ class NegocioSetting extends Model
         return array_intersect_key($labels, array_flip($activos));
     }
 
+    public static function getTodayHours(): array
+    {
+        $settings = self::getSettings();
+        $dayName = ucfirst(now()->locale('es')->dayName);
+        $horarios = $settings->horarios_por_dia ?? [];
+
+        if (isset($horarios[$dayName])) {
+            return [
+                'apertura' => $horarios[$dayName]['apertura'] ?? $settings->horario_apertura ?? '11:00',
+                'cierre' => $horarios[$dayName]['cierre'] ?? $settings->horario_cierre ?? '23:00',
+            ];
+        }
+
+        return [
+            'apertura' => $settings->horario_apertura ?? '11:00',
+            'cierre' => $settings->horario_cierre ?? '23:00',
+        ];
+    }
+
     public static function isOpen(): bool
     {
         $settings = self::getSettings();
-        
+
         $now = now()->locale('es');
         $dayName = ucfirst($now->dayName);
-        
+
         $diasLaborales = $settings->dias_laborales ?? ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-        
+
         if (!in_array($dayName, $diasLaborales)) {
             return false;
         }
-        
-        $apertura = \Carbon\Carbon::parse($settings->horario_apertura ?? '11:00');
-        $cierre = \Carbon\Carbon::parse($settings->horario_cierre ?? '23:00');
+
+        $hoy = self::getTodayHours();
+        $apertura = \Carbon\Carbon::parse($hoy['apertura']);
+        $cierre = \Carbon\Carbon::parse($hoy['cierre']);
         $horaActual = $now->copy();
-        
+
         if ($cierre < $apertura) {
             return $horaActual->gte($apertura) || $horaActual->lt($cierre);
         }
-        
+
         return $horaActual->gte($apertura) && $horaActual->lt($cierre);
     }
 }

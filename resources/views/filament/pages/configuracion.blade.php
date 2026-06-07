@@ -54,18 +54,6 @@
                     <h2 style="margin: 0; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">🕐 Horario de Atención</h2>
                 </div>
                 <div style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div>
-                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">Apertura</label>
-                            <input type="time" wire:model="horario_apertura" required style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 16px; font-size: 14px;">
-                            @error('horario_apertura') <span style="color: #ef4444; font-size: 12px;">{{ $message }}</span> @enderror
-                        </div>
-                        <div>
-                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">Cierre</label>
-                            <input type="time" wire:model="horario_cierre" required style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 16px; font-size: 14px;">
-                            @error('horario_cierre') <span style="color: #ef4444; font-size: 12px;">{{ $message }}</span> @enderror
-                        </div>
-                    </div>
                     <div>
                         <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Días Laborales</label>
                         <div style="display: flex; flex-wrap: wrap; gap: 8px;">
@@ -75,6 +63,36 @@
                                     <input type="checkbox" wire:model="dias_laborales" value="{{ $dia }}">
                                     {{ $dia }}
                                 </label>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 12px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">Horario General — Apertura</label>
+                            <input type="time" wire:model="horario_apertura" required style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 16px; font-size: 14px;">
+                            @error('horario_apertura') <span style="color: #ef4444; font-size: 12px;">{{ $message }}</span> @enderror
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">Horario General — Cierre</label>
+                            <input type="time" wire:model="horario_cierre" required style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 16px; font-size: 14px;">
+                            @error('horario_cierre') <span style="color: #ef4444; font-size: 12px;">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Horarios por Día <span style="font-weight: 400; color: #9ca3af;">(opcional — deja en blanco para usar el horario general)</span></label>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            @foreach(['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'] as $dia)
+                                <div style="display: grid; grid-template-columns: 120px 1fr 1fr; gap: 12px; align-items: center; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px; {{ in_array($dia, $dias_laborales ?? []) ? '' : 'opacity: 0.4;' }}">
+                                    <span style="font-size: 14px; font-weight: 600; color: #374151;">{{ $dia }}</span>
+                                    <div>
+                                        <label style="display: block; font-size: 12px; color: #6b7280; margin-bottom: 2px;">Apertura</label>
+                                        <input type="time" wire:model="horarios_por_dia.{{ $dia }}.apertura" style="width: 100%; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 12px; font-size: 14px;">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-size: 12px; color: #6b7280; margin-bottom: 2px;">Cierre</label>
+                                        <input type="time" wire:model="horarios_por_dia.{{ $dia }}.cierre" style="width: 100%; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 12px; font-size: 14px;">
+                                    </div>
+                                </div>
                             @endforeach
                         </div>
                     </div>

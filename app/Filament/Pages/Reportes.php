@@ -92,11 +92,11 @@ class Reportes extends Page
 
         $rows = (clone $baseQuery)
             ->select(
-                DB::raw("CAST(strftime('%w', created_at) AS INTEGER) as dia_num"),
+                DB::raw('(DAYOFWEEK(pedidos.created_at) - 1) as dia_num'),
                 DB::raw('COUNT(*) as total_pedidos'),
                 DB::raw('SUM(total) as total_ventas')
             )
-            ->groupBy(DB::raw("strftime('%w', created_at)"))
+            ->groupBy(DB::raw('DAYOFWEEK(pedidos.created_at)'))
             ->orderBy('total_ventas', 'desc')
             ->get()
             ->toArray();
@@ -116,11 +116,11 @@ class Reportes extends Page
     {
         $rows = (clone $baseQuery)
             ->select(
-                DB::raw("CAST(strftime('%H', created_at) AS INTEGER) as hora"),
+                DB::raw('HOUR(pedidos.created_at) as hora'),
                 DB::raw('COUNT(*) as total_pedidos'),
                 DB::raw('SUM(total) as total_ventas')
             )
-            ->groupBy(DB::raw("strftime('%H', created_at)"))
+            ->groupBy(DB::raw('HOUR(pedidos.created_at)'))
             ->orderBy('total_pedidos', 'desc')
             ->orderBy('total_ventas', 'desc')
             ->get()
@@ -212,12 +212,12 @@ class Reportes extends Page
         $rows = (clone $baseQuery)
             ->join('pedido_productos', 'pedidos.id', '=', 'pedido_productos.pedido_id')
             ->select(
-                DB::raw("json_extract(pedido_productos.mitades, '$[0].nombre') as sabor"),
+                DB::raw("JSON_UNQUOTE(JSON_EXTRACT(pedido_productos.mitades, '$[0].nombre')) as sabor"),
                 DB::raw('SUM(pedido_productos.cantidad) as total_cantidad')
             )
             ->whereNotNull('pedido_productos.mitades')
-            ->where(DB::raw("json_extract(pedido_productos.mitades, '$[0].nombre')"), '!=', '')
-            ->groupBy(DB::raw("json_extract(pedido_productos.mitades, '$[0].nombre')"))
+            ->where(DB::raw("JSON_UNQUOTE(JSON_EXTRACT(pedido_productos.mitades, '$[0].nombre'))"), '!=', '')
+            ->groupBy(DB::raw("JSON_UNQUOTE(JSON_EXTRACT(pedido_productos.mitades, '$[0].nombre'))"))
             ->get()
             ->toArray();
 
@@ -231,12 +231,12 @@ class Reportes extends Page
         $rows = (clone $baseQuery)
             ->join('pedido_productos', 'pedidos.id', '=', 'pedido_productos.pedido_id')
             ->select(
-                DB::raw("json_extract(pedido_productos.mitades, '$[1].nombre') as sabor"),
+                DB::raw("JSON_UNQUOTE(JSON_EXTRACT(pedido_productos.mitades, '$[1].nombre')) as sabor"),
                 DB::raw('SUM(pedido_productos.cantidad) as total_cantidad')
             )
             ->whereNotNull('pedido_productos.mitades')
-            ->where(DB::raw("json_extract(pedido_productos.mitades, '$[1].nombre')"), '!=', '')
-            ->groupBy(DB::raw("json_extract(pedido_productos.mitades, '$[1].nombre')"))
+            ->where(DB::raw("JSON_UNQUOTE(JSON_EXTRACT(pedido_productos.mitades, '$[1].nombre'))"), '!=', '')
+            ->groupBy(DB::raw("JSON_UNQUOTE(JSON_EXTRACT(pedido_productos.mitades, '$[1].nombre'))"))
             ->get()
             ->toArray();
 
