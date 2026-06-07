@@ -8,7 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement('PRAGMA foreign_keys=off');
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys=off');
+        } else {
+            DB::statement('SET foreign_key_checks=0');
+        }
 
         $tables = [
             'pedido_productos' => function ($newName) {
@@ -62,12 +66,20 @@ return new class extends Migration
             DB::statement("ALTER TABLE \"{$newName}\" RENAME TO \"{$oldName}\"");
         }
 
-        DB::statement('PRAGMA foreign_keys=on');
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys=on');
+        } else {
+            DB::statement('SET foreign_key_checks=1');
+        }
     }
 
     public function down(): void
     {
-        DB::statement('PRAGMA foreign_keys=off');
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys=off');
+        } else {
+            DB::statement('SET foreign_key_checks=0');
+        }
 
         $tables = [
             'puntos' => "CREATE TABLE \"puntos_new\" (
@@ -113,6 +125,10 @@ return new class extends Migration
             DB::statement("ALTER TABLE \"{$newName}\" RENAME TO \"{$oldName}\"");
         }
 
-        DB::statement('PRAGMA foreign_keys=on');
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys=on');
+        } else {
+            DB::statement('SET foreign_key_checks=1');
+        }
     }
 };

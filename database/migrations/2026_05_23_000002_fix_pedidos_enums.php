@@ -9,7 +9,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement('PRAGMA foreign_keys=off');
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys=off');
+        } else {
+            DB::statement('SET foreign_key_checks=0');
+        }
 
         Schema::rename('pedidos', 'pedidos_temp');
 
@@ -37,12 +41,20 @@ return new class extends Migration
                                notas, motivo_cancelacion, fecha_entrega, created_at, updated_at FROM pedidos_temp");
 
         DB::statement('DROP TABLE pedidos_temp');
-        DB::statement('PRAGMA foreign_keys=on');
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys=on');
+        } else {
+            DB::statement('SET foreign_key_checks=1');
+        }
     }
 
     public function down(): void
     {
-        DB::statement('PRAGMA foreign_keys=off');
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys=off');
+        } else {
+            DB::statement('SET foreign_key_checks=0');
+        }
         Schema::rename('pedidos', 'pedidos_temp');
 
         Schema::create('pedidos', function (Blueprint $table) {
@@ -64,6 +76,10 @@ return new class extends Migration
 
         DB::statement('INSERT INTO pedidos SELECT * FROM pedidos_temp');
         DB::statement('DROP TABLE pedidos_temp');
-        DB::statement('PRAGMA foreign_keys=on');
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys=on');
+        } else {
+            DB::statement('SET foreign_key_checks=1');
+        }
     }
 };
