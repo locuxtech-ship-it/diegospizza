@@ -1,9 +1,3 @@
-FROM node:20-alpine AS node
-WORKDIR /app
-COPY package.json package-lock.json vite.config.js ./
-COPY resources/ resources/
-RUN npm ci --frozen-lockfile && npm run build
-
 FROM php:8.3-fpm AS app_base
 RUN apt-get update && apt-get install -y \
     libzip-dev zip unzip git curl libpng-dev libonig-dev libxml2-dev libicu-dev supervisor \
@@ -14,7 +8,6 @@ WORKDIR /var/www
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 COPY --chown=www-data:www-data . .
-COPY --from=node /app/public/build /var/www/public/build
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 FROM app_base AS app
@@ -27,5 +20,5 @@ EXPOSE 9000
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 FROM nginx:alpine AS nginx
-COPY --from=app /var/www/public/build /var/www/public/build
+COPY --from=app /var/www/public /var/www/public
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
