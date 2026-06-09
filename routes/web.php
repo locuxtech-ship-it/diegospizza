@@ -24,6 +24,32 @@ Route::get('/admin/print-config', function () {
 
 Route::match(['GET', 'POST'], '/api/whatsapp/webhook', [WhatsAppController::class, 'webhook'])->name('whatsapp.webhook');
 
+Route::get('/api/agent/pendientes', function () {
+    $key = request('key');
+    $expectedKey = config('services.print_agent.key');
+    if (!$expectedKey || $key !== $expectedKey) {
+        return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
+    }
+    $afterId = (int) request('after_id', 0);
+    $pedidos = App\Models\Pedido::with('cliente')
+        ->where('estado', 'pendiente_pago')
+        ->whereDate('created_at', today())
+        ->where('id', '>', $afterId)
+        ->orderBy('created_at')
+        ->get();
+    $orders = [];
+    foreach ($pedidos as $p) {
+        $controller = new App\Http\Controllers\TicketController();
+        $rawResponse = $controller->raw($p);
+        $orders[] = [
+            'id' => $p->id,
+            'numero_pedido' => $p->numero_pedido,
+            'raw_text' => $rawResponse->getContent(),
+        ];
+    }
+    return response()->json(['ok' => true, 'orders' => $orders]);
+});
+
 Route::get('/api/pedidos/pendientes', function () {
     if (!auth()->check()) {
         return response()->json(['count' => 0, 'pedidos' => []]);

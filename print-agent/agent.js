@@ -1,4 +1,5 @@
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
@@ -6,12 +7,13 @@ const os = require('os');
 
 const PORT = 8192;
 const CONFIG_PATH = path.join(os.homedir(), '.diegospizza-print-agent.json');
+const POLL_INTERVAL = 4000;
 
 function loadConfig() {
     try {
         return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
     } catch {
-        return { printer: '' };
+        return { server_url: 'https://diegospizzabq.click', api_key: '', printer: '', last_printed_id: 0 };
     }
 }
 
@@ -42,14 +44,60 @@ function printText(text, printerName, callback) {
 
 function listPrinters(callback) {
     exec('powershell -Command "Get-Printer | Select-Object -ExpandProperty Name"', (err, stdout) => {
-        if (err) {
-            callback([]);
-            return;
-        }
+        if (err) { callback([]); return; }
         callback(stdout.trim().split('\n').map(s => s.trim()).filter(Boolean));
     });
 }
 
+function fetchJson(url, callback) {
+    const client = url.startsWith('https') ? https : http;
+    client.get(url, { rejectUnauthorized: false }, (res) => {
+        let data = '';
+        res.on('data', c => data += c);
+        res.on('end', () => {
+            try { callback(null, JSON.parse(data)); }
+            catch (e) { callback(e, null); }
+        });
+    }).on('error', (e) => callback(e, null));
+}
+
+function pollServer() {
+    const config = loadConfig();
+    if (!config.api_key || !config.server_url) return;
+
+    const url = config.server_url + '/api/agent/pendientes?key=' + encodeURIComponent(config.api_key) + '&after_id=' + config.last_printed_id;
+
+    fetchJson(url, (err, data) => {
+        if (err || !data || !data.ok || !data.orders) return;
+
+        data.orders.forEach(function(order) {
+            if (!order.raw_text) return;
+            printText(order.raw_text, config.printer, function(result) {
+                if (result.ok) {
+                    console.log('Impreso: Pedido #' + order.numero_pedido + ' (ID ' + order.id + ')');
+                    var cfg = loadConfig();
+                    if (order.id > cfg.last_printed_id) {
+                        cfg.last_printed_id = order.id;
+                        saveConfig(cfg);
+                    }
+                } else {
+                    console.log('Error imprimiendo Pedido #' + order.numero_pedido + ': ' + (result.error || 'desconocido'));
+                }
+            });
+        });
+
+        if (data.orders.length > 0) {
+            var maxId = data.orders.reduce(function(m, o) { return o.id > m ? o.id : m; }, 0);
+            var cfg = loadConfig();
+            if (maxId > cfg.last_printed_id) {
+                cfg.last_printed_id = maxId;
+                saveConfig(cfg);
+            }
+        }
+    });
+}
+
+// HTTP server for config/status
 const server = http.createServer((req, res) => {
     const send = (data, code = 200) => {
         res.writeHead(code, {
@@ -61,10 +109,7 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify(data));
     };
 
-    if (req.method === 'OPTIONS') {
-        send({ ok: true });
-        return;
-    }
+    if (req.method === 'OPTIONS') { send({ ok: true }); return; }
 
     const url = new URL(req.url, `http://localhost:${PORT}`);
 
@@ -79,7 +124,8 @@ const server = http.createServer((req, res) => {
     }
 
     if (req.method === 'GET' && url.pathname === '/config') {
-        send({ ok: true, config: loadConfig() });
+        var c = loadConfig();
+        send({ ok: true, config: { printer: c.printer, server_url: c.server_url, last_printed_id: c.last_printed_id } });
         return;
     }
 
@@ -89,7 +135,11 @@ const server = http.createServer((req, res) => {
         req.on('end', () => {
             try {
                 const data = JSON.parse(body);
-                saveConfig({ printer: data.printer || '' });
+                var cfg = loadConfig();
+                if (data.printer !== undefined) cfg.printer = data.printer;
+                if (data.server_url !== undefined) cfg.server_url = data.server_url;
+                if (data.api_key !== undefined) cfg.api_key = data.api_key;
+                saveConfig(cfg);
                 send({ ok: true });
             } catch { send({ ok: false, error: 'Invalid JSON' }, 400); }
         });
@@ -115,13 +165,20 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, '127.0.0.1', () => {
     console.log('=== Diego\'s Pizza Print Agent ===');
-    console.log(`Servidor iniciado en http://localhost:${PORT}`);
-    console.log('Configuracion: ~/.diegospizza-print-agent.json');
+    console.log(`Servidor local: http://localhost:${PORT}`);
+    console.log('Polling cada ' + (POLL_INTERVAL / 1000) + 's');
     console.log('');
-    console.log('Endpoints:');
-    console.log('  GET  /ping       - Verificar agente');
-    console.log('  GET  /printers   - Listar impresoras');
-    console.log('  GET  /config     - Ver config actual');
-    console.log('  POST /config     - Guardar config');
-    console.log('  POST /print      - Imprimir ticket');
+
+    const config = loadConfig();
+    if (!config.api_key) {
+        console.log('[!] API key no configurada.');
+        console.log('    Ejecuta setup.bat para configurar.');
+    } else {
+        console.log('API key: ' + config.api_key.substring(0, 4) + '...');
+        console.log('Servidor: ' + config.server_url);
+        console.log('Impresora: ' + (config.printer || 'por defecto'));
+        console.log('Ultimo ID impreso: ' + config.last_printed_id);
+    }
+
+    setInterval(pollServer, POLL_INTERVAL);
 });

@@ -42,4 +42,8 @@ return [
         'business_account_id' => env('WHATSAPP_BUSINESS_ACCOUNT_ID'),
     ],
 
+    'print_agent' => [
+        'key' => env('PRINT_AGENT_KEY'),
+    ],
+
 ];

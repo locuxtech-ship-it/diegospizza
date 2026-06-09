@@ -19,22 +19,52 @@ if %ERRORLEVEL% neq 0 (
 )
 
 set "SCRIPT_DIR=%~dp0"
-set "TASK_NAME=DiegosPizzaPrintAgent"
+set "CONFIG_FILE=%USERPROFILE%\.diegospizza-print-agent.json"
 
-:: Remove existing task if any
+:: Get server URL
+set /p SERVER_URL="URL del servidor [https://diegospizzabq.click]: "
+if "%SERVER_URL%"=="" set "SERVER_URL=https://diegospizzabq.click"
+
+:: Get API key
+set /p API_KEY="API Key (se la proporciona el administrador): "
+
+:: Get printer name (optional)
+echo.
+echo Impresoras disponibles:
+node "%SCRIPT_DIR%agent.js" --list-printers 2>nul || powershell -Command "Get-Printer | Format-Table Name,DriverName -AutoSize" 2>nul
+echo.
+set /p PRINTER="Nombre de la impresora (dejar vacio para usar la predeterminada): "
+
+:: Save config
+if exist "%CONFIG_FILE%" (
+    for /f "usebackq delims=" %%a in ("%CONFIG_FILE%") do set OLD_CONFIG=%%a
+) else (
+    set OLD_CONFIG={}
+)
+
+echo {> "%CONFIG_FILE%"
+echo   "server_url": "%SERVER_URL%",>> "%CONFIG_FILE%"
+echo   "api_key": "%API_KEY%",>> "%CONFIG_FILE%"
+echo   "printer": "%PRINTER%",>> "%CONFIG_FILE%"
+echo   "last_printed_id": 0>> "%CONFIG_FILE%"
+echo }>> "%CONFIG_FILE%"
+
+echo [OK] Configuracion guardada.
+
+:: Create scheduled task
+set "TASK_NAME=DiegosPizzaPrintAgent"
 schtasks /query /tn "%TASK_NAME%" >nul 2>&1
 if %ERRORLEVEL% equ 0 (
     echo Eliminando tarea existente...
     schtasks /delete /tn "%TASK_NAME%" /f >nul
 )
 
-:: Create scheduled task (hidden via VBS wrapper)
 echo Creando tarea programada...
 schtasks /create /tn "%TASK_NAME%" /tr "wscript.exe \"%SCRIPT_DIR%start.vbs\"" /sc onlogon /rl limited /f >nul
 
 if %ERRORLEVEL% neq 0 (
     echo [ERROR] No se pudo crear la tarea programada.
-    echo Intenta ejecutar como Administrador (clic derecho ^> Ejecutar como admnistrador).
+    echo Intenta ejecutar como Administrador.
     pause
     exit /b 1
 )
@@ -42,15 +72,13 @@ if %ERRORLEVEL% neq 0 (
 echo [OK] Tarea creada: %TASK_NAME%
 echo.
 
-:: Start now (hidden)
+:: Start now
 echo Iniciando agente...
 wscript.exe "%SCRIPT_DIR%start.vbs"
 
-echo [OK] Agente iniciado en http://localhost:8192
+echo [OK] Agente iniciado.
 echo.
-echo El agente se iniciara automaticamente al iniciar sesion en Windows.
-echo - Para verificar: abrir http://localhost:8192/ping en el navegador
-echo - Para detener: schtasks /end /tn "%TASK_NAME%"
-echo - Para desinstalar: schtasks /delete /tn "%TASK_NAME%" /f
+echo El agente imprimira automaticamente los pedidos nuevos.
+echo Para verificar: http://localhost:8192/ping
 echo.
 pause

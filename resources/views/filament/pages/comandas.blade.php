@@ -567,16 +567,8 @@
         setInterval(pdvBuscarNuevos, 5000);
 
         function printPedido(id) {
-            var agentUrl = 'http://127.0.0.1:8192';
-            var fallback = function() {
-                var w = window.open('/admin/ticket/' + id, '_blank', 'width=400,height=600,menubar=no,toolbar=no,location=no');
-                if (w) w.focus();
-            };
-            fetch('/admin/ticket/' + id + '/raw').then(function(r){ return r.text(); }).then(function(text){
-                return fetch(agentUrl + '/print', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: text }) });
-            }).then(function(r){
-                if (!r.ok) fallback();
-            }).catch(function(){ fallback(); });
+            var w = window.open('/admin/ticket/' + id, '_blank', 'width=400,height=600,menubar=no,toolbar=no,location=no');
+            if (w) w.focus();
         }
 
         window.probarNotificacion = function() {
