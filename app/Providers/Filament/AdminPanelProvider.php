@@ -76,6 +76,15 @@ class AdminPanelProvider extends PanelProvider
     public function boot(): void
     {
         FilamentView::registerRenderHook(
+            'panels::head.start',
+            fn (): string => '<meta name="theme-color" content="#f47b20">
+                <meta name="apple-mobile-web-app-capable" content="yes">
+                <link rel="manifest" href="/manifest-admin.json">
+                <link rel="icon" type="image/x-icon" href="/favicon.ico">
+                <link rel="apple-touch-icon" href="/images/icon-admin-192x192.png">'
+        );
+
+        FilamentView::registerRenderHook(
             'panels::body.end',
             fn (): string => auth()->check() && in_array(auth()->user()->role, ['admin', 'cajero'])
                 ? view('partials.global-notifications')->render()
