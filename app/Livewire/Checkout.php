@@ -237,7 +237,7 @@ class Checkout extends Component
         $formato = fn($v) => '$ ' . number_format($v, 0, ',', '.');
 
         $lineas = [];
-        $lineas[] = 'Vengo de https://diegospizzabq.ola.click';
+        $lineas[] = 'Vengo de https://diegospizzabq.click';
         $lineas[] = 'CO-' . $pedido->numero_pedido;
         $lineas[] = '🗓️ ' . $pedido->created_at->format('d/m/Y') . ' ⏰ ' . $pedido->created_at->format('h:i a');
         $lineas[] = '';
@@ -249,8 +249,8 @@ class Checkout extends Component
         $lineas[] = '';
         $lineas[] = '📝 Productos';
         foreach ($this->items as $item) {
-            $variant = !empty($item['variant_tamanio']) ? ' (' . $item['variant_tamanio'] . ')' : '';
             $mitades = !empty($item['mitades']) ? ' [' . collect($item['mitades'])->pluck('nombre')->implode(' / ') . ']' : '';
+            $variant = !empty($item['variant_tamanio']) && empty($item['mitades']) ? ' (' . $item['variant_tamanio'] . ')' : '';
             $lineas[] = 'X' . $item['cantidad'] . ' ' . $item['nombre'] . $variant . $mitades . '  ' . $formato($item['precio'] * $item['cantidad']);
         }
         $lineas[] = '';
