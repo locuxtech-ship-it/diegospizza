@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\WhatsAppController;
 use App\Livewire\Checkout;
 use App\Livewire\Menu;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +21,8 @@ Route::get('/admin/print-config', function () {
         'auto_print' => $s->imprimir_automaticamente ?? false,
     ]);
 });
+
+Route::match(['GET', 'POST'], '/api/whatsapp/webhook', [WhatsAppController::class, 'webhook'])->name('whatsapp.webhook');
 
 Route::get('/api/pedidos/pendientes', function () {
     if (!auth()->check()) {
