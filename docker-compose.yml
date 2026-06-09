@@ -23,6 +23,7 @@ services:
       - QUEUE_CONNECTION=database
       - CACHE_STORE=database
       - TZ=America/Bogota
+      - PRINT_AGENT_KEY=${PRINT_AGENT_KEY}
     depends_on:
       db:
         condition: service_healthy
