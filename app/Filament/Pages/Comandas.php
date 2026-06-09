@@ -354,7 +354,18 @@ class Comandas extends Page
         }
 
         $restante = $this->totalConDescuento - $this->totalPagado;
-        $monto = min($this->pagoMonto, $restante);
+        if ($restante <= 0) {
+            Notification::make()->title('Este pedido ya está completamente pagado')->danger()->send();
+            return;
+        }
+        $monto = (float) $this->pagoMonto;
+        if ($monto > $restante) {
+            Notification::make()
+                ->title('El monto ingresado ($' . number_format($monto, 0, ',', '.') . ') supera el saldo pendiente ($' . number_format($restante, 0, ',', '.') . ')')
+                ->danger()
+                ->send();
+            return;
+        }
 
         Pago::create([
             'pedido_id' => $this->pedidoPagoId,
