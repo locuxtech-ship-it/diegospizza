@@ -435,69 +435,75 @@
     @endif
 
     <script>
-        var pdvAudio = null;
-        var pdvAlarmaUrl = null;
+        var pdvCtx = null;
+        var pdvAlarmInterval = null;
         var pdvIdsAlertando = {};
-        var pdvPlayPendiente = false;
 
-        function pdvGenWav() {
-            var sr = 44100, dur = 0.6, len = sr * dur;
-            var buf = new ArrayBuffer(44 + len * 2);
-            var d = new DataView(buf);
-            function w(i, s) { for (var j = 0; j < s.length; j++) d.setUint8(i + j, s.charCodeAt(j)); }
-            w(0, 'RIFF'); d.setUint32(4, 36 + len * 2, true);
-            w(8, 'WAVE'); w(12, 'fmt ');
-            d.setUint32(16, 16, true); d.setUint16(20, 1, true); d.setUint16(22, 1, true);
-            d.setUint32(24, sr, true); d.setUint32(28, sr * 2, true);
-            d.setUint16(32, 2, true); d.setUint16(34, 16, true);
-            w(36, 'data'); d.setUint32(40, len * 2, true);
-            for (var i = 0; i < len; i++) {
-                var t = i / sr;
-                var freq = (Math.floor(t / 0.3) % 2 === 0) ? 880 : 660;
-                var val = (Math.floor(i * freq / sr) % 2 === 0) ? 0.95 : -0.95;
-                d.setInt16(44 + i * 2, val < 0 ? val * 0x8000 : val * 0x7FFF, true);
-            }
-            return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+        function pdvInitAudio() {
+            if (pdvCtx) return;
+            try {
+                pdvCtx = new (window.AudioContext || window.webkitAudioContext)();
+                pdvCtx.resume();
+            } catch(e) {}
         }
 
-        function pdvReproducir() {
-            if (!pdvAudio) return;
-            pdvAudio.play().then(function(){ pdvPlayPendiente = false; }).catch(function(){ pdvPlayPendiente = true; });
+        var pdvKeepAliveInterval = null;
+        function pdvKeepAlive() {
+            if (!pdvCtx) return;
+            try {
+                if (pdvCtx.state === 'suspended') pdvCtx.resume();
+                var now = pdvCtx.currentTime;
+                var g = pdvCtx.createGain();
+                g.gain.value = 0.001;
+                g.connect(pdvCtx.destination);
+                var o = pdvCtx.createOscillator();
+                o.type = 'sine'; o.frequency.value = 20;
+                o.connect(g); o.start(now); o.stop(now + 0.05);
+            } catch(e){}
+        }
+        async function pdvTocarBeep() {
+            if (!pdvCtx) return;
+            try {
+                if (pdvCtx.state === 'suspended') await pdvCtx.resume();
+                var now = pdvCtx.currentTime;
+                var g = pdvCtx.createGain();
+                g.gain.setValueAtTime(0.5, now);
+                g.gain.setValueAtTime(0.5, now + 0.25);
+                g.gain.setValueAtTime(0, now + 0.5);
+                g.connect(pdvCtx.destination);
+                var o1 = pdvCtx.createOscillator();
+                o1.type = 'square'; o1.frequency.value = 880;
+                o1.connect(g); o1.start(now); o1.stop(now + 0.5);
+                var o2 = pdvCtx.createOscillator();
+                o2.type = 'square'; o2.frequency.value = 660;
+                o2.connect(g); o2.start(now + 0.25); o2.stop(now + 0.5);
+            } catch(e){}
         }
 
         function pdvIniciarAlarma(pedido) {
+            if (pdvIdsAlertando[pedido.id]) return;
             pdvIdsAlertando[pedido.id] = true;
-            if (!pdvAudio) {
-                pdvAudio = new Audio();
-                if (!pdvAlarmaUrl) pdvAlarmaUrl = pdvGenWav();
-                pdvAudio.src = pdvAlarmaUrl;
-                pdvAudio.loop = true;
-                pdvAudio.volume = 1.0;
-                pdvAudio.preload = 'auto';
+            if (!pdvCtx) pdvInitAudio();
+            pdvTocarBeep();
+            if (!pdvKeepAliveInterval) {
+                pdvKeepAliveInterval = setInterval(pdvKeepAlive, 30000);
             }
-            pdvReproducir();
+            if (!pdvAlarmInterval) {
+                pdvAlarmInterval = setInterval(function(){
+                    if (Object.keys(pdvIdsAlertando).length > 0) pdvTocarBeep();
+                }, 2000);
+            }
         }
 
         function pdvDetenerAlarma(pedidoId) {
             delete pdvIdsAlertando[pedidoId];
-            if (Object.keys(pdvIdsAlertando).length === 0 && pdvAudio) {
-                pdvAudio.pause();
-                pdvAudio.currentTime = 0;
-                pdvPlayPendiente = false;
+            if (Object.keys(pdvIdsAlertando).length === 0) {
+                if (pdvAlarmInterval) { clearInterval(pdvAlarmInterval); pdvAlarmInterval = null; }
+                if (pdvKeepAliveInterval) { clearInterval(pdvKeepAliveInterval); pdvKeepAliveInterval = null; }
             }
         }
 
-        document.addEventListener('click', function() {
-            if (pdvPlayPendiente && Object.keys(pdvIdsAlertando).length > 0) {
-                pdvReproducir();
-            }
-        });
-
-        document.addEventListener('visibilitychange', function() {
-            if (!document.hidden && Object.keys(pdvIdsAlertando).length > 0) {
-                pdvReproducir();
-            }
-        });
+        document.addEventListener('click', pdvInitAudio, { once: true });
 
         function pdvToast(p) {
             var c = document.getElementById('pdv-toast-container');
@@ -546,8 +552,7 @@
                         pdvSystemNotif(p);
                         pdvFlash(p);
                         try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e){}
-                        var w = window.open('/admin/ticket/'+p.id, '_blank', 'width=400,height=600,menubar=no,toolbar=no,location=no');
-                        if (w) w.focus();
+                        printPedido(p.id);
                     });
                 }
                 pdvUltimosIds = ids;
@@ -562,11 +567,20 @@
         setInterval(pdvBuscarNuevos, 5000);
 
         function printPedido(id) {
-            var w = window.open('/admin/ticket/' + id, '_blank', 'width=400,height=600,menubar=no,toolbar=no,location=no');
-            if (w) w.focus();
+            var agentUrl = 'http://127.0.0.1:8192';
+            var fallback = function() {
+                var w = window.open('/admin/ticket/' + id, '_blank', 'width=400,height=600,menubar=no,toolbar=no,location=no');
+                if (w) w.focus();
+            };
+            fetch('/admin/ticket/' + id + '/raw').then(function(r){ return r.text(); }).then(function(text){
+                return fetch(agentUrl + '/print', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: text }) });
+            }).then(function(r){
+                if (!r.ok) fallback();
+            }).catch(function(){ fallback(); });
         }
 
         window.probarNotificacion = function() {
+            pdvInitAudio();
             var p = { id: 999999, numero_pedido: 'TEST', cliente: { nombre: 'Prueba' }, total: 50000, origen: 'web' };
             pdvIniciarAlarma(p);
             pdvToast(p);

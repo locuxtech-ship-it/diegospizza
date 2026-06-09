@@ -1,89 +1,127 @@
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 const { exec } = require('child_process');
+const os = require('os');
 
-const PORT = 9199;
+const PORT = 8192;
+const CONFIG_PATH = path.join(os.homedir(), '.diegospizza-print-agent.json');
+
+function loadConfig() {
+    try {
+        return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    } catch {
+        return { printer: '' };
+    }
+}
+
+function saveConfig(config) {
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+}
+
+function printText(text, printerName, callback) {
+    const tmpFile = path.join(os.tmpdir(), 'ticket_' + Date.now() + '.txt');
+    fs.writeFileSync(tmpFile, text, 'utf8');
+
+    let cmd;
+    if (printerName) {
+        cmd = `powershell -Command "Get-Content '${tmpFile}' | Out-Printer -Name '${printerName}'"`;
+    } else {
+        cmd = `powershell -Command "Get-Content '${tmpFile}' | Out-Printer"`;
+    }
+
+    exec(cmd, (err, stdout, stderr) => {
+        try { fs.unlinkSync(tmpFile); } catch {}
+        if (err) {
+            callback({ ok: false, error: stderr || err.message });
+        } else {
+            callback({ ok: true });
+        }
+    });
+}
+
+function listPrinters(callback) {
+    exec('powershell -Command "Get-Printer | Select-Object -ExpandProperty Name"', (err, stdout) => {
+        if (err) {
+            callback([]);
+            return;
+        }
+        callback(stdout.trim().split('\n').map(s => s.trim()).filter(Boolean));
+    });
+}
 
 const server = http.createServer((req, res) => {
-    const cors = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+    const send = (data, code = 200) => {
+        res.writeHead(code, {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+        });
+        res.end(JSON.stringify(data));
     };
 
     if (req.method === 'OPTIONS') {
-        res.writeHead(204, cors);
-        res.end();
+        send({ ok: true });
         return;
     }
 
-    if (req.method === 'GET' && req.url === '/ping') {
-        res.writeHead(200, { 'Content-Type': 'application/json', ...cors });
-        res.end(JSON.stringify({ ok: true }));
+    const url = new URL(req.url, `http://localhost:${PORT}`);
+
+    if (req.method === 'GET' && url.pathname === '/ping') {
+        send({ ok: true, hostname: os.hostname() });
         return;
     }
 
-    if (req.method === 'POST' && req.url === '/print') {
+    if (req.method === 'GET' && url.pathname === '/printers') {
+        listPrinters(printers => send({ ok: true, printers }));
+        return;
+    }
+
+    if (req.method === 'GET' && url.pathname === '/config') {
+        send({ ok: true, config: loadConfig() });
+        return;
+    }
+
+    if (req.method === 'POST' && url.pathname === '/config') {
         let body = '';
-        req.on('data', chunk => body += chunk);
+        req.on('data', c => body += c);
         req.on('end', () => {
             try {
                 const data = JSON.parse(body);
-                const { pedido_id, server_url } = data;
-
-                if (!pedido_id || !server_url) {
-                    res.writeHead(400, { 'Content-Type': 'application/json', ...cors });
-                    res.end(JSON.stringify({ error: 'Faltan pedido_id o server_url' }));
-                    return;
-                }
-
-                const ticketUrl = server_url.replace(/\/+$/, '') + '/admin/ticket/' + pedido_id + '?t=' + Date.now();
-                console.log('Abriendo ticket #' + pedido_id + ': ' + ticketUrl);
-
-                // Force Chrome/Edge to open the URL directly
-                // The ticket page has window.onload = window.print() so it prints automatically
-                exec('start msedge "' + ticketUrl + '"', { timeout: 10000 }, (err, stdout, stderr) => {
-                    if (err) {
-                        exec('start chrome "' + ticketUrl + '"', { timeout: 10000 }, (err2) => {
-                            if (err2) {
-                                exec('start "" "' + ticketUrl + '"', { timeout: 10000 }, (err3) => {
-                                    if (err3) {
-                                        console.error('Error abriendo ticket #' + pedido_id);
-                                        res.writeHead(500, { 'Content-Type': 'application/json', ...cors });
-                                        res.end(JSON.stringify({ error: err3.message }));
-                                    } else {
-                                        console.log('Ticket #' + pedido_id + ' abierto (navegador por defecto)');
-                                        res.writeHead(200, { 'Content-Type': 'application/json', ...cors });
-                                        res.end(JSON.stringify({ ok: true }));
-                                    }
-                                });
-                            } else {
-                                console.log('Ticket #' + pedido_id + ' abierto en Chrome');
-                                res.writeHead(200, { 'Content-Type': 'application/json', ...cors });
-                                res.end(JSON.stringify({ ok: true }));
-                            }
-                        });
-                    } else {
-                        console.log('Ticket #' + pedido_id + ' abierto en Edge');
-                        res.writeHead(200, { 'Content-Type': 'application/json', ...cors });
-                        res.end(JSON.stringify({ ok: true }));
-                    }
-                });
-            } catch (e) {
-                res.writeHead(500, { 'Content-Type': 'application/json', ...cors });
-                res.end(JSON.stringify({ error: e.message }));
-            }
+                saveConfig({ printer: data.printer || '' });
+                send({ ok: true });
+            } catch { send({ ok: false, error: 'Invalid JSON' }, 400); }
         });
         return;
     }
 
-    res.writeHead(404, cors);
-    res.end();
+    if (req.method === 'POST' && url.pathname === '/print') {
+        let body = '';
+        req.on('data', c => body += c);
+        req.on('end', () => {
+            try {
+                const data = JSON.parse(body);
+                const config = loadConfig();
+                const printerName = data.printer || config.printer || '';
+                printText(data.text, printerName, result => send(result));
+            } catch { send({ ok: false, error: 'Invalid JSON' }, 400); }
+        });
+        return;
+    }
+
+    send({ ok: false, error: 'Not found' }, 404);
 });
 
 server.listen(PORT, '127.0.0.1', () => {
+    console.log('=== Diego\'s Pizza Print Agent ===');
+    console.log(`Servidor iniciado en http://localhost:${PORT}`);
+    console.log('Configuracion: ~/.diegospizza-print-agent.json');
     console.log('');
-    console.log('=== Diego\'s Pizza — Agente de Impresión ===');
-    console.log('Escuchando en http://127.0.0.1:' + PORT);
-    console.log('Presiona Ctrl+C para detener');
-    console.log('');
+    console.log('Endpoints:');
+    console.log('  GET  /ping       - Verificar agente');
+    console.log('  GET  /printers   - Listar impresoras');
+    console.log('  GET  /config     - Ver config actual');
+    console.log('  POST /config     - Guardar config');
+    console.log('  POST /print      - Imprimir ticket');
 });
