@@ -9,6 +9,12 @@
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="apple-touch-icon" href="/images/icon-192x192.png">
+    <meta property="og:title" content="Diego's Pizza Alameda - Información">
+    <meta property="og:description" content="Pide en nuestro menú digital. Obtén toda la información aquí">
+    <meta property="og:image" content="https://diegospizzabq.click/logo.png">
+    <meta property="og:url" content="https://diegospizzabq.click">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
     <title>{{ $title ?? "Diego's Pizza" }} - Diego's Pizza</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
