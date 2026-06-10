@@ -76,6 +76,7 @@ class Comandas extends Page
     public $descuentoValor = 0;
     public $descuentoAplicado = 0;
     public $totalConDescuento = 0;
+    public $pagoError = '';
 
     public function mount(): void
     {
@@ -235,6 +236,7 @@ class Comandas extends Page
 
     public function cargarPagos(): void
     {
+        $this->pagoError = '';
         $this->pagosRegistrados = Pago::where('pedido_id', $this->pedidoPagoId)
             ->where('confirmado', true)->get()->toArray();
         $this->totalPagado = (float) array_sum(array_column($this->pagosRegistrados, 'monto'));
@@ -355,17 +357,15 @@ class Comandas extends Page
 
         $restante = $this->totalConDescuento - $this->totalPagado;
         if ($restante <= 0) {
-            Notification::make()->title('Este pedido ya está completamente pagado')->danger()->send();
+            $this->pagoError = 'Este pedido ya está completamente pagado';
             return;
         }
         $monto = (float) $this->pagoMonto;
         if ($monto > $restante) {
-            Notification::make()
-                ->title('El monto ingresado ($' . number_format($monto, 0, ',', '.') . ') supera el saldo pendiente ($' . number_format($restante, 0, ',', '.') . ')')
-                ->danger()
-                ->send();
+            $this->pagoError = 'El monto ingresado ($' . number_format($monto, 0, ',', '.') . ') supera el saldo pendiente ($' . number_format($restante, 0, ',', '.') . ')';
             return;
         }
+        $this->pagoError = '';
 
         Pago::create([
             'pedido_id' => $this->pedidoPagoId,

@@ -264,6 +264,11 @@
                     <input type="number" step="1" wire:model.live="descuentoValor" min="0" placeholder="0" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px; width: 80px;">
                 </div>
                 @endcan
+                @if($pagoError)
+                <div style="margin-top: 8px; padding: 10px 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #dc2626; font-size: 13px; font-weight: 500; text-align: center;">
+                    ⚠️ {{ $pagoError }}
+                </div>
+                @endif
             </div>
             @endif
 

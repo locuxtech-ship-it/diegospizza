@@ -327,6 +327,12 @@
                     <span>Estado</span>
                     <span style="font-weight: 600; color: {{ $restante > 0 ? '#f59e0b' : '#16a34a' }};">{{ $restante > 0 ? 'Pendiente' : 'Pagado' }}</span>
                 </div>
+                @if($restante > 0)
+                <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; color: #dc2626; border-top: 1px dashed #e5e7eb; padding-top: 6px; margin-top: 6px;">
+                    <span>Saldo pendiente</span>
+                    <span>${{ number_format($restante, 0, ',', '.') }}</span>
+                </div>
+                @endif
                 <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; color: #111827; border-top: 1px solid #e5e7eb; padding-top: 8px; margin-top: 8px;">
                     <span>Total</span>
                     <span>${{ number_format($totalConDescuento, 0, ',', '.') }}</span>
@@ -355,6 +361,11 @@
                         💳 Registrar pago
                     </x-filament::button>
                 </div>
+                @if($pagoError)
+                <div style="margin-top: 8px; padding: 10px 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #dc2626; font-size: 13px; font-weight: 500; text-align: center;">
+                    ⚠️ {{ $pagoError }}
+                </div>
+                @endif
                 {{-- Descuento --}}
                 @can('applyDiscount', auth()->user())
                 <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center;">
