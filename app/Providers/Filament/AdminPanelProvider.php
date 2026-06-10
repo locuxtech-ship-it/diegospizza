@@ -85,6 +85,23 @@ class AdminPanelProvider extends PanelProvider
         );
 
         FilamentView::registerRenderHook(
+            'panels::body.start',
+            function (): string {
+                if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'cajero'])) return '';
+                $abierto = \App\Models\NegocioSetting::isOpen();
+                $hoy = \App\Models\NegocioSetting::getTodayHours();
+                $dia = ucfirst(now()->locale('es')->dayName);
+                $color = $abierto ? '#16a34a' : '#dc2626';
+                $icono = $abierto ? '🟢' : '🔴';
+                $texto = $abierto ? 'Abierto' : 'Cerrado';
+                return '<div style="background:' . $color . ';color:white;text-align:center;padding:6px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;">
+                    <span>' . $icono . ' Menú Digital: ' . $texto . '</span>
+                    <span style="opacity:0.85;">— ' . $dia . ' ' . $hoy['apertura'] . ' a ' . $hoy['cierre'] . '</span>
+                </div>';
+            }
+        );
+
+        FilamentView::registerRenderHook(
             'panels::body.end',
             fn (): string => auth()->check() && in_array(auth()->user()->role, ['admin', 'cajero'])
                 ? view('partials.global-notifications')->render()
