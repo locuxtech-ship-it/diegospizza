@@ -578,8 +578,19 @@
         setInterval(pdvBuscarNuevos, 5000);
 
         function printPedido(id) {
-            var w = window.open('/admin/ticket/' + id, '_blank', 'width=400,height=600,menubar=no,toolbar=no,location=no');
-            if (w) w.focus();
+            var iframe = document.getElementById('pdv-print-frame');
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'pdv-print-frame';
+                iframe.style = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;';
+                document.body.appendChild(iframe);
+            }
+            iframe.src = '/admin/ticket/' + id;
+            iframe.onload = function() {
+                setTimeout(function() {
+                    try { iframe.contentWindow.print(); } catch(e) {}
+                }, 500);
+            };
         }
 
         window.probarNotificacion = function() {

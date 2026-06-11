@@ -7,7 +7,14 @@ const os = require('os');
 
 const PORT = 8192;
 const CONFIG_PATH = path.join(os.homedir(), '.diegospizza-print-agent.json');
+const LOG_PATH = path.join(os.homedir(), '.diegospizza-print-agent.log');
 const POLL_INTERVAL = 4000;
+
+function log(msg) {
+    var line = new Date().toISOString() + ' ' + msg;
+    console.log(line);
+    try { fs.appendFileSync(LOG_PATH, line + '\n'); } catch(e) {}
+}
 
 function loadConfig() {
     try {
@@ -63,25 +70,48 @@ function fetchJson(url, callback) {
 
 function pollServer() {
     const config = loadConfig();
-    if (!config.api_key || !config.server_url) return;
+    if (!config.api_key || !config.server_url) {
+        log('[!] API key o URL no configurada');
+        return;
+    }
 
     const url = config.server_url + '/api/agent/pendientes?key=' + encodeURIComponent(config.api_key) + '&after_id=' + config.last_printed_id;
 
+    log('Consultando ' + config.server_url + ' (after_id=' + config.last_printed_id + ')');
+
     fetchJson(url, (err, data) => {
-        if (err || !data || !data.ok || !data.orders) return;
+        if (err) {
+            log('[ERROR] Conexion fallida: ' + err.message);
+            return;
+        }
+        if (!data || !data.ok) {
+            log('[ERROR] Respuesta invalida del servidor');
+            return;
+        }
+        if (!data.orders || data.orders.length === 0) {
+            log('Sin pedidos nuevos');
+            return;
+        }
+
+        log('Pedidos nuevos: ' + data.orders.length);
 
         data.orders.forEach(function(order) {
-            if (!order.raw_text) return;
+            if (!order.raw_text) {
+                log('[ERROR] Pedido #' + order.numero_pedido + ' sin contenido');
+                return;
+            }
+            log('Imprimiendo Pedido #' + order.numero_pedido + ' (ID ' + order.id + ')...');
             printText(order.raw_text, config.printer, function(result) {
                 if (result.ok) {
-                    console.log('Impreso: Pedido #' + order.numero_pedido + ' (ID ' + order.id + ')');
+                    log('Impreso: Pedido #' + order.numero_pedido + ' (ID ' + order.id + ')');
                     var cfg = loadConfig();
                     if (order.id > cfg.last_printed_id) {
                         cfg.last_printed_id = order.id;
                         saveConfig(cfg);
+                        log('last_printed_id actualizado a ' + order.id);
                     }
                 } else {
-                    console.log('Error imprimiendo Pedido #' + order.numero_pedido + ': ' + (result.error || 'desconocido'));
+                    log('[ERROR] Imprimiendo Pedido #' + order.numero_pedido + ': ' + (result.error || 'desconocido'));
                 }
             });
         });
@@ -164,20 +194,20 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-    console.log('=== Diego\'s Pizza Print Agent ===');
-    console.log(`Servidor local: http://localhost:${PORT}`);
-    console.log('Polling cada ' + (POLL_INTERVAL / 1000) + 's');
-    console.log('');
+    log('=== Diego\'s Pizza Print Agent ===');
+    log('Servidor local: http://localhost:' + PORT);
+    log('Polling cada ' + (POLL_INTERVAL / 1000) + 's');
+    log('Log: ' + LOG_PATH);
+    log('');
 
     const config = loadConfig();
     if (!config.api_key) {
-        console.log('[!] API key no configurada.');
-        console.log('    Ejecuta setup.bat para configurar.');
+        log('[!] API key no configurada. Ejecuta setup.bat para configurar.');
     } else {
-        console.log('API key: ' + config.api_key.substring(0, 4) + '...');
-        console.log('Servidor: ' + config.server_url);
-        console.log('Impresora: ' + (config.printer || 'por defecto'));
-        console.log('Ultimo ID impreso: ' + config.last_printed_id);
+        log('API key: ' + config.api_key.substring(0, 4) + '...');
+        log('Servidor: ' + config.server_url);
+        log('Impresora: ' + (config.printer || 'por defecto'));
+        log('Ultimo ID impreso: ' + config.last_printed_id);
     }
 
     setInterval(pollServer, POLL_INTERVAL);
