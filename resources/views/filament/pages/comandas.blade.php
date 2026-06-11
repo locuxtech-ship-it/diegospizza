@@ -467,6 +467,7 @@
     </div>
     @endif
 
+    <span id="pdv-notif-data" style="display:none">{{ $pdvNuevosPedidosJson }}</span>
     <script>
         var pdvCtx = null;
         var pdvAlarmInterval = null;
@@ -569,27 +570,32 @@
 
         var pdvUltimosIds = [];
         function pdvBuscarNuevos() {
-            fetch('/api/pedidos/pendientes').then(function(r){ return r.json(); }).then(function(data){
-                var pedidos = data.pedidos || [];
-                var ids = pedidos.map(function(p){ return p.id; });
+            var span = document.getElementById('pdv-notif-data');
+            if (!span || !span.textContent) return;
+            try {
+                var data = JSON.parse(span.textContent);
+                if (!data || !data.pedidos) return;
+                var nuevos = data.pedidos || [];
+                var ids = nuevos.map(function(p){ return p.id; });
                 Object.keys(pdvIdsAlertando).forEach(function(id) {
                     if (ids.indexOf(parseInt(id)) === -1) {
                         pdvDetenerAlarma(parseInt(id));
                     }
                 });
                 if (pdvUltimosIds.length > 0) {
-                    var nuevos = pedidos.filter(function(p){ return pdvUltimosIds.indexOf(p.id) === -1; });
                     nuevos.forEach(function(p){
-                        pdvIniciarAlarma(p);
-                        pdvToast(p);
-                        pdvSystemNotif(p);
-                        pdvFlash(p);
-                        try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e){}
-                        printPedido(p.id);
+                        if (pdvUltimosIds.indexOf(p.id) === -1) {
+                            pdvIniciarAlarma(p);
+                            pdvToast(p);
+                            pdvSystemNotif(p);
+                            pdvFlash(p);
+                            try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e){}
+                            printPedido(p.id);
+                        }
                     });
                 }
                 pdvUltimosIds = ids;
-            }).catch(function(){});
+            } catch(e) {}
         }
 
         if ('Notification' in window && Notification.permission === 'default') {
@@ -597,7 +603,7 @@
         }
 
         setTimeout(pdvBuscarNuevos, 2000);
-        setInterval(pdvBuscarNuevos, 5000);
+        setInterval(pdvBuscarNuevos, 2000);
 
         function printPedido(id) {
             var iframe = document.getElementById('pdv-print-frame');
