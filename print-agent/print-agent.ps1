@@ -9,16 +9,30 @@ $printer = Get-WmiObject -Class Win32_Printer | Where-Object { $_.Default -eq $t
 if (-not $printer) { Write-Host "ERROR: No hay impresora predeterminada."; pause; exit 1 }
 
 Write-Host "Diego's Pizza - Agente"
-Write-Host "Impresora: $($printer.Name)"
-Write-Host "Ultimo ID: $lastId"
+Write-Host "Impresora predeterminada: $($printer.Name)"
+Write-Host "Ultimo ID impreso: $lastId"
 Write-Host ""
 
 function Print-Ticket($text, $orderNum) {
-    $tmp = "$env:TEMP\pedido_$($orderNum).txt"
+    $tmp = $env:TEMP + "\pedido_" + $orderNum + ".txt"
     [System.IO.File]::WriteAllText($tmp, $text, [System.Text.Encoding]::Default)
-    Start-Process notepad.exe -ArgumentList "/P `"$tmp`"" -WindowStyle Hidden
-    Write-Host "OK - Pedido #$orderNum enviado a $($printer.Name)"
+
+    if (-not (Test-Path $tmp)) {
+        Write-Host "ERROR: No se creo el archivo temporal"
+        return
+    }
+
+    Write-Host "  Enviando a imprimir..."
+    $notepad = Start-Process notepad.exe -ArgumentList "/P `"$tmp`"" -WindowStyle Hidden -PassThru
+    $notepad.WaitForExit(10000)
+
+    if (-not $notepad.HasExited) {
+        Write-Host "  Notepad no respondio, forzando cierre..."
+        $notepad.Kill()
+    }
+
     Remove-Item $tmp -ErrorAction SilentlyContinue
+    Write-Host "OK - Pedido #$orderNum impreso"
 }
 
 while ($true) {
