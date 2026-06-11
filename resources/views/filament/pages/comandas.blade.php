@@ -569,22 +569,23 @@
                 if (!txt) return;
                 try {
                     var data = JSON.parse(txt);
-                    if (!data || !data.pedidos) return;
-                    var pedidos = data.pedidos;
-                    var ids = pedidos.map(function(p) { return p.id; });
+                    if (!data || !data.ids) return;
+                    var ids = data.ids;
+                    var nuevosIds = data.nuevos_ids || [];
+                    var pedidos = data.pedidos || [];
                     Object.keys(idsAlertando).forEach(function(id) {
                         if (ids.indexOf(parseInt(id)) === -1) detenerAlarma(parseInt(id));
                     });
-                    if (ultimosIds.length > 0) {
-                        pedidos.forEach(function(p) {
-                            if (ultimosIds.indexOf(p.id) === -1) {
-                                iniciarAlarma(p.id);
-                                toast(p);
-                                systemNotif(p);
-                                flash(p);
-                                try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e) {}
-                                printPedido(p.id);
-                            }
+                    if (ultimosIds.length > 0 && nuevosIds.length > 0) {
+                        nuevosIds.forEach(function(nid) {
+                            var p = pedidos.find(function(pp) { return pp.id === nid; });
+                            if (!p) return;
+                            iniciarAlarma(p.id);
+                            toast(p);
+                            systemNotif(p);
+                            flash(p);
+                            try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e) {}
+                            printPedido(p.id);
                         });
                     }
                     ultimosIds = ids;
