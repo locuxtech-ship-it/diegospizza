@@ -12,7 +12,6 @@ h1{font-size:24px;font-weight:700;display:inline;vertical-align:middle}
 .sub{color:#9ca3af;font-size:14px;margin-top:8px}
 #ultimo{margin-top:20px;font-size:14px;color:#6b7280}
 #contador{font-size:12px;color:#4b5563;margin-top:4px}
-iframe{position:fixed;top:-9999px;left:-9999px;width:1px;height:1px}
 </style>
 </head>
 <body>
@@ -22,9 +21,8 @@ iframe{position:fixed;top:-9999px;left:-9999px;width:1px;height:1px}
 <p id="ultimo">--</p>
 <p id="contador"></p>
 </div>
-<iframe id="pf"></iframe>
 <script>
-var ultimoId=0,cont=0,key='diegospizza_print_2024',f=document.getElementById('pf'),
+var ultimoId=0,cont=0,key='diegospizza_print_2024',
 ultimo=document.getElementById('ultimo'),contador=document.getElementById('contador'),led=document.getElementById('led');
 (function c(){
 var x=new XMLHttpRequest();
@@ -36,8 +34,7 @@ r.orders.forEach(function(o){
 cont++;ultimo.innerHTML='🖨️ Pedido #'+o.numero_pedido;
 contador.textContent='Hoy: '+cont;
 led.style.background='#f59e0b';
-f.src='/api/agent/ticket/'+o.id+'?key='+key;
-f.onload=function(){setTimeout(function(){try{f.contentWindow.print()}catch(e){}},1500)};
+window.open('/api/agent/ticket/'+o.id+'?key='+key,'pw');
 if(o.id>ultimoId)ultimoId=o.id;
 });
 }else{led.style.background='#22c55e'}
