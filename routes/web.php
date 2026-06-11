@@ -14,6 +14,18 @@ Route::post('/admin/configuracion', [AdminController::class, 'saveConfig'])->nam
 Route::get('/admin/ticket/cierre/{cierre}', [TicketController::class, 'cierre'])->name('ticket.cierre');
 Route::get('/admin/ticket/{pedido}', [TicketController::class, 'show'])->name('admin.ticket');
 Route::get('/admin/ticket/{pedido}/raw', [TicketController::class, 'raw'])->name('admin.ticket.raw');
+
+Route::get('/api/agent/ticket/{pedido}', function (App\Models\Pedido $pedido) {
+    $key = request('key');
+    $expectedKey = config('services.print_agent.key');
+    if (!$expectedKey || $key !== $expectedKey) {
+        return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
+    }
+    $pedido->load('cliente');
+    $productos = App\Models\PedidoProducto::with('producto')->where('pedido_id', $pedido->id)->get();
+    $negocio = App\Models\NegocioSetting::getSettings();
+    return response()->view('ticket', compact('pedido', 'productos', 'negocio'))->header('Content-Type', 'text/html; charset=utf-8');
+})->name('api.agent.ticket');
 Route::get('/admin/print-config', function () {
     $s = App\Models\NegocioSetting::getSettings();
     return response()->json([

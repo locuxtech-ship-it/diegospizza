@@ -5,33 +5,17 @@ $lastId = 0
 
 if (Test-Path $ConfigFile) { $lastId = [int](Get-Content $ConfigFile) }
 
-$printer = Get-WmiObject -Class Win32_Printer | Where-Object { $_.Default -eq $true }
-if (-not $printer) { Write-Host "ERROR: No hay impresora predeterminada."; pause; exit 1 }
-
-Write-Host "Diego's Pizza - Agente"
-Write-Host "Impresora predeterminada: $($printer.Name)"
-Write-Host "Ultimo ID impreso: $lastId"
+Write-Host "Diego's Pizza - Agente de Impresion"
+Write-Host "Imprime tickets con formato termico via Edge"
+Write-Host "Ultimo ID: $lastId"
 Write-Host ""
 
-function Print-Ticket($text, $orderNum) {
-    $tmp = $env:TEMP + "\pedido_" + $orderNum + ".txt"
-    [System.IO.File]::WriteAllText($tmp, $text, [System.Text.Encoding]::Default)
-
-    if (-not (Test-Path $tmp)) {
-        Write-Host "ERROR: No se creo el archivo temporal"
-        return
-    }
-
-    Write-Host "  Enviando a imprimir..."
-    $notepad = Start-Process notepad.exe -ArgumentList "/P `"$tmp`"" -WindowStyle Hidden -PassThru
-    $notepad.WaitForExit(10000)
-
-    if (-not $notepad.HasExited) {
-        Write-Host "  Notepad no respondio, forzando cierre..."
-        $notepad.Kill()
-    }
-
-    Remove-Item $tmp -ErrorAction SilentlyContinue
+function Print-Ticket($orderId, $orderNum) {
+    $url = "$ServerUrl/api/agent/ticket/$orderId?key=$ApiKey"
+    Write-Host "  Imprimiendo Pedido #$orderNum..."
+    $p = Start-Process "msedge.exe" -ArgumentList "--kiosk-printing --new-window `"$url`"" -PassThru
+    Start-Sleep -Seconds 8
+    if (-not $p.HasExited) { $p.Kill() }
     Write-Host "OK - Pedido #$orderNum impreso"
 }
 
@@ -41,8 +25,7 @@ while ($true) {
         $resp = Invoke-RestMethod -Uri "$ServerUrl/api/agent/pendientes?key=$ApiKey&after_id=$lastId" -UseBasicParsing -TimeoutSec 10
         if ($resp.ok -and $resp.orders -and $resp.orders.Count -gt 0) {
             foreach ($order in $resp.orders) {
-                Write-Host "Imprimiendo Pedido #$($order.numero_pedido)..."
-                Print-Ticket $order.raw_text $order.numero_pedido
+                Print-Ticket $order.id $order.numero_pedido
                 if ($order.id -gt $lastId) { $lastId = $order.id }
             }
             [System.IO.File]::WriteAllText($ConfigFile, $lastId)
