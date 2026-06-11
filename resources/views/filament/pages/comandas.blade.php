@@ -53,15 +53,15 @@
 
         @if($vistaLista)
         <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
-            <div style="display: grid; grid-template-columns: 60px 70px 1fr 1fr 1.5fr 70px 70px 80px 120px 140px; gap: 0; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">
+            <div style="display: grid; grid-template-columns: 60px 1fr 1fr 1.5fr 70px 70px 80px 70px 120px 140px; gap: 0; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">
                 <div style="padding: 10px 12px;">#</div>
-                <div style="padding: 10px 12px; text-align: center;">Tiempo</div>
                 <div style="padding: 10px 12px;">Cliente</div>
                 <div style="padding: 10px 12px;">Teléfono</div>
                 <div style="padding: 10px 12px;">Dirección</div>
                 <div style="padding: 10px 12px; text-align: center;">Origen</div>
                 <div style="padding: 10px 12px; text-align: right;">Total</div>
                 <div style="padding: 10px 12px; text-align: center;">Pago</div>
+                <div style="padding: 10px 12px; text-align: center;">Tiempo</div>
                 <div style="padding: 10px 12px; text-align: center;">Estado</div>
                 <div style="padding: 10px 12px; text-align: center;">Acción</div>
             </div>
@@ -74,22 +74,9 @@
                 $iconoEstado = match($pedido['estado']) { 'pendiente_pago' => '⏳', 'en_proceso' => '👨‍🍳', 'en_camino' => '🚗', 'entregado' => '📍', default => '' };
                 $siguiente = match($pedido['estado']) { 'pendiente_pago' => 'en_proceso', 'en_proceso' => 'en_camino', 'en_camino' => 'entregado', 'entregado' => 'finalizado', default => null };
             @endphp
-            <div wire:click="editarPedido({{ $pedido['id'] }})" style="display: grid; grid-template-columns: 60px 70px 1fr 1fr 1.5fr 70px 70px 80px 120px 140px; gap: 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; cursor: pointer; transition: background 0.15s;"
+            <div wire:click="editarPedido({{ $pedido['id'] }})" style="display: grid; grid-template-columns: 60px 1fr 1fr 1.5fr 70px 70px 80px 70px 120px 140px; gap: 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; cursor: pointer; transition: background 0.15s;"
                  onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
                 <div style="padding: 10px 12px; font-weight: 700; color: #111827;">#{{ $pedido['numero_pedido'] }}</div>
-                @php $tiempoTxt = $this->tiempoTranscurrido($pedido['created_at']); @endphp
-                @if($tiempoTxt)
-                @php $pedidoMinutos = \Carbon\Carbon::parse($pedido['created_at'])->diffInMinutes(now()); @endphp
-                @php $colorTiempo = $pedidoMinutos > 30 ? '#d97706' : '#6b7280'; @endphp
-                @php $bgTiempo = $pedidoMinutos > 30 ? '#fef3c7' : '#ffffff'; @endphp
-                <div style="padding: 10px 12px; text-align: center;">
-                    <span style="font-size: 11px; color: {{ $colorTiempo }}; background: {{ $bgTiempo }}; padding: 2px 6px; border-radius: 6px; display: inline-block;" title="{{ \Carbon\Carbon::parse($pedido['created_at'])->format('d/m/y H:i') }}">
-                        ⏱ {{ $tiempoTxt }}
-                    </span>
-                </div>
-                @else
-                <div style="padding: 10px 12px;"></div>
-                @endif
                 <div style="padding: 10px 12px; display: flex; align-items: center; gap: 6px; overflow: hidden;">
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $pedido['cliente']['nombre'] }}</span>
                     @if(isset($pedido['cliente']['clasificacion']))
@@ -111,6 +98,14 @@
                 <div style="padding: 10px 12px; text-align: center;">
                     <span style="font-size: 11px; padding: 2px 6px; border-radius: 6px; font-weight: 500; {{ $pagado ? 'background: #dcfce7; color: #16a34a;' : 'background: #fef3c7; color: #d97706;' }}">
                         {{ $pagado ? 'Pagado' : 'Pend.' }}
+                    </span>
+                </div>
+                @php $pedidoMinutos = \Carbon\Carbon::parse($pedido['created_at'])->diffInMinutes(now()); @endphp
+                @php $colorTiempo = $pedidoMinutos > 60 ? '#dc2626' : ($pedidoMinutos > 30 ? '#d97706' : '#6b7280'); @endphp
+                @php $bgTiempo = $pedidoMinutos > 60 ? '#fef2f2' : ($pedidoMinutos > 30 ? '#fef3c7' : 'transparent'); @endphp
+                <div style="padding: 10px 12px; text-align: center;">
+                    <span style="font-size: 11px; color: {{ $colorTiempo }}; background: {{ $bgTiempo }}; padding: 2px 6px; border-radius: 6px;" title="{{ \Carbon\Carbon::parse($pedido['created_at'])->format('d/m/y H:i') }}">
+                        ⏱ {{ $this->tiempoTranscurrido($pedido['created_at']) }}
                     </span>
                 </div>
                 @php $colorEstado = match($pedido['estado']) { 'pendiente_pago' => '#ef4444', 'en_proceso' => '#ea580c', 'en_camino' => '#2563eb', 'entregado' => '#9333ea', default => '#6b7280' }; @endphp
@@ -187,13 +182,10 @@
                                         </span>
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 8px;">
-                                        @php $tiempoTxt = $this->tiempoTranscurrido($pedido['created_at']); @endphp
-                                        @if($tiempoTxt)
                                         @php $pedidoMinutos = \Carbon\Carbon::parse($pedido['created_at'])->diffInMinutes(now()); @endphp
-                                        @php $colorTiempo = $pedidoMinutos > 30 ? '#d97706' : '#6b7280'; @endphp
-                                        @php $bgTiempo = $pedidoMinutos > 30 ? '#fef3c7' : '#f3f4f6'; @endphp
-                                        <span style="font-size: 12px; background: {{ $bgTiempo }}; color: {{ $colorTiempo }}; padding: 2px 8px; border-radius: 10px;">{{ $tiempoTxt }}</span>
-                                        @endif
+                                        @php $colorTiempo = $pedidoMinutos > 60 ? '#dc2626' : ($pedidoMinutos > 30 ? '#d97706' : '#6b7280'); @endphp
+                                        @php $bgTiempo = $pedidoMinutos > 60 ? '#fef2f2' : ($pedidoMinutos > 30 ? '#fef3c7' : '#f3f4f6'); @endphp
+                                        <span style="font-size: 12px; background: {{ $bgTiempo }}; color: {{ $colorTiempo }}; padding: 2px 8px; border-radius: 10px;">{{ $this->tiempoTranscurrido($pedido['created_at']) }}</span>
                                         @if(!empty($pedido['metodo_pago']))
                                             <span style="font-size: 12px; padding: 2px 8px; border-radius: 10px; font-weight: 500;
                                                  @if($pedido['metodo_pago'] == 'efectivo') background: #dcfce7; color: #16a34a;
@@ -467,159 +459,163 @@
     </div>
     @endif
 
-    <span id="pdv-notif-data" style="display:none">{{ $pdvNuevosPedidosJson }}</span>
     <script>
-        (function() {
-            var ctx = null;
-            var alarmInterval = null;
-            var idsAlertando = {};
-            var ultimosIds = [];
+        var pdvCtx = null;
+        var pdvAlarmInterval = null;
+        var pdvIdsAlertando = {};
 
-            function initAudio() {
-                if (ctx) return;
-                try { ctx = new (window.AudioContext || window.webkitAudioContext)(); ctx.resume(); } catch(e) {}
+        function pdvInitAudio() {
+            if (pdvCtx) return;
+            try {
+                pdvCtx = new (window.AudioContext || window.webkitAudioContext)();
+                pdvCtx.resume();
+            } catch(e) {}
+        }
+
+        var pdvKeepAliveInterval = null;
+        function pdvKeepAlive() {
+            if (!pdvCtx) return;
+            try {
+                if (pdvCtx.state === 'suspended') pdvCtx.resume();
+                var now = pdvCtx.currentTime;
+                var g = pdvCtx.createGain();
+                g.gain.value = 0.001;
+                g.connect(pdvCtx.destination);
+                var o = pdvCtx.createOscillator();
+                o.type = 'sine'; o.frequency.value = 20;
+                o.connect(g); o.start(now); o.stop(now + 0.05);
+            } catch(e){}
+        }
+        async function pdvTocarBeep() {
+            if (!pdvCtx) return;
+            try {
+                if (pdvCtx.state === 'suspended') await pdvCtx.resume();
+                var now = pdvCtx.currentTime;
+                var g = pdvCtx.createGain();
+                g.gain.setValueAtTime(0.5, now);
+                g.gain.setValueAtTime(0.5, now + 0.25);
+                g.gain.setValueAtTime(0, now + 0.5);
+                g.connect(pdvCtx.destination);
+                var o1 = pdvCtx.createOscillator();
+                o1.type = 'square'; o1.frequency.value = 880;
+                o1.connect(g); o1.start(now); o1.stop(now + 0.5);
+                var o2 = pdvCtx.createOscillator();
+                o2.type = 'square'; o2.frequency.value = 660;
+                o2.connect(g); o2.start(now + 0.25); o2.stop(now + 0.5);
+            } catch(e){}
+        }
+
+        function pdvIniciarAlarma(pedido) {
+            if (pdvIdsAlertando[pedido.id]) return;
+            pdvIdsAlertando[pedido.id] = true;
+            if (!pdvCtx) pdvInitAudio();
+            pdvTocarBeep();
+            if (!pdvKeepAliveInterval) {
+                pdvKeepAliveInterval = setInterval(pdvKeepAlive, 30000);
             }
-
-            function beep() {
-                if (!ctx) return;
-                try {
-                    if (ctx.state === 'suspended') ctx.resume();
-                    var now = ctx.currentTime;
-                    var g = ctx.createGain();
-                    g.gain.setValueAtTime(0.5, now);
-                    g.gain.setValueAtTime(0.5, now + 0.25);
-                    g.gain.setValueAtTime(0, now + 0.5);
-                    g.connect(ctx.destination);
-                    var o1 = ctx.createOscillator();
-                    o1.type = 'square'; o1.frequency.value = 880;
-                    o1.connect(g); o1.start(now); o1.stop(now + 0.5);
-                    var o2 = ctx.createOscillator();
-                    o2.type = 'square'; o2.frequency.value = 660;
-                    o2.connect(g); o2.start(now + 0.25); o2.stop(now + 0.5);
-                } catch(e) {}
+            if (!pdvAlarmInterval) {
+                pdvAlarmInterval = setInterval(function(){
+                    if (Object.keys(pdvIdsAlertando).length > 0) pdvTocarBeep();
+                }, 2000);
             }
+        }
 
-            function iniciarAlarma(id) {
-                if (idsAlertando[id]) return;
-                idsAlertando[id] = true;
-                if (!ctx) initAudio();
-                beep();
-                if (!alarmInterval) {
-                    alarmInterval = setInterval(function() {
-                        if (Object.keys(idsAlertando).length > 0) beep();
-                    }, 2000);
-                }
+        function pdvDetenerAlarma(pedidoId) {
+            delete pdvIdsAlertando[pedidoId];
+            if (Object.keys(pdvIdsAlertando).length === 0) {
+                if (pdvAlarmInterval) { clearInterval(pdvAlarmInterval); pdvAlarmInterval = null; }
+                if (pdvKeepAliveInterval) { clearInterval(pdvKeepAliveInterval); pdvKeepAliveInterval = null; }
             }
+        }
 
-            function detenerAlarma(id) {
-                delete idsAlertando[id];
-                if (Object.keys(idsAlertando).length === 0 && alarmInterval) {
-                    clearInterval(alarmInterval); alarmInterval = null;
-                }
-            }
+        document.addEventListener('click', pdvInitAudio, { once: true });
 
-            document.addEventListener('click', initAudio, { once: true });
-
-            function toast(p) {
-                var c = document.getElementById('pdv-toast');
-                if (!c) { c = document.createElement('div'); c.id = 'pdv-toast'; c.style.cssText='position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:8px;'; document.body.appendChild(c); }
-                var n = document.createElement('div');
-                n.style.cssText = 'background:#1e293b;color:white;border-radius:12px;padding:16px 20px;box-shadow:0 10px 40px rgba(0,0,0,0.3);max-width:380px;font-family:-apple-system,sans-serif;display:flex;align-items:center;gap:12px;cursor:pointer;';
-                n.innerHTML = '<div style="background:#22c55e;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🍕</div><div><div style="font-size:14px;font-weight:700;">Nuevo Pedido #'+(p.numero_pedido||p.id)+'</div><div style="font-size:12px;color:#94a3b8;">'+(p.cliente?.nombre||'')+'</div></div>';
-                n.onclick = function(){ n.remove(); };
-                c.appendChild(n);
-                setTimeout(function(){ if(n.parentNode) n.remove(); }, 10000);
-            }
-
-            function systemNotif(p) {
-                if (!('Notification' in window) || Notification.permission !== 'granted') return;
-                try {
-                    var n = new Notification('🍕 Pedido #'+(p.numero_pedido||p.id), { body: (p.cliente?.nombre||'')+' — $'+Number(p.total).toLocaleString('es-CO'), tag: 'pdv-'+p.id, requireInteraction: true });
-                    setTimeout(function(){ n.close(); }, 10000);
-                } catch(e) {}
-            }
-
-            function flash(p) {
-                var orig = document.title, count = 0;
-                var t = setInterval(function() {
-                    document.title = (count%2===0) ? '🆕 Pedido #'+(p.numero_pedido||p.id)+' — '+orig : orig;
-                    count++;
-                    if (count >= 8) { clearInterval(t); document.title = orig; }
-                }, 800);
-                document.addEventListener('visibilitychange', function vis() {
-                    if (!document.hidden) { clearInterval(t); document.title = orig; document.removeEventListener('visibilitychange', vis); }
-                });
-            }
-
-            function printPedido(id) {
-                var f = document.getElementById('pdv-print-frame');
-                if (!f) {
-                    f = document.createElement('iframe');
-                    f.id = 'pdv-print-frame';
-                    f.style = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;';
-                    document.body.appendChild(f);
-                }
-                f.src = '/admin/ticket/' + id;
-            }
-
-            function buscar() {
-                var span = document.getElementById('pdv-notif-data');
-                if (!span) return;
-                var txt = span.textContent || '';
-                if (!txt) return;
-                try {
-                    var data = JSON.parse(txt);
-                    if (!data || !data.ids) return;
-                    var ids = data.ids;
-                    var nuevosIds = data.nuevos_ids || [];
-                    var pedidos = data.pedidos || [];
-                    Object.keys(idsAlertando).forEach(function(id) {
-                        if (ids.indexOf(parseInt(id)) === -1) detenerAlarma(parseInt(id));
-                    });
-                    if (ultimosIds.length > 0 && nuevosIds.length > 0) {
-                        nuevosIds.forEach(function(nid) {
-                            var p = pedidos.find(function(pp) { return pp.id === nid; });
-                            if (!p) return;
-                            iniciarAlarma(p.id);
-                            toast(p);
-                            systemNotif(p);
-                            flash(p);
-                            try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e) {}
-                            printPedido(p.id);
-                        });
-                    }
-                    ultimosIds = ids;
-                } catch(e) {}
-            }
-
-            if ('Notification' in window && Notification.permission === 'default') {
-                setTimeout(function() { Notification.requestPermission(); }, 3000);
-            }
-
-            setTimeout(buscar, 2000);
-            setInterval(buscar, 2000);
-
-            window.addEventListener('nuevo-pedido', function(e) {
-                var p = e.detail.pedido;
-                if (!p || !p.id) return;
-                iniciarAlarma(p.id);
-                toast(p);
-                systemNotif(p);
-                flash(p);
-                try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e) {}
-                printPedido(p.id);
+        function pdvToast(p) {
+            var c = document.getElementById('pdv-toast-container');
+            if (!c) { c = document.createElement('div'); c.id = 'pdv-toast-container'; c.style.cssText='position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:8px;'; document.body.appendChild(c); }
+            var n = document.createElement('div');
+            n.style.cssText = 'background:#1e293b;color:white;border-radius:12px;padding:16px 20px;box-shadow:0 10px 40px rgba(0,0,0,0.3);max-width:380px;font-family:-apple-system,sans-serif;display:flex;align-items:center;gap:12px;cursor:pointer;';
+            n.innerHTML = '<div style="background:#22c55e;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🍕</div><div><div style="font-size:14px;font-weight:700;">Nuevo Pedido #'+(p.numero_pedido||p.id)+'</div><div style="font-size:12px;color:#94a3b8;">'+(p.cliente?.nombre||'')+'</div></div>';
+            n.onclick = function(){ n.remove(); };
+            c.appendChild(n);
+            setTimeout(function(){ if(n.parentNode) n.remove(); }, 10000);
+        }
+        function pdvSystemNotif(p) {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            try {
+                var n = new Notification('🍕 Pedido #'+(p.numero_pedido||p.id), { body: (p.cliente?.nombre||'')+' — $'+Number(p.total).toLocaleString('es-CO'), tag: 'pdv-'+p.id, requireInteraction: true });
+                setTimeout(function(){ n.close(); }, 10000);
+                n.onclick = function(){ window.focus(); this.close(); };
+            } catch(e) {}
+        }
+        function pdvFlash(p) {
+            var orig = document.title, count = 0, t = setInterval(function(){
+                document.title = (count%2===0) ? '🆕 Pedido #'+(p.numero_pedido||p.id)+' — '+orig : orig;
+                count++;
+                if (count >= 8) { clearInterval(t); document.title = orig; }
+            }, 800);
+            document.addEventListener('visibilitychange', function vis(){
+                if (!document.hidden) { clearInterval(t); document.title = orig; document.removeEventListener('visibilitychange', vis); }
             });
+        }
 
-            window.probarNotificacion = function() {
-                initAudio();
-                var p = { id: 999999, numero_pedido: 'TEST', cliente: { nombre: 'Prueba' }, total: 50000 };
-                iniciarAlarma(999999);
-                toast(p);
-                systemNotif(p);
-                flash(p);
-                try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e) {}
-                setTimeout(function() { detenerAlarma(999999); }, 10000);
+        var pdvUltimosIds = [];
+        function pdvBuscarNuevos() {
+            fetch('/api/pedidos/pendientes').then(function(r){ return r.json(); }).then(function(data){
+                var pedidos = data.pedidos || [];
+                var ids = pedidos.map(function(p){ return p.id; });
+                Object.keys(pdvIdsAlertando).forEach(function(id) {
+                    if (ids.indexOf(parseInt(id)) === -1) {
+                        pdvDetenerAlarma(parseInt(id));
+                    }
+                });
+                if (pdvUltimosIds.length > 0) {
+                    var nuevos = pedidos.filter(function(p){ return pdvUltimosIds.indexOf(p.id) === -1; });
+                    nuevos.forEach(function(p){
+                        pdvIniciarAlarma(p);
+                        pdvToast(p);
+                        pdvSystemNotif(p);
+                        pdvFlash(p);
+                        try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e){}
+                        printPedido(p.id);
+                    });
+                }
+                pdvUltimosIds = ids;
+            }).catch(function(){});
+        }
+
+        if ('Notification' in window && Notification.permission === 'default') {
+            setTimeout(function(){ Notification.requestPermission(); }, 3000);
+        }
+
+        setTimeout(pdvBuscarNuevos, 2000);
+        setInterval(pdvBuscarNuevos, 5000);
+
+        function printPedido(id) {
+            var iframe = document.getElementById('pdv-print-frame');
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'pdv-print-frame';
+                iframe.style = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;';
+                document.body.appendChild(iframe);
+            }
+            iframe.src = '/admin/ticket/' + id;
+            iframe.onload = function() {
+                setTimeout(function() {
+                    try { iframe.contentWindow.print(); } catch(e) {}
+                }, 500);
             };
-        })();
+        }
+
+        window.probarNotificacion = function() {
+            pdvInitAudio();
+            var p = { id: 999999, numero_pedido: 'TEST', cliente: { nombre: 'Prueba' }, total: 50000, origen: 'web' };
+            pdvIniciarAlarma(p);
+            pdvToast(p);
+            pdvSystemNotif(p);
+            pdvFlash(p);
+            try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e){}
+            setTimeout(function() { pdvDetenerAlarma(999999); }, 10000);
+        };
     </script>
 </x-filament-panels::page>

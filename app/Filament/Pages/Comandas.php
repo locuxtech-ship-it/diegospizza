@@ -99,17 +99,17 @@ class Comandas extends Page
         $idsAhora = array_column($this->pendientePago, 'id');
         $idsPrevios = $this->prevPendientePagoIds ? explode(',', $this->prevPendientePagoIds) : [];
 
-        $nuevosIds = !empty($idsPrevios) ? array_values(array_diff($idsAhora, $idsPrevios)) : [];
-        $nuevosPedidos = !empty($nuevosIds) ? Pedido::with('cliente')->whereIn('id', $nuevosIds)->get()->toArray() : [];
-        $this->pdvNuevosPedidosJson = json_encode([
-            'pedidos' => $nuevosPedidos,
-            'ids' => $idsAhora,
-            'nuevos_ids' => $nuevosIds,
-        ]);
-        if (!empty($nuevosIds)) {
-            foreach ($nuevosPedidos as $np) {
-                $this->dispatch('nuevo-pedido', pedido: $np);
+        if (!empty($idsPrevios)) {
+            $nuevosIds = array_diff($idsAhora, $idsPrevios);
+            if (!empty($nuevosIds)) {
+                $nuevosIds = array_values($nuevosIds);
+                $nuevosPedidos = Pedido::with('cliente')->whereIn('id', $nuevosIds)->get()->toArray();
+                $this->pdvNuevosPedidosJson = json_encode(['pedidos' => $nuevosPedidos]);
+            } else {
+                $this->pdvNuevosPedidosJson = '';
             }
+        } else {
+            $this->pdvNuevosPedidosJson = '';
         }
 
         $this->prevPendientePagoIds = implode(',', $idsAhora);
@@ -471,11 +471,10 @@ class Comandas extends Page
     public function tiempoTranscurrido(string $fecha): string
     {
         $creado = \Carbon\Carbon::parse($fecha);
-        $minutos = (int) $creado->diffInMinutes(now());
+        $minutos = $creado->diffInMinutes(now());
 
-        if ($minutos >= 60) return '';
-
-        $segundos = (int) $creado->diffInSeconds(now()) % 60;
-        return sprintf("%02d:%02d min", $minutos, $segundos);
+        if ($minutos < 1) return 'Ahora';
+        if ($minutos < 60) return "Hace {$minutos} min";
+        return "Hace " . floor($minutos / 60) . "h {$minutos}min";
     }
 }
