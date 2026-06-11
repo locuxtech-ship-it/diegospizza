@@ -22,8 +22,8 @@ set "SCRIPT_DIR=%~dp0"
 set "CONFIG_FILE=%USERPROFILE%\.diegospizza-print-agent.json"
 
 :: Get server URL
-set /p SERVER_URL="URL del servidor [http://192.168.80.20]: "
-if "%SERVER_URL%"=="" set "SERVER_URL=http://192.168.80.20"
+set /p SERVER_URL="URL del servidor [https://diegospizzabq.click]: "
+if "%SERVER_URL%"=="" set "SERVER_URL=https://diegospizzabq.click"
 
 :: Get API key
 set /p API_KEY="API Key (se la proporciona el administrador): "

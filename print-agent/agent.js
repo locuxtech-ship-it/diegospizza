@@ -13,7 +13,7 @@ function loadConfig() {
     try {
         return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
     } catch {
-        return { server_url: 'http://192.168.80.20', api_key: '', printer: '', last_printed_id: 0 };
+        return { server_url: 'https://diegospizzabq.click', api_key: '', printer: '', last_printed_id: 0 };
     }
 }
 
