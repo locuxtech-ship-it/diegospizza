@@ -471,11 +471,11 @@ class Comandas extends Page
     public function tiempoTranscurrido(string $fecha): string
     {
         $creado = \Carbon\Carbon::parse($fecha);
-        $minutos = $creado->diffInMinutes(now());
+        $minutos = (int) $creado->diffInMinutes(now());
 
         if ($minutos >= 60) return '';
 
-        $segundos = $creado->diffInSeconds(now()) % 60;
-        return "{$minutos}m {$segundos}s";
+        $segundos = (int) $creado->diffInSeconds(now()) % 60;
+        return sprintf("%02d:%02d min", $minutos, $segundos);
     }
 }
