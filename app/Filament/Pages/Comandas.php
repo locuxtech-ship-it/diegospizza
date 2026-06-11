@@ -99,16 +99,18 @@ class Comandas extends Page
         $idsAhora = array_column($this->pendientePago, 'id');
         $idsPrevios = $this->prevPendientePagoIds ? explode(',', $this->prevPendientePagoIds) : [];
 
-        $nuevosIds = [];
         if (!empty($idsPrevios)) {
-            $nuevosIds = array_values(array_diff($idsAhora, $idsPrevios));
+            $nuevosIds = array_diff($idsAhora, $idsPrevios);
+            if (!empty($nuevosIds)) {
+                $nuevosIds = array_values($nuevosIds);
+                $nuevosPedidos = Pedido::with('cliente')->whereIn('id', $nuevosIds)->get()->toArray();
+                $this->pdvNuevosPedidosJson = json_encode(['pedidos' => $nuevosPedidos]);
+            } else {
+                $this->pdvNuevosPedidosJson = '';
+            }
+        } else {
+            $this->pdvNuevosPedidosJson = '';
         }
-
-        $this->pdvNuevosPedidosJson = json_encode([
-            'ids' => $idsAhora,
-            'nuevos_ids' => $nuevosIds,
-            'pedidos' => $this->pendientePago,
-        ]);
 
         $this->prevPendientePagoIds = implode(',', $idsAhora);
 

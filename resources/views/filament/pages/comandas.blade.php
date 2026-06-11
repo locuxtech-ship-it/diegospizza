@@ -467,14 +467,10 @@
     </div>
     @endif
 
-    <!-- Livewire notification data (read by JS, no HTTP fetch needed) -->
-    <span id="pdv-notif-data" style="display:none;">{{ $pdvNuevosPedidosJson }}</span>
-
     <script>
         var pdvCtx = null;
         var pdvAlarmInterval = null;
         var pdvIdsAlertando = {};
-        var pdvUltimosIds = [];
 
         function pdvInitAudio() {
             if (pdvCtx) return;
@@ -571,36 +567,29 @@
             });
         }
 
+        var pdvUltimosIds = [];
         function pdvBuscarNuevos() {
-            var span = document.getElementById('pdv-notif-data');
-            if (!span || !span.textContent) return;
-            try {
-                var data = JSON.parse(span.textContent);
-                if (!data || !data.pedidos) return;
-                var ids = data.ids || [];
-                var nuevosIds = data.nuevos_ids || [];
-
-                // Stop alarms for pedidos that are no longer pending
+            fetch('/api/pedidos/pendientes').then(function(r){ return r.json(); }).then(function(data){
+                var pedidos = data.pedidos || [];
+                var ids = pedidos.map(function(p){ return p.id; });
                 Object.keys(pdvIdsAlertando).forEach(function(id) {
                     if (ids.indexOf(parseInt(id)) === -1) {
                         pdvDetenerAlarma(parseInt(id));
                     }
                 });
-
-                // Fire notifications for new pedidos
-                if (nuevosIds.length > 0 && pdvUltimosIds.length > 0) {
-                    nuevosIds.forEach(function(nid) {
-                        var p = data.pedidos.find(function(pp) { return pp.id === nid; });
-                        if (!p) return;
+                if (pdvUltimosIds.length > 0) {
+                    var nuevos = pedidos.filter(function(p){ return pdvUltimosIds.indexOf(p.id) === -1; });
+                    nuevos.forEach(function(p){
                         pdvIniciarAlarma(p);
                         pdvToast(p);
                         pdvSystemNotif(p);
                         pdvFlash(p);
                         try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e){}
+                        printPedido(p.id);
                     });
                 }
                 pdvUltimosIds = ids;
-            } catch(e) {}
+            }).catch(function(){});
         }
 
         if ('Notification' in window && Notification.permission === 'default') {
@@ -608,7 +597,7 @@
         }
 
         setTimeout(pdvBuscarNuevos, 2000);
-        setInterval(pdvBuscarNuevos, 2000);
+        setInterval(pdvBuscarNuevos, 5000);
 
         function printPedido(id) {
             var iframe = document.getElementById('pdv-print-frame');
