@@ -561,6 +561,7 @@
         }
 
         var pdvUltimosIds = [];
+        var pdvInicializado = false;
         function pdvBuscarNuevos() {
             console.log('PDV: checking for new pedidos...');
             fetch('/api/pedidos/pendientes', { credentials: 'same-origin' }).then(function(r){
@@ -570,13 +571,13 @@
                 console.log('PDV: data received', data);
                 var pedidos = data.pedidos || [];
                 var ids = pedidos.map(function(p){ return p.id; });
-                console.log('PDV: ids', ids, 'ultimosIds', pdvUltimosIds);
+                console.log('PDV: ids', ids, 'ultimosIds', pdvUltimosIds, 'inicializado', pdvInicializado);
                 Object.keys(pdvIdsAlertando).forEach(function(id) {
                     if (ids.indexOf(parseInt(id)) === -1) {
                         pdvDetenerAlarma(parseInt(id));
                     }
                 });
-                if (pdvUltimosIds.length > 0) {
+                if (pdvInicializado) {
                     var nuevos = pedidos.filter(function(p){ return pdvUltimosIds.indexOf(p.id) === -1; });
                     console.log('PDV: nuevos pedidos', nuevos);
                     nuevos.forEach(function(p){
@@ -589,6 +590,7 @@
                     });
                 }
                 pdvUltimosIds = ids;
+                pdvInicializado = true;
             }).catch(function(err){
                 console.error('PDV: fetch error', err);
             });
