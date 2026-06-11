@@ -597,7 +597,6 @@
                         pdvSystemNotif(p);
                         pdvFlash(p);
                         try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e){}
-                        printPedido(p.id);
                     });
                 }
                 pdvUltimosIds = ids;
