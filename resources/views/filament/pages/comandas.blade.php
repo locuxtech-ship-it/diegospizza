@@ -53,15 +53,15 @@
 
         @if($vistaLista)
         <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
-            <div style="display: grid; grid-template-columns: 60px 1fr 1fr 1.5fr 70px 70px 80px 70px 120px 140px; gap: 0; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">
+            <div style="display: grid; grid-template-columns: 60px 70px 1fr 1fr 1.5fr 70px 70px 80px 120px 140px; gap: 0; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">
                 <div style="padding: 10px 12px;">#</div>
+                <div style="padding: 10px 12px; text-align: center;">Tiempo</div>
                 <div style="padding: 10px 12px;">Cliente</div>
                 <div style="padding: 10px 12px;">Teléfono</div>
                 <div style="padding: 10px 12px;">Dirección</div>
                 <div style="padding: 10px 12px; text-align: center;">Origen</div>
                 <div style="padding: 10px 12px; text-align: right;">Total</div>
                 <div style="padding: 10px 12px; text-align: center;">Pago</div>
-                <div style="padding: 10px 12px; text-align: center;">Tiempo</div>
                 <div style="padding: 10px 12px; text-align: center;">Estado</div>
                 <div style="padding: 10px 12px; text-align: center;">Acción</div>
             </div>
@@ -74,9 +74,22 @@
                 $iconoEstado = match($pedido['estado']) { 'pendiente_pago' => '⏳', 'en_proceso' => '👨‍🍳', 'en_camino' => '🚗', 'entregado' => '📍', default => '' };
                 $siguiente = match($pedido['estado']) { 'pendiente_pago' => 'en_proceso', 'en_proceso' => 'en_camino', 'en_camino' => 'entregado', 'entregado' => 'finalizado', default => null };
             @endphp
-            <div wire:click="editarPedido({{ $pedido['id'] }})" style="display: grid; grid-template-columns: 60px 1fr 1fr 1.5fr 70px 70px 80px 70px 120px 140px; gap: 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; cursor: pointer; transition: background 0.15s;"
+            <div wire:click="editarPedido({{ $pedido['id'] }})" style="display: grid; grid-template-columns: 60px 70px 1fr 1fr 1.5fr 70px 70px 80px 120px 140px; gap: 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; cursor: pointer; transition: background 0.15s;"
                  onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
                 <div style="padding: 10px 12px; font-weight: 700; color: #111827;">#{{ $pedido['numero_pedido'] }}</div>
+                @php $tiempoTxt = $this->tiempoTranscurrido($pedido['created_at']); @endphp
+                @if($tiempoTxt)
+                @php $pedidoMinutos = \Carbon\Carbon::parse($pedido['created_at'])->diffInMinutes(now()); @endphp
+                @php $colorTiempo = $pedidoMinutos > 30 ? '#d97706' : '#6b7280'; @endphp
+                @php $bgTiempo = $pedidoMinutos > 30 ? '#fef3c7' : '#ffffff'; @endphp
+                <div style="padding: 10px 12px; text-align: center;">
+                    <span style="font-size: 11px; color: {{ $colorTiempo }}; background: {{ $bgTiempo }}; padding: 2px 6px; border-radius: 6px; display: inline-block;" title="{{ \Carbon\Carbon::parse($pedido['created_at'])->format('d/m/y H:i') }}">
+                        ⏱ {{ $tiempoTxt }}
+                    </span>
+                </div>
+                @else
+                <div style="padding: 10px 12px;"></div>
+                @endif
                 <div style="padding: 10px 12px; display: flex; align-items: center; gap: 6px; overflow: hidden;">
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $pedido['cliente']['nombre'] }}</span>
                     @if(isset($pedido['cliente']['clasificacion']))
@@ -98,14 +111,6 @@
                 <div style="padding: 10px 12px; text-align: center;">
                     <span style="font-size: 11px; padding: 2px 6px; border-radius: 6px; font-weight: 500; {{ $pagado ? 'background: #dcfce7; color: #16a34a;' : 'background: #fef3c7; color: #d97706;' }}">
                         {{ $pagado ? 'Pagado' : 'Pend.' }}
-                    </span>
-                </div>
-                @php $pedidoMinutos = \Carbon\Carbon::parse($pedido['created_at'])->diffInMinutes(now()); @endphp
-                @php $colorTiempo = $pedidoMinutos > 60 ? '#dc2626' : ($pedidoMinutos > 30 ? '#d97706' : '#6b7280'); @endphp
-                @php $bgTiempo = $pedidoMinutos > 60 ? '#fef2f2' : ($pedidoMinutos > 30 ? '#fef3c7' : 'transparent'); @endphp
-                <div style="padding: 10px 12px; text-align: center;">
-                    <span style="font-size: 11px; color: {{ $colorTiempo }}; background: {{ $bgTiempo }}; padding: 2px 6px; border-radius: 6px;" title="{{ \Carbon\Carbon::parse($pedido['created_at'])->format('d/m/y H:i') }}">
-                        ⏱ {{ $this->tiempoTranscurrido($pedido['created_at']) }}
                     </span>
                 </div>
                 @php $colorEstado = match($pedido['estado']) { 'pendiente_pago' => '#ef4444', 'en_proceso' => '#ea580c', 'en_camino' => '#2563eb', 'entregado' => '#9333ea', default => '#6b7280' }; @endphp
@@ -182,10 +187,13 @@
                                         </span>
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 8px;">
+                                        @php $tiempoTxt = $this->tiempoTranscurrido($pedido['created_at']); @endphp
+                                        @if($tiempoTxt)
                                         @php $pedidoMinutos = \Carbon\Carbon::parse($pedido['created_at'])->diffInMinutes(now()); @endphp
-                                        @php $colorTiempo = $pedidoMinutos > 60 ? '#dc2626' : ($pedidoMinutos > 30 ? '#d97706' : '#6b7280'); @endphp
-                                        @php $bgTiempo = $pedidoMinutos > 60 ? '#fef2f2' : ($pedidoMinutos > 30 ? '#fef3c7' : '#f3f4f6'); @endphp
-                                        <span style="font-size: 12px; background: {{ $bgTiempo }}; color: {{ $colorTiempo }}; padding: 2px 8px; border-radius: 10px;">{{ $this->tiempoTranscurrido($pedido['created_at']) }}</span>
+                                        @php $colorTiempo = $pedidoMinutos > 30 ? '#d97706' : '#6b7280'; @endphp
+                                        @php $bgTiempo = $pedidoMinutos > 30 ? '#fef3c7' : '#f3f4f6'; @endphp
+                                        <span style="font-size: 12px; background: {{ $bgTiempo }}; color: {{ $colorTiempo }}; padding: 2px 8px; border-radius: 10px;">{{ $tiempoTxt }}</span>
+                                        @endif
                                         @if(!empty($pedido['metodo_pago']))
                                             <span style="font-size: 12px; padding: 2px 8px; border-radius: 10px; font-weight: 500;
                                                  @if($pedido['metodo_pago'] == 'efectivo') background: #dcfce7; color: #16a34a;

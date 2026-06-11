@@ -473,8 +473,9 @@ class Comandas extends Page
         $creado = \Carbon\Carbon::parse($fecha);
         $minutos = $creado->diffInMinutes(now());
 
-        if ($minutos < 1) return 'Ahora';
-        if ($minutos < 60) return "Hace {$minutos} min";
-        return "Hace " . floor($minutos / 60) . "h {$minutos}min";
+        if ($minutos >= 60) return '';
+
+        $segundos = $creado->diffInSeconds(now()) % 60;
+        return "{$minutos}m {$segundos}s";
     }
 }
