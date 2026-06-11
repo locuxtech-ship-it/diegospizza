@@ -26,12 +26,23 @@ Route::get('/api/agent/ticket/{pedido}', function (App\Models\Pedido $pedido) {
     $negocio = App\Models\NegocioSetting::getSettings();
     return response()->view('ticket', compact('pedido', 'productos', 'negocio'))->header('Content-Type', 'text/html; charset=utf-8');
 })->name('api.agent.ticket');
-Route::get('/admin/print-config', function () {
-    $s = App\Models\NegocioSetting::getSettings();
-    return response()->json([
-        'printer' => $s->impresora_nombre,
-        'auto_print' => $s->imprimir_automaticamente ?? false,
-    ]);
+
+Route::get('/page/print-monitor', function () {
+    $key = request('key');
+    $expectedKey = config('services.print_agent.key');
+    if (!$expectedKey || $key !== $expectedKey) { return response('Unauthorized', 403); }
+    return response()->view('print-monitor-page');
+});
+
+Route::post('/api/agent/guardar-ultimo-id', function () {
+    $key = request('key');
+    $expectedKey = config('services.print_agent.key');
+    if (!$expectedKey || $key !== $expectedKey) { return response()->json(['ok' => false], 403); }
+    $id = (int) request('id', 0);
+    if ($id > 0) {
+        file_put_contents(storage_path('app/print-monitor-id.txt'), $id);
+    }
+    return response()->json(['ok' => true]);
 });
 
 Route::match(['GET', 'POST'], '/api/whatsapp/webhook', [WhatsAppController::class, 'webhook'])->name('whatsapp.webhook');
