@@ -14,7 +14,7 @@ Write-Host "Ultimo ID: $lastId"
 Write-Host ""
 
 function Print-Ticket($text, $orderNum) {
-    $tmp = "$env:TEMP\pedido_$orderNum.txt"
+    $tmp = "$env:TEMP\pedido_$($orderNum).txt"
     [System.IO.File]::WriteAllText($tmp, $text, [System.Text.Encoding]::Default)
     Start-Process notepad.exe -ArgumentList "/P `"$tmp`"" -WindowStyle Hidden
     Write-Host "OK - Pedido #$orderNum enviado a $($printer.Name)"
