@@ -599,6 +599,17 @@
             setTimeout(buscar, 2000);
             setInterval(buscar, 2000);
 
+            window.addEventListener('nuevo-pedido', function(e) {
+                var p = e.detail.pedido;
+                if (!p || !p.id) return;
+                iniciarAlarma(p.id);
+                toast(p);
+                systemNotif(p);
+                flash(p);
+                try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e) {}
+                printPedido(p.id);
+            });
+
             window.probarNotificacion = function() {
                 initAudio();
                 var p = { id: 999999, numero_pedido: 'TEST', cliente: { nombre: 'Prueba' }, total: 50000 };

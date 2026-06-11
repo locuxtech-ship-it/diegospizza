@@ -106,6 +106,11 @@ class Comandas extends Page
             'ids' => $idsAhora,
             'nuevos_ids' => $nuevosIds,
         ]);
+        if (!empty($nuevosIds)) {
+            foreach ($nuevosPedidos as $np) {
+                $this->dispatch('nuevo-pedido', pedido: $np);
+            }
+        }
 
         $this->prevPendientePagoIds = implode(',', $idsAhora);
 
