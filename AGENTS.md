@@ -28,10 +28,19 @@ Build a complete web-based pizza delivery ordering system (Diego's Pizza) with L
 - Stack: Laravel 13 + FilamentPHP 5 + Livewire 4 + Tailwind CSS 4
 - 28 migrations (26 original + cierres_caja + gastos_cierre), all models with casts/relationships
 - Filament admin at `/admin`: Punto de Venta, Ventas, Menu, Configuración groups
-- PDV: Kanban (Pendiente Pago, En Preparación, En Camino, Ha Llegado) + List view, JS notifications (sound+toast+flash+system+vibration+fallback), auto-print, `wire:poll.keep-alive.5s="cargarPedidos"`
+- PDV: Kanban (Pendiente Pago, En Preparación, En Camino, Ha Llegado) + List view, JS notifications with fetch polling (sound+toast+flash+system+vibration), iframe-based auto-print, timer MM:SS (freezes at 60:00), newest-first sort. Timer color (>30min amarillo)
 - Payment modal redesigned in Comandas and EditPedido: header, client info, products, totals, payment form, discount (admin-only), payment history, "✅ Pago completo" / "⏳ Falta por pagar"
-- **Notifications working** — Livewire property `$pdvNuevosPedidosJson` updated in `cargarPedidos()`, rendered as hidden `<span id="pdv-notif-data">`, JS reads it every 2s without HTTP fetch. AdBlock-proof.
-- **Badge navigation working** — `getBadge()` returns `null` when count=0, JS updates badge from the same span
+
+### In Progress
+- **PDV notification/auto-print not working on printer PC**: Detection bug fixed (`pdvInicializado` flag). Remaining: sound not playing (AudioContext may need user gesture), print dialog not appearing (iframe `contentWindow.print()` or Edge blocking). Next diagnostic step: check if `printPedido` is being called and if ticket page renders.
+
+### Blocked
+- (none)
+
+## Next Steps
+- **WhatsApp Bot** (Meta Cloud API free tier) — post-deploy. Number: +57 3106444759
+- **Fix PDV auto-print on printer PC** — Edge browser, iframe print + Web Audio
+- Deploy Docker config confirmed and running
 - **Cajero can finalizar** — removed `Gate::define('finalizarPedido')`, removed all `@can('finalizarPedido')` and `Gate::denies()` checks. Only payment completeness check remains.
 - **Finalizar protection**: both `finalizarPedido()` and `finalizarDesdeModal()` re-query DB directly for payment sum and compare with total. If `$total <= 0 || $totalPagado < $total`, they show error and return. No redirect/modal for unpaid orders. `finalizado` removed from dropdown in `PedidoForm.php`.
 - **Historial modal** — ALL pedidos (active and finalized) show read-only modal. Reverted the redirect to Comandas for active pedidos.
@@ -92,7 +101,7 @@ Build a complete web-based pizza delivery ordering system (Diego's Pizza) with L
 - `origen`: `'web'` / `'pdv'`
 - `NegocioSetting`: `puntos_ganancia_monto`, `puntos_ganancia_valor`, `puntos_recompensas` (JSON), `metodos_pago_activos` (JSON)
 - Gate `applyDiscount` in `AppServiceProvider::boot()` — `fn ($user) => $user->isAdmin()`
-- Notification mechanism: `Comandas::$pdvNuevosPedidosJson` (JSON) → `<span id="pdv-notif-data">` → JS reads every 2s
+- Notification mechanism: `fetch('/api/pedidos/pendientes')` every 5s → JS compares IDs → triggers sound + toast + flash + system notif + iframe print. `pdvInicializado` flag prevents skipping first new order after empty set.
 - Badge: `Comandas::getBadge()` returns `null` when count=0; JS updates from the same span
 - Finalizar protection: both `finalizarPedido()` and `finalizarDesdeModal()` re-query DB directly for payment sum and block if unpaid. No modal redirect for unpaid orders — shows error notification instead.
 - `finalizarPedido()` at Comandas verifies estado=entregado + pago completo → blocks if unpaid with error notification
