@@ -590,13 +590,16 @@
         setInterval(pdvBuscarNuevos, 5000);
 
         function printPedido(id) {
+            console.log('PDV: printPedido llamado para pedido', id);
             var f = document.getElementById('pdv-print-frame');
             if (!f) {
                 f = document.createElement('iframe');
                 f.id = 'pdv-print-frame';
-                f.style = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;';
+                f.style = 'position:fixed;bottom:0;right:0;width:400px;height:300px;border:2px solid red;background:white;z-index:99999;';
                 document.body.appendChild(f);
+                console.log('PDV: iframe creado');
             }
+            console.log('PDV: cargando ticket', '/admin/ticket/' + id);
             f.src = '/admin/ticket/' + id;
         }
 
