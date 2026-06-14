@@ -563,13 +563,13 @@
                 console.log('PDV: ids', ids, 'ultimosIds', pdvUltimosIds);
                 Object.keys(pdvIdsAlertando).forEach(function(id) {
                     if (ids.indexOf(parseInt(id)) === -1) {
-                        pdvDetenerAlarma(parseInt(id));
+                        detenerAlarma(parseInt(id));
                     }
                 });
                 var nuevos = pedidos.filter(function(p){ return pdvUltimosIds.indexOf(p.id) === -1; });
                 console.log('PDV: nuevos pedidos', nuevos);
                 nuevos.forEach(function(p){
-                    pdvIniciarAlarma(p);
+                    iniciarAlarma(p.id);
                     pdvToast(p);
                     pdvSystemNotif(p);
                     pdvFlash(p);
