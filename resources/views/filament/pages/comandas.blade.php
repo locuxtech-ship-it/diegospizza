@@ -461,75 +461,65 @@
 
     <script>
         console.log('PDV: script loaded');
-        var pdvCtx = null;
         var pdvAlarmInterval = null;
         var pdvIdsAlertando = {};
 
-        function pdvInitAudio() {
-            if (pdvCtx) return;
-            try {
-                pdvCtx = new (window.AudioContext || window.webkitAudioContext)();
-                pdvCtx.resume();
-            } catch(e) {}
-        }
-
-        var pdvKeepAliveInterval = null;
-        function pdvKeepAlive() {
-            if (!pdvCtx) return;
-            try {
-                if (pdvCtx.state === 'suspended') pdvCtx.resume();
-                var now = pdvCtx.currentTime;
-                var g = pdvCtx.createGain();
-                g.gain.value = 0.001;
-                g.connect(pdvCtx.destination);
-                var o = pdvCtx.createOscillator();
-                o.type = 'sine'; o.frequency.value = 20;
-                o.connect(g); o.start(now); o.stop(now + 0.05);
-            } catch(e){}
-        }
-        async function pdvTocarBeep() {
-            if (!pdvCtx) return;
-            try {
-                if (pdvCtx.state === 'suspended') await pdvCtx.resume();
-                var now = pdvCtx.currentTime;
-                var g = pdvCtx.createGain();
-                g.gain.setValueAtTime(0.5, now);
-                g.gain.setValueAtTime(0.5, now + 0.25);
-                g.gain.setValueAtTime(0, now + 0.5);
-                g.connect(pdvCtx.destination);
-                var o1 = pdvCtx.createOscillator();
-                o1.type = 'square'; o1.frequency.value = 880;
-                o1.connect(g); o1.start(now); o1.stop(now + 0.5);
-                var o2 = pdvCtx.createOscillator();
-                o2.type = 'square'; o2.frequency.value = 660;
-                o2.connect(g); o2.start(now + 0.25); o2.stop(now + 0.5);
-            } catch(e){}
-        }
-
-        function pdvIniciarAlarma(pedido) {
-            if (pdvIdsAlertando[pedido.id]) return;
-            pdvIdsAlertando[pedido.id] = true;
-            if (!pdvCtx) pdvInitAudio();
-            pdvTocarBeep();
-            if (!pdvKeepAliveInterval) {
-                pdvKeepAliveInterval = setInterval(pdvKeepAlive, 30000);
+        function beep() {
+            var a = document.getElementById('pdv-beep');
+            if (!a) {
+                a = document.createElement('audio');
+                a.id = 'pdv-beep';
+                // Generate beep via data URI (440Hz sine, 0.3s)
+                var sr = 8000, len = sr * 0.3;
+                var buf = new ArrayBuffer(44 + len * 2);
+                var d = new DataView(buf);
+                // WAV header
+                var w = function(o, v) { d.setUint8(o, v); };
+                w(0,0x52);w(1,0x49);w(2,0x46);w(3,0x46); // RIFF
+                d.setUint32(4, 36 + len*2, true);
+                w(8,0x57);w(9,0x41);w(10,0x56);w(11,0x45); // WAVE
+                w(12,0x66);w(13,0x6d);w(14,0x74);w(15,0x20); // fmt
+                d.setUint32(16, 16, true); // chunk size
+                d.setUint16(20, 1, true);  // PCM
+                d.setUint16(22, 1, true);  // mono
+                d.setUint32(24, sr, true); // sample rate
+                d.setUint32(28, sr * 2, true); // byte rate
+                d.setUint16(32, 2, true);  // block align
+                d.setUint16(34, 16, true); // bits per sample
+                w(36,0x64);w(37,0x61);w(38,0x74);w(39,0x61); // data
+                d.setUint32(40, len*2, true);
+                for (var i = 0; i < len; i++) {
+                    var s = Math.sin(2 * Math.PI * 880 * i / sr);
+                    s *= 1 - i / len; // fade out
+                    d.setInt16(44 + i*2, s * 16384, true);
+                }
+                var blob = new Blob([buf], { type: 'audio/wav' });
+                a.src = URL.createObjectURL(blob);
+                a.volume = 0.5;
+                a.preload = 'auto';
+                document.body.appendChild(a);
             }
+            a.currentTime = 0;
+            a.play().catch(function(){});
+        }
+
+        function iniciarAlarma(id) {
+            if (pdvIdsAlertando[id]) return;
+            pdvIdsAlertando[id] = true;
+            beep();
             if (!pdvAlarmInterval) {
-                pdvAlarmInterval = setInterval(function(){
-                    if (Object.keys(pdvIdsAlertando).length > 0) pdvTocarBeep();
+                pdvAlarmInterval = setInterval(function() {
+                    if (Object.keys(pdvIdsAlertando).length > 0) beep();
                 }, 2000);
             }
         }
 
-        function pdvDetenerAlarma(pedidoId) {
-            delete pdvIdsAlertando[pedidoId];
-            if (Object.keys(pdvIdsAlertando).length === 0) {
-                if (pdvAlarmInterval) { clearInterval(pdvAlarmInterval); pdvAlarmInterval = null; }
-                if (pdvKeepAliveInterval) { clearInterval(pdvKeepAliveInterval); pdvKeepAliveInterval = null; }
+        function detenerAlarma(id) {
+            delete pdvIdsAlertando[id];
+            if (Object.keys(pdvIdsAlertando).length === 0 && pdvAlarmInterval) {
+                clearInterval(pdvAlarmInterval); pdvAlarmInterval = null;
             }
         }
-
-        document.addEventListener('click', pdvInitAudio, { once: true });
 
         function pdvToast(p) {
             var c = document.getElementById('pdv-toast-container');
@@ -561,7 +551,6 @@
         }
 
         var pdvUltimosIds = [];
-        var pdvInicializado = false;
         function pdvBuscarNuevos() {
             console.log('PDV: checking for new pedidos...');
             fetch('/api/pedidos/pendientes', { credentials: 'same-origin' }).then(function(r){
@@ -571,26 +560,23 @@
                 console.log('PDV: data received', data);
                 var pedidos = data.pedidos || [];
                 var ids = pedidos.map(function(p){ return p.id; });
-                console.log('PDV: ids', ids, 'ultimosIds', pdvUltimosIds, 'inicializado', pdvInicializado);
+                console.log('PDV: ids', ids, 'ultimosIds', pdvUltimosIds);
                 Object.keys(pdvIdsAlertando).forEach(function(id) {
                     if (ids.indexOf(parseInt(id)) === -1) {
                         pdvDetenerAlarma(parseInt(id));
                     }
                 });
-                if (pdvInicializado) {
-                    var nuevos = pedidos.filter(function(p){ return pdvUltimosIds.indexOf(p.id) === -1; });
-                    console.log('PDV: nuevos pedidos', nuevos);
-                    nuevos.forEach(function(p){
-                        pdvIniciarAlarma(p);
-                        pdvToast(p);
-                        pdvSystemNotif(p);
-                        pdvFlash(p);
-                        try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e){}
-                        printPedido(p.id);
-                    });
-                }
+                var nuevos = pedidos.filter(function(p){ return pdvUltimosIds.indexOf(p.id) === -1; });
+                console.log('PDV: nuevos pedidos', nuevos);
+                nuevos.forEach(function(p){
+                    pdvIniciarAlarma(p);
+                    pdvToast(p);
+                    pdvSystemNotif(p);
+                    pdvFlash(p);
+                    try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e){}
+                    printPedido(p.id);
+                });
                 pdvUltimosIds = ids;
-                pdvInicializado = true;
             }).catch(function(err){
                 console.error('PDV: fetch error', err);
             });
@@ -604,30 +590,24 @@
         setInterval(pdvBuscarNuevos, 5000);
 
         function printPedido(id) {
-            var iframe = document.getElementById('pdv-print-frame');
-            if (!iframe) {
-                iframe = document.createElement('iframe');
-                iframe.id = 'pdv-print-frame';
-                iframe.style = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;';
-                document.body.appendChild(iframe);
+            var f = document.getElementById('pdv-print-frame');
+            if (!f) {
+                f = document.createElement('iframe');
+                f.id = 'pdv-print-frame';
+                f.style = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;';
+                document.body.appendChild(f);
             }
-            iframe.src = '/admin/ticket/' + id;
-            iframe.onload = function() {
-                setTimeout(function() {
-                    try { iframe.contentWindow.print(); } catch(e) {}
-                }, 500);
-            };
+            f.src = '/admin/ticket/' + id;
         }
 
         window.probarNotificacion = function() {
-            pdvInitAudio();
             var p = { id: 999999, numero_pedido: 'TEST', cliente: { nombre: 'Prueba' }, total: 50000, origen: 'web' };
-            pdvIniciarAlarma(p);
+            iniciarAlarma(999999);
             pdvToast(p);
             pdvSystemNotif(p);
             pdvFlash(p);
-            try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e){}
-            setTimeout(function() { pdvDetenerAlarma(999999); }, 10000);
+            try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e) {}
+            setTimeout(function() { detenerAlarma(999999); }, 10000);
         };
     </script>
 </x-filament-panels::page>

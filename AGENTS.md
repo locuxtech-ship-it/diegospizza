@@ -32,7 +32,7 @@ Build a complete web-based pizza delivery ordering system (Diego's Pizza) with L
 - Payment modal redesigned in Comandas and EditPedido: header, client info, products, totals, payment form, discount (admin-only), payment history, "✅ Pago completo" / "⏳ Falta por pagar"
 
 ### In Progress
-- **PDV notification/auto-print not working on printer PC**: Detection bug fixed (`pdvInicializado` flag). Remaining: sound not playing (AudioContext may need user gesture), print dialog not appearing (iframe `contentWindow.print()` or Edge blocking). Next diagnostic step: check if `printPedido` is being called and if ticket page renders.
+- **PDV notification/auto-print not working on printer PC**: Detection logic rewritten — always process new IDs. Sound changed from AudioContext (blocked by autoplay) to `<audio>` WAV data URI (no user gesture needed). Print uses ticket page's own `window.print()` at 1s (no double-print). Pending: test on printer PC Edge browser.
 
 ### Blocked
 - (none)
@@ -101,7 +101,7 @@ Build a complete web-based pizza delivery ordering system (Diego's Pizza) with L
 - `origen`: `'web'` / `'pdv'`
 - `NegocioSetting`: `puntos_ganancia_monto`, `puntos_ganancia_valor`, `puntos_recompensas` (JSON), `metodos_pago_activos` (JSON)
 - Gate `applyDiscount` in `AppServiceProvider::boot()` — `fn ($user) => $user->isAdmin()`
-- Notification mechanism: `fetch('/api/pedidos/pendientes')` every 5s → JS compares IDs → triggers sound + toast + flash + system notif + iframe print. `pdvInicializado` flag prevents skipping first new order after empty set.
+- Notification mechanism: `fetch('/api/pedidos/pendientes')` every 5s → JS compares IDs → triggers sound (`<audio>` WAV beep, no AudioContext needed) + toast + flash + system notif + iframe load (ticket auto-prints). Always processes new IDs (no initial skip).
 - Badge: `Comandas::getBadge()` returns `null` when count=0; JS updates from the same span
 - Finalizar protection: both `finalizarPedido()` and `finalizarDesdeModal()` re-query DB directly for payment sum and block if unpaid. No modal redirect for unpaid orders — shows error notification instead.
 - `finalizarPedido()` at Comandas verifies estado=entregado + pago completo → blocks if unpaid with error notification
