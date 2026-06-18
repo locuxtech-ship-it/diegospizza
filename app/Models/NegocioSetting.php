@@ -36,11 +36,13 @@ class NegocioSetting extends Model
         'ticket_margen',
         'ticket_fuente',
         'horarios_por_dia',
+        'chatbot_settings',
     ];
 
     protected function casts(): array
     {
         return [
+            'chatbot_settings' => 'array',
             'dias_laborales' => 'array',
             'tipos_servicio' => 'array',
             'imprimir_automaticamente' => 'boolean',

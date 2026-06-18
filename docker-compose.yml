@@ -65,9 +65,26 @@ services:
     networks:
       - diegospizza
 
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: diegospizza-waha
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - WHATSAPP_DEFAULT_SESSION=default
+      - WHATSAPP_WEBHOOK_URL=http://nginx/api/whatsapp/waha-webhook
+      - WHATSAPP_WEBHOOK_EVENTS=message
+      - TZ=America/Bogota
+    volumes:
+      - waha_sessions:/app/sessions
+    networks:
+      - diegospizza
+
 volumes:
   dbdata:
   storage_data:
+  waha_sessions:
 
 networks:
   diegospizza:

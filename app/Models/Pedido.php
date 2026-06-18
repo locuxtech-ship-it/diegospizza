@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\NegocioSetting;
+use App\Services\WhatsAppService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Log;
 
 class Pedido extends Model
 {
@@ -46,6 +49,62 @@ class Pedido extends Model
                 $pedido->numero_pedido = ($ultimo ?? 0) + 1;
             }
         });
+
+        static::created(function ($pedido) {
+            $pedido->sendNotification('pendiente_pago');
+        });
+
+        static::saved(function ($pedido) {
+            $original = $pedido->getOriginal('estado');
+            if ($original !== null && $original !== $pedido->estado) {
+                $pedido->sendNotification($pedido->estado);
+            }
+        });
+    }
+
+    public function sendNotification(string $estado): void
+    {
+        $settings = NegocioSetting::getSettings();
+        $chatbot = $settings->chatbot_settings ?? [];
+
+        if (!($chatbot['order_notifications'] ?? false)) {
+            return;
+        }
+
+        $notifications = $chatbot['notifications'] ?? [];
+        $message = $notifications[$estado] ?? '';
+
+        if (empty($message)) {
+            return;
+        }
+
+        $cliente = $this->cliente;
+        if (!$cliente || empty($cliente->telefono)) {
+            return;
+        }
+
+        $phone = preg_replace('/[^0-9]/', '', $cliente->telefono);
+        if (strlen($phone) < 10) {
+            return;
+        }
+
+        $chatId = "57{$phone}@c.us";
+
+        $message = str_replace(
+            ['{numero}', '{nombre}'],
+            [$this->numero_pedido, $cliente->nombre],
+            $message
+        );
+
+        try {
+            app(WhatsAppService::class)->sendText($chatId, $message);
+        } catch (\Exception $e) {
+            Log::error('WhatsApp notification failed', [
+                'pedido_id' => $this->id,
+                'estado' => $estado,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function cliente(): BelongsTo

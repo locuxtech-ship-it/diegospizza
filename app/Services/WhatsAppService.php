@@ -7,68 +7,75 @@ use Illuminate\Support\Facades\Log;
 
 class WhatsAppService
 {
-    protected string $token;
-    protected string $phoneNumberId;
-    protected string $apiUrl;
+    protected string $baseUrl;
 
     public function __construct()
     {
-        $this->token = config('services.whatsapp.token');
-        $this->phoneNumberId = config('services.whatsapp.phone_number_id');
-        $this->apiUrl = "https://graph.facebook.com/v22.0/{$this->phoneNumberId}/messages";
+        $this->baseUrl = config('services.waha.base_url', 'http://waha:3000');
     }
 
-    public function sendText(string $to, string $message): bool
+    public function sendText(string $chatId, string $message): bool
     {
-        $response = Http::withToken($this->token)->post($this->apiUrl, [
-            'messaging_product' => 'whatsapp',
-            'recipient_type' => 'individual',
-            'to' => $to,
-            'type' => 'text',
-            'text' => ['body' => $message],
+        $response = Http::timeout(10)->post("{$this->baseUrl}/api/sendText", [
+            'session' => 'default',
+            'chatId' => $chatId,
+            'text' => $message,
         ]);
 
         if ($response->failed()) {
-            Log::error('WhatsApp send error', ['response' => $response->body()]);
+            Log::error('WAHA sendText error', ['chatId' => $chatId, 'response' => $response->body()]);
             return false;
         }
 
         return true;
     }
 
-    public function sendInteractiveButtons(string $to, string $header, string $body, array $buttons): bool
+    public function getStatus(): array
     {
-        $btnList = [];
-        foreach ($buttons as $id => $title) {
-            $btnList[] = [
-                'type' => 'reply',
-                'reply' => [
-                    'id' => (string) $id,
-                    'title' => mb_substr($title, 0, 20),
-                ],
-            ];
+        try {
+            $response = Http::timeout(5)->get("{$this->baseUrl}/api/sessions/default");
+            if ($response->successful()) {
+                return $response->json() ?? ['status' => 'DISCONNECTED'];
+            }
+        } catch (\Exception $e) {
+            Log::warning('WAHA status check failed', ['error' => $e->getMessage()]);
         }
+        return ['status' => 'DISCONNECTED'];
+    }
 
-        $response = Http::withToken($this->token)->post($this->apiUrl, [
-            'messaging_product' => 'whatsapp',
-            'recipient_type' => 'individual',
-            'to' => $to,
-            'type' => 'interactive',
-            'interactive' => [
-                'type' => 'button',
-                'header' => ['type' => 'text', 'text' => mb_substr($header, 0, 60)],
-                'body' => ['text' => mb_substr($body, 0, 1024)],
-                'action' => [
-                    'buttons' => $btnList,
-                ],
-            ],
-        ]);
+    public function getQR(): ?string
+    {
+        try {
+            $response = Http::timeout(10)->get("{$this->baseUrl}/api/sessions/default/qr");
+            if ($response->successful()) {
+                $data = $response->json();
+                return $data['qr'] ?? null;
+            }
+        } catch (\Exception $e) {
+            Log::warning('WAHA QR fetch failed', ['error' => $e->getMessage()]);
+        }
+        return null;
+    }
 
-        if ($response->failed()) {
-            Log::error('WhatsApp interactive error', ['response' => $response->body()]);
+    public function logout(): bool
+    {
+        try {
+            $response = Http::timeout(10)->delete("{$this->baseUrl}/api/sessions/default");
+            return $response->successful();
+        } catch (\Exception $e) {
+            Log::error('WAHA logout failed', ['error' => $e->getMessage()]);
             return false;
         }
+    }
 
-        return true;
+    public function startSession(): bool
+    {
+        try {
+            $response = Http::timeout(10)->post("{$this->baseUrl}/api/sessions/default", []);
+            return $response->successful();
+        } catch (\Exception $e) {
+            Log::error('WAHA start session failed', ['error' => $e->getMessage()]);
+            return false;
+        }
     }
 }

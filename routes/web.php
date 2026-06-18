@@ -46,6 +46,7 @@ Route::post('/api/agent/guardar-ultimo-id', function () {
 });
 
 Route::match(['GET', 'POST'], '/api/whatsapp/webhook', [WhatsAppController::class, 'webhook'])->name('whatsapp.webhook');
+Route::post('/api/whatsapp/waha-webhook', [WhatsAppController::class, 'wahaWebhook'])->name('whatsapp.waha-webhook');
 
 Route::get('/api/agent/pendientes', function () {
     $key = request('key');

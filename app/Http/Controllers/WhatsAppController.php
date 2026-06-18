@@ -2,98 +2,94 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\NegocioSetting;
 use App\Models\Pedido;
 use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class WhatsAppController extends Controller
 {
-    public function webhook(Request $request, WhatsAppService $whatsapp)
+    public function webhook(Request $request, WhatsAppService $whatsapp): Response
     {
         if ($request->isMethod('GET')) {
             return $this->verify($request);
         }
-
         return $this->handleIncoming($request, $whatsapp);
     }
 
-    protected function verify(Request $request)
+    public function wahaWebhook(Request $request): Response
     {
-        $mode = $request->query('hub_mode');
-        $token = $request->query('hub_verify_token');
-        $challenge = $request->query('hub_challenge');
+        $settings = NegocioSetting::getSettings();
+        $chatbot = $settings->chatbot_settings ?? [];
 
-        if ($mode === 'subscribe' && $token === config('services.whatsapp.verify_token')) {
-            return response($challenge, 200)->header('Content-Type', 'text/plain');
-        }
-
-        return response('Forbidden', 403);
-    }
-
-    protected function handleIncoming(Request $request, WhatsAppService $whatsapp)
-    {
-        $entry = $request->input('entry.0');
-        $change = $entry['changes'][0]['value'] ?? [];
-
-        if (empty($change) || !isset($change['messages'])) {
+        if (!($chatbot['enabled'] ?? false)) {
             return response('OK', 200);
         }
 
-        foreach ($change['messages'] as $message) {
-            $from = $message['from'];
-            $type = $message['type'] ?? '';
-
-            if ($type === 'text') {
-                $text = strtolower(trim($message['text']['body']));
-                $this->handleTextMessage($from, $text, $whatsapp);
-            } elseif ($type === 'interactive' && ($message['interactive']['type'] ?? '') === 'button_reply') {
-                $replyId = $message['interactive']['button_reply']['id'] ?? '';
-                $this->handleButtonReply($from, $replyId, $whatsapp);
-            }
+        $event = $request->input('event');
+        if ($event !== 'message') {
+            return response('OK', 200);
         }
+
+        $payload = $request->input('payload', []);
+        $fromMe = $payload['fromMe'] ?? false;
+
+        if ($fromMe) {
+            return response('OK', 200);
+        }
+
+        $from = $payload['from'] ?? '';
+        $text = strtolower(trim($payload['body'] ?? ''));
+        $name = $payload['notifyName'] ?? '';
+
+        if (empty($from) || empty($text)) {
+            return response('OK', 200);
+        }
+
+        $whatsapp = app(WhatsAppService::class);
+        $this->processMessage($from, $text, $name, $whatsapp, $settings, $chatbot);
 
         return response('OK', 200);
     }
 
-    protected function handleTextMessage(string $from, string $text, WhatsAppService $whatsapp): void
+    protected function processMessage(string $from, string $text, string $name, WhatsAppService $whatsapp, NegocioSetting $settings, array $chatbot): void
     {
+        $empresa = $settings->nombre_negocio ?? "Diego's Pizza";
+
         if (in_array($text, ['hola', 'buenas', 'hi', 'hello', 'info', 'menú', 'menu', 'inicio'])) {
-            $whatsapp->sendText($from, "¡Bienvenido a Diego's Pizza Alameda! 🍕\n\n¿En qué puedo ayudarte?");
-            $this->sendMenu($from, $whatsapp);
+            $welcome = $chatbot['welcome_message'] ?? "Hola {nombre}\n¡Bienvenido/a a {empresa}! 🍕\n\n¿Cómo podemos ayudarte hoy?";
+            $welcome = str_replace(['{nombre}', '{empresa}'], [$name, $empresa], $welcome);
+            $whatsapp->sendText($from, $welcome);
+
+            $options = $chatbot['menu_options'] ?? [
+                ['key' => 'A', 'label' => 'Realizar un pedido 🍽️'],
+                ['key' => 'B', 'label' => 'Obtener más información ℹ️'],
+            ];
+            $menuText = "Seleccioná la letra de la opción y envíala como respuesta:\n";
+            foreach ($options as $opt) {
+                $menuText .= "\n{$opt['key']}. {$opt['label']}";
+            }
+            $whatsapp->sendText($from, $menuText);
+        } elseif ($text === 'a') {
+            $whatsapp->sendText($from, "Visitá nuestro menú digital y hacé tu pedido:\nhttps://diegospizzabq.click 🍕");
+        } elseif ($text === 'b') {
+            $horarios = $settings->horario_apertura ?? '11:00 AM';
+            $cierre = $settings->horario_cierre ?? '10:00 PM';
+            $telefono = $settings->telefono ?? '3106444759';
+            $whatsapp->sendText($from, "📍 *Dirección:* {$settings->direccion}\n🕐 *Horario:* {$horarios} - {$cierre}\n📞 *Teléfono:* {$telefono}\n\n¡Gracias por comunicarte con nosotros! 🍕");
         } elseif (str_starts_with($text, 'pedido') || preg_match('/^\d{1,6}$/', $text)) {
             $numero = preg_replace('/[^0-9]/', '', $text);
             $this->sendOrderStatus($from, $numero, $whatsapp);
         } else {
-            $whatsapp->sendText($from, "No entendí tu mensaje. Usa los botones o escribe 'Hola' para comenzar.");
-            $this->sendMenu($from, $whatsapp);
+            $whatsapp->sendText($from, "No entendí tu mensaje. Escribí *Hola* para comenzar.");
         }
-    }
-
-    protected function handleButtonReply(string $from, string $replyId, WhatsAppService $whatsapp): void
-    {
-        if ($replyId === 'menu') {
-            $whatsapp->sendText($from, "Visita nuestro menu digital:\nhttps://diegospizzabq.click");
-        } elseif ($replyId === 'horarios') {
-            $whatsapp->sendText($from, "Nuestro horario:\nLunes a Domingo\n12:00 PM - 10:00 PM");
-        } elseif ($replyId === 'pedido') {
-            $whatsapp->sendText($from, "Escribe el numero de tu pedido. Ej: *42*");
-        }
-    }
-
-    protected function sendMenu(string $from, WhatsAppService $whatsapp): void
-    {
-        $whatsapp->sendInteractiveButtons(
-            $from,
-            'Diego\'s Pizza',
-            'Selecciona una opción:',
-            ['menu' => '🍕 Menú', 'horarios' => '🕐 Horarios', 'pedido' => '📦 Mi Pedido']
-        );
     }
 
     protected function sendOrderStatus(string $from, string $numero, WhatsAppService $whatsapp): void
     {
         if (empty($numero)) {
-            $whatsapp->sendText($from, "Escribe el número de tu pedido. Ej: *123*");
+            $whatsapp->sendText($from, "Escribí el número de tu pedido. Ej: *123*");
             return;
         }
 
@@ -117,5 +113,50 @@ class WhatsAppController extends Controller
         $total = '$ ' . number_format($pedido->total, 0, ',', '.');
 
         $whatsapp->sendText($from, "Pedido #{$pedido->numero_pedido}\nEstado: {$estado}\nTotal: {$total}\n\n¡Gracias por preferirnos! 🍕");
+    }
+
+    protected function verify(Request $request): Response
+    {
+        $mode = $request->query('hub_mode');
+        $token = $request->query('hub_verify_token');
+        $challenge = $request->query('hub_challenge');
+
+        if ($mode === 'subscribe' && $token === config('services.whatsapp.verify_token')) {
+            return response($challenge, 200)->header('Content-Type', 'text/plain');
+        }
+
+        return response('Forbidden', 403);
+    }
+
+    protected function handleIncoming(Request $request, WhatsAppService $whatsapp): Response
+    {
+        $entry = $request->input('entry.0');
+        $change = $entry['changes'][0]['value'] ?? [];
+
+        if (empty($change) || !isset($change['messages'])) {
+            return response('OK', 200);
+        }
+
+        $settings = NegocioSetting::getSettings();
+        $chatbot = $settings->chatbot_settings ?? [];
+
+        foreach ($change['messages'] as $message) {
+            $from = $message['from'];
+            $type = $message['type'] ?? '';
+            $text = '';
+
+            if ($type === 'text') {
+                $text = strtolower(trim($message['text']['body']));
+            } elseif ($type === 'interactive' && ($message['interactive']['type'] ?? '') === 'button_reply') {
+                $text = strtolower($message['interactive']['button_reply']['id'] ?? '');
+            }
+
+            if (!empty($text)) {
+                $name = $from;
+                $this->processMessage($from, $text, $name, $whatsapp, $settings, $chatbot);
+            }
+        }
+
+        return response('OK', 200);
     }
 }

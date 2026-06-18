@@ -42,6 +42,10 @@ return [
         'business_account_id' => env('WHATSAPP_BUSINESS_ACCOUNT_ID'),
     ],
 
+    'waha' => [
+        'base_url' => env('WAHA_BASE_URL', 'http://waha:3000'),
+    ],
+
     'print_agent' => [
         'key' => env('PRINT_AGENT_KEY'),
     ],
