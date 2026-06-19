@@ -24,6 +24,7 @@ services:
       - CACHE_STORE=database
       - TZ=America/Bogota
       - PRINT_AGENT_KEY=${PRINT_AGENT_KEY}
+      - WAHA_API_KEY=${WAHA_API_KEY}
     depends_on:
       db:
         condition: service_healthy
