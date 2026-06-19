@@ -11,7 +11,7 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Filament\Tables\Actions\Action;
-use Illuminate\Database\Eloquent\Builder;
+use UnitEnum;
 
 class Reviews extends Page implements HasForms, HasTable
 {
@@ -21,7 +21,7 @@ class Reviews extends Page implements HasForms, HasTable
     protected static ?string $slug = 'reviews';
     protected static ?string $title = 'Reseñas';
     protected static ?string $navigationLabel = 'Reseñas';
-    protected static ?string $navigationGroup = 'Configuración';
+    protected static UnitEnum|string|null $navigationGroup = 'Configuración';
     protected static ?int $navigationSort = 7;
 
     protected string $view = 'filament.pages.reviews';
