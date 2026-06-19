@@ -72,7 +72,7 @@ class WhatsAppController extends Controller
             }
             $whatsapp->sendText($from, $menuText);
         } elseif ($text === 'a') {
-            $whatsapp->sendText($from, "Visitá nuestro menú digital y hacé tu pedido:\nhttps://diegospizzabq.click 🍕");
+            $whatsapp->sendText($from, "Genial! 🎉 Para hacer tu pedido, entra en el siguiente enlace y elige tus platos favoritos:\n\n🔗 Haz tu pedido aquí: https://diegospizzabq.click/\n\n¡Estamos listos para preparar algo delicioso para ti! 🍽️");
         } elseif ($text === 'b') {
             $horarios = $settings->horario_apertura ?? '11:00 AM';
             $cierre = $settings->horario_cierre ?? '10:00 PM';
