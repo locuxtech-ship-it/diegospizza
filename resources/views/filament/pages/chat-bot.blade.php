@@ -37,6 +37,14 @@
                             ✅ Ya escaneé
                         </button>
                     </div>
+                @elseif($status === 'WAITING_QR')
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                        <span style="font-size: 14px; color: #6b7280;">Generando código QR, esperá unos segundos...</span>
+                        <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #22c55e; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <button type="button" wire:click="checkStatus" style="background: #3b82f6; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                            ⟳ Verificar QR
+                        </button>
+                    </div>
                 @else
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
                         <div style="display: flex; align-items: center; gap: 10px; padding: 12px 24px; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 9999px;">
@@ -168,4 +176,7 @@
             </button>
         </form>
     </div>
+<style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+</style>
 </x-filament-panels::page>
