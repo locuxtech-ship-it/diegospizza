@@ -10,7 +10,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
-use Filament\Tables\Actions\Action;
+use Filament\Actions\Action;
 use UnitEnum;
 
 class Reviews extends Page implements HasForms, HasTable
