@@ -7,6 +7,7 @@ use App\Models\Pedido;
 use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 
 class WhatsAppController extends Controller
 {
@@ -20,6 +21,8 @@ class WhatsAppController extends Controller
 
     public function wahaWebhook(Request $request): Response
     {
+        Log::info('WAHA webhook received', $request->all());
+
         $settings = NegocioSetting::getSettings();
         $chatbot = $settings->chatbot_settings ?? [];
 
