@@ -51,7 +51,7 @@ class ImportarClientesOlaClick extends Command
         while (($row = fgetcsv($handle, 0, ';', '"', '\\')) !== false) {
             $bar->advance();
 
-            $nombre = trim($row[$colNombre] ?? '');
+            $nombre = $this->sanearNombre($row[$colNombre] ?? '');
             $telefonoRaw = trim($row[$colTelefono] ?? '');
             $puntosRaw = trim($row[$colPuntos] ?? '0');
 
@@ -116,6 +116,15 @@ class ImportarClientesOlaClick extends Command
         );
 
         return self::SUCCESS;
+    }
+
+    private function sanearNombre(string $nombre): string
+    {
+        $nombre = trim($nombre);
+        $nombre = preg_replace('/\R+/', ' ', $nombre);
+        $nombre = mb_convert_encoding($nombre, 'UTF-8', 'Windows-1252');
+        $nombre = trim($nombre);
+        return $nombre;
     }
 
     private function limpiarTelefono(string $telefono): string
