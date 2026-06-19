@@ -57,8 +57,12 @@ class WhatsAppService
     public function getQR(): ?string
     {
         try {
-            $response = $this->withAuth()->get("{$this->baseUrl}/api/sessions/default/qr");
+            $response = $this->withAuth()->get("{$this->baseUrl}/api/default/auth/qr");
             if ($response->successful()) {
+                $type = $response->header('Content-Type');
+                if ($type === 'image/png') {
+                    return 'data:image/png;base64,' . base64_encode($response->body());
+                }
                 $data = $response->json();
                 return $data['qr'] ?? null;
             }
