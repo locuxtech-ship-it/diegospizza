@@ -29,9 +29,6 @@ if [ ! -L /var/www/public/storage ]; then
     php artisan storage:link --force
 fi
 
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
 php artisan migrate --force
 
 chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
