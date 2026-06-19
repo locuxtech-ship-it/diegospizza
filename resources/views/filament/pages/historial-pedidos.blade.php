@@ -263,4 +263,6 @@
         }
     </script>
     @endpush
+
+    @include('partials.global-notifications')
 </x-filament-panels::page>

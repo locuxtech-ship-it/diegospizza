@@ -34,30 +34,31 @@
         } catch(e){}
     }
 
+    var toastPendientes = null;
+
     function mostrarToast(p) {
-        var c = document.getElementById('pdv-global-notif-container');
-        if (!c) {
-            c = document.createElement('div');
-            c.id = 'pdv-global-notif-container';
-            c.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;';
-            document.body.appendChild(c);
+        if (!toastPendientes || !toastPendientes.parentNode) {
+            toastPendientes = document.createElement('div');
+            toastPendientes.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:99999;background:#ef4444;color:white;border-radius:12px;padding:14px 18px;box-shadow:0 10px 40px rgba(0,0,0,0.3);max-width:380px;animation:pdvSlideIn 0.35s cubic-bezier(0.16,1,0.3,1);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;align-items:center;gap:10px;cursor:pointer;';
+            toastPendientes.addEventListener('click', function(){ window.location.href = '/admin/comandas'; });
+            var cerrar = document.createElement('span');
+            cerrar.textContent = '×';
+            cerrar.style.cssText = 'font-size:20px;opacity:0.7;margin-left:8px;align-self:flex-start;';
+            cerrar.addEventListener('click', function(e){
+                e.stopPropagation();
+                toastPendientes.style.transition = 'all 0.3s ease';
+                toastPendientes.style.opacity = '0';
+                toastPendientes.style.transform = 'translateX(100px)';
+                setTimeout(function(){ if(toastPendientes && toastPendientes.parentNode){ toastPendientes.remove(); toastPendientes = null; } }, 300);
+            });
+            toastPendientes.innerHTML = '<div style="background:rgba(255,255,255,0.2);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🆕</div><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;" id="pdv-toast-msg">Pedidos pendientes</div><div style="font-size:11px;opacity:0.8;">Haz clic para ir al PDV</div></div>';
+            toastPendientes.appendChild(cerrar);
+            document.body.appendChild(toastPendientes);
         }
-        var n = document.createElement('div');
-        n.style.cssText = 'background:#1e293b;color:white;border-radius:12px;padding:14px 18px;box-shadow:0 10px 40px rgba(0,0,0,0.3);max-width:360px;animation:pdvSlideIn 0.35s cubic-bezier(0.16,1,0.3,1);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;align-items:flex-start;gap:10px;cursor:pointer;';
-        n.innerHTML = '<div style="background:#22c55e;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🍕</div><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;margin-bottom:2px;">Nuevo Pedido #'+(p.numero_pedido||p.id)+'</div><div style="font-size:12px;color:#94a3b8;margin-bottom:3px;">'+(p.cliente?.nombre||'')+'</div><div style="font-size:11px;color:#64748b;"><span style="background:'+(p.origen==='web'?'#2563eb':'#d97706')+';padding:1px 6px;border-radius:4px;color:white;">'+(p.origen||'PDV').toUpperCase()+'</span></div></div><div style="font-size:16px;color:#64748b;margin-left:auto;align-self:flex-start;">×</div>';
-        n.addEventListener('click', function() {
-            n.style.transition = 'all 0.3s ease';
-            n.style.opacity = '0';
-            n.style.transform = 'translateX(100px)';
-            setTimeout(function() { if (n.parentNode) n.remove(); }, 300);
-        });
-        c.appendChild(n);
-        setTimeout(function() {
-            n.style.transition = 'all 0.3s ease';
-            n.style.opacity = '0';
-            n.style.transform = 'translateX(100px)';
-            setTimeout(function() { if (n.parentNode) n.remove(); }, 300);
-        }, 8000);
+        var msg = toastPendientes.querySelector('#pdv-toast-msg');
+        var count = parseInt(toastPendientes.getAttribute('data-count') || '0') + 1;
+        toastPendientes.setAttribute('data-count', count);
+        msg.textContent = '🔔 ' + count + ' pedido(s) pendiente(s)';
     }
 
     function notifSistema(p) {
@@ -86,8 +87,18 @@
         });
     }
 
+    function limpiarToast() {
+        if (toastPendientes && toastPendientes.parentNode) {
+            toastPendientes.remove();
+            toastPendientes = null;
+        }
+    }
+
     function verificarNuevosPedidos() {
-        if (window.location.pathname.includes('/admin/comandas')) return;
+        if (window.location.pathname.includes('/admin/comandas')) {
+            limpiarToast();
+            return;
+        }
 
         fetch('/api/pedidos/pendientes')
             .then(function(r) { return r.json(); })
@@ -95,6 +106,10 @@
                 var pedidos = data.pedidos || [];
                 var nuevosIds = pedidos.map(function(p){ return p.id; });
                 actualizarBadge(pedidos.length);
+
+                if (nuevosIds.length === 0) {
+                    limpiarToast();
+                }
 
                 if (lastIds.length > 0) {
                     var nuevos = [];

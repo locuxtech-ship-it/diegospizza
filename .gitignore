@@ -29,3 +29,6 @@ Thumbs.db
 # Bootstrap cache
 bootstrap/cache/*.php
 !bootstrap/cache/.gitignore
+
+# Cached compiled views
+/storage/framework/views/*.php

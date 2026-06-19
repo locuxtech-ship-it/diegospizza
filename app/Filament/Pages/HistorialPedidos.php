@@ -92,7 +92,7 @@ class HistorialPedidos extends Page
             default => null,
         };
 
-        if ($periodo !== 'personalizado') {
+        if (in_array($periodo, ['7d', '30d'])) {
             $this->fechaFin = now()->format('Y-m-d');
         }
 

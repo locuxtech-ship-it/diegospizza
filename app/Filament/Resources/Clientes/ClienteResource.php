@@ -27,11 +27,16 @@ class ClienteResource extends Resource
         return 'Ventas';
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->isAdmin() ?? false;
+    }
+
     protected static ?string $recordTitleAttribute = 'nombre';
 
     public static function canViewAny(): bool
     {
-        return auth()->user() && in_array(auth()->user()->role, ['admin', 'cajero']);
+        return auth()->user()?->isAdmin() ?? false;
     }
 
     public static function canCreate(): bool

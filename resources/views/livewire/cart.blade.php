@@ -67,6 +67,10 @@
                         <span class="text-gray-900">Total</span>
                         <span style="color: #FF8D08;">${{ number_format($total, 0, ',', '.') }}</span>
                     </div>
+                    <button wire:click="cerrar" class="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 active:scale-[0.98] border" style="border-color: #FF8D08; color: #FF8D08;">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                        Seguir agregando
+                    </button>
                     <button wire:click="vaciarCarrito" class="w-full text-center text-xs text-gray-400 hover:text-red-500 transition py-1">
                         Vaciar carrito
                     </button>

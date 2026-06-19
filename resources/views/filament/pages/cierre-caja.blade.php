@@ -141,4 +141,5 @@
             if (w) w.focus();
         }
     </script>
+    @include('partials.global-notifications')
 </x-filament-panels::page>

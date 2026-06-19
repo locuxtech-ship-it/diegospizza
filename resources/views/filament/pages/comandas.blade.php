@@ -459,11 +459,13 @@
     </div>
     @endif
 
+    <script src="https://unpkg.com/sweetalert2@11"></script>
     <script>
         console.log('PDV: script loaded');
         var pdvCtx = null;
         var pdvAlarmInterval = null;
         var pdvIdsAlertando = {};
+        var pdvMostrandoSwal = false;
 
         function pdvInitAudio() {
             if (pdvCtx) return;
@@ -518,6 +520,23 @@
                 pdvAlarmInterval = setInterval(function(){
                     if (Object.keys(pdvIdsAlertando).length > 0) pdvTocarBeep();
                 }, 2000);
+            }
+            if (!pdvMostrandoSwal && typeof Swal !== 'undefined') {
+                pdvMostrandoSwal = true;
+                pdvIniciarAudioLoop();
+                var nom = (pedido.cliente && pedido.cliente.nombre) ? pedido.cliente.nombre : '';
+                var totalStr = Number(pedido.total).toLocaleString('es-CO');
+                Swal.fire({
+                    title: '🔔 NUEVO PEDIDO',
+                    html: '<div style="font-size:20px;font-weight:700;margin-bottom:4px;">#'+(pedido.numero_pedido||pedido.id)+'</div><div style="font-size:16px;">'+nom+'</div><div style="font-size:14px;color:#6b7280;margin-top:4px;">$'+totalStr+'</div>',
+                    icon: 'warning',
+                    confirmButtonText: '✅ Ver Pedido',
+                    confirmButtonColor: '#22c55e',
+                    allowOutsideClick: false,
+                    didClose: function() {
+                        pdvMostrandoSwal = false;
+                    }
+                });
             }
         }
 
