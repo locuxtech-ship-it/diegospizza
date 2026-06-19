@@ -22,6 +22,7 @@ class ChatBot extends Page
     }
 
     public $status = 'DISCONNECTED';
+    public $pushName = '';
     public $qrCode = null;
     public $mensaje = '';
 
@@ -66,6 +67,7 @@ class ChatBot extends Page
         $waha = app(WhatsAppService::class);
         $data = $waha->getStatus();
         $this->status = $data['status'] ?? 'DISCONNECTED';
+        $this->pushName = $data['pushName'] ?? '';
         if ($this->status === 'SCAN_QR_CODE' && !$this->qrCode) {
             $this->qrCode = $waha->getQR();
         }

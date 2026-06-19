@@ -21,7 +21,7 @@
                     <div style="display: flex; align-items: center; gap: 10px; padding: 12px 24px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 9999px;">
                         <span style="width: 12px; height: 12px; background: #22c55e; border-radius: 50%; display: inline-block;"></span>
                         <span style="font-weight: 700; color: #166534; font-size: 15px;">CONECTADO</span>
-                        <span style="color: #6b7280; font-size: 14px;">— 3106444759</span>
+                        <span style="color: #6b7280; font-size: 14px;">— {{ $pushName }}</span>
                     </div>
                     <button type="button" wire:click="logout" style="background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer;">
                         ❌ Cerrar Sesión

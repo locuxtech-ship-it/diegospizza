@@ -46,7 +46,14 @@ class WhatsAppService
         try {
             $response = $this->withAuth()->timeout(5)->get("{$this->baseUrl}/api/sessions/default");
             if ($response->successful()) {
-                return $response->json() ?? ['status' => 'DISCONNECTED'];
+                $data = $response->json() ?? [];
+                $raw = $data['status'] ?? 'DISCONNECTED';
+                if (in_array($raw, ['WORKING', 'CONNECTED'])) {
+                    $data['status'] = 'CONNECTED';
+                }
+                $me = $data['me'] ?? [];
+                $data['pushName'] = $me['pushName'] ?? $me['name'] ?? '';
+                return $data;
             }
         } catch (\Exception $e) {
             Log::warning('WAHA status check failed', ['error' => $e->getMessage()]);
