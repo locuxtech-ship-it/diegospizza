@@ -113,6 +113,7 @@
                                 'en_proceso' => '👨‍🍳 En Preparación',
                                 'en_camino' => '🛵 En Camino',
                                 'entregado' => '✅ Entregado',
+                                'finalizado' => '✅ Finalizado',
                                 'cancelado' => '❌ Cancelado',
                             ];
                         @endphp
@@ -135,6 +136,28 @@
                                     @endforeach
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Review request --}}
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+                <div style="background: linear-gradient(to right, #fef2f2, white); padding: 16px 24px; border-bottom: 1px solid #e5e7eb;">
+                    <h2 style="margin: 0; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">⭐ Solicitar Reseña</h2>
+                </div>
+                <div style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+                    <label style="display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; color: #374151; cursor: pointer;">
+                        <input type="checkbox" wire:model="review_enabled" style="width: 18px; height: 18px; accent-color: #f59e0b;">
+                        Enviar enlace de reseña al finalizar el pedido
+                    </label>
+
+                    <div style="{{ $review_enabled ? '' : 'opacity: 50%; pointer-events: none;' }}">
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="font-size: 13px; font-weight: 600; color: #6b7280;">Mensaje con enlace de reseña</label>
+                            <span style="font-size: 11px; color: #9ca3af;">Usá {nombre}, {numero} y {link} como placeholders</span>
+                            <textarea wire:model="review_message" rows="3" style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; font-size: 14px; resize: vertical;">{{ $review_message }}</textarea>
+                            @error('review_message') <span style="color: #ef4444; font-size: 12px;">{{ $message }}</span> @enderror
                         </div>
                     </div>
                 </div>

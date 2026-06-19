@@ -71,13 +71,6 @@ class Pedido extends Model
             return;
         }
 
-        $notifications = $chatbot['notifications'] ?? [];
-        $message = $notifications[$estado] ?? '';
-
-        if (empty($message)) {
-            return;
-        }
-
         $cliente = $this->cliente;
         if (!$cliente || empty($cliente->telefono)) {
             return;
@@ -90,20 +83,48 @@ class Pedido extends Model
 
         $chatId = "57{$phone}@c.us";
 
-        $message = str_replace(
-            ['{numero}', '{nombre}'],
-            [$this->numero_pedido, $cliente->nombre],
-            $message
-        );
+        // Send estado notification
+        $notifications = $chatbot['notifications'] ?? [];
+        $message = $notifications[$estado] ?? '';
 
-        try {
-            app(WhatsAppService::class)->sendText($chatId, $message);
-        } catch (\Exception $e) {
-            Log::error('WhatsApp notification failed', [
-                'pedido_id' => $this->id,
-                'estado' => $estado,
-                'error' => $e->getMessage(),
-            ]);
+        if (!empty($message)) {
+            $message = str_replace(
+                ['{numero}', '{nombre}'],
+                [$this->numero_pedido, $cliente->nombre],
+                $message
+            );
+
+            try {
+                app(WhatsAppService::class)->sendText($chatId, $message);
+            } catch (\Exception $e) {
+                Log::error('WhatsApp notification failed', [
+                    'pedido_id' => $this->id,
+                    'estado' => $estado,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Send review link when finalized
+        if ($estado === 'finalizado' && ($chatbot['review_enabled'] ?? false)) {
+            $reviewMsg = $chatbot['review_message'] ?? '';
+            if (!empty($reviewMsg)) {
+                $link = route('review.form', ['numero' => $this->numero_pedido]);
+                $reviewMsg = str_replace(
+                    ['{numero}', '{nombre}', '{link}'],
+                    [$this->numero_pedido, $cliente->nombre, $link],
+                    $reviewMsg
+                );
+
+                try {
+                    app(WhatsAppService::class)->sendText($chatId, $reviewMsg);
+                } catch (\Exception $e) {
+                    Log::error('WhatsApp review link failed', [
+                        'pedido_id' => $this->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
         }
     }
 

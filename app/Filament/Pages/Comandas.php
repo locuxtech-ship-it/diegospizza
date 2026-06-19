@@ -92,7 +92,7 @@ class Comandas extends Page
         $this->pendientePago = Pedido::with('cliente')
             ->where('estado', 'pendiente_pago')
             ->whereDate('created_at', today())
-            ->orderBy('created_at', 'desc')
+            ->orderBy('created_at')
             ->get()
             ->toArray();
 
@@ -145,7 +145,7 @@ class Comandas extends Page
         $this->todos = Pedido::with('cliente')
             ->whereIn('estado', ['pendiente_pago', 'en_proceso', 'en_camino', 'entregado'])
             ->whereDate('created_at', today())
-            ->orderBy('created_at', 'desc')
+            ->orderBy('created_at')
             ->get()
             ->toArray();
     }

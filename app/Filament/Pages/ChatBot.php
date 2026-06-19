@@ -31,6 +31,8 @@ class ChatBot extends Page
     public $menu_options = [];
     public $order_notifications = true;
     public $notifications = [];
+    public $review_enabled = false;
+    public $review_message = '';
 
     public function mount(): void
     {
@@ -52,6 +54,9 @@ class ChatBot extends Page
             'entregado' => 'El pedido N° {numero} fue entregado. ¡Gracias por preferirnos! 🍕',
             'cancelado' => '❌ Pedido N° {numero} fue cancelado.',
         ];
+
+        $this->review_enabled = $chatbot['review_enabled'] ?? false;
+        $this->review_message = $chatbot['review_message'] ?? "Gracias por tu pedido {nombre}!\nDejanos tu reseña aqui: {link} 🍕";
 
         $this->checkStatus();
     }
@@ -99,6 +104,7 @@ class ChatBot extends Page
             'welcome_message' => 'required',
             'menu_options.*.key' => 'required',
             'menu_options.*.label' => 'required',
+            'review_message' => 'required_if:review_enabled,true',
         ]);
 
         $chatbot = [
@@ -108,6 +114,8 @@ class ChatBot extends Page
             'menu_options' => $this->menu_options,
             'order_notifications' => $this->order_notifications,
             'notifications' => $this->notifications,
+            'review_enabled' => $this->review_enabled,
+            'review_message' => $this->review_message,
         ];
 
         NegocioSetting::first()->update([
