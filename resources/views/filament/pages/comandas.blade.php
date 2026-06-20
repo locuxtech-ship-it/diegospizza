@@ -152,7 +152,7 @@
                     @endif
                     @can('applyDiscount', auth()->user())
                         @if(!in_array($pedido['estado'], ['pendiente_pago', 'finalizado', 'cancelado']))
-                        <x-filament::button wire:click.stop="cancelarPedido({{ $pedido['id'] }})" wire:confirm="¿Cancelar pedido #{{ $pedido['numero_pedido'] }}?" size="xs" color="danger">
+                        <x-filament::button onclick="event.stopPropagation(); pdvCancelarPedido({{ $pedido['id'] }}, {{ $pedido['numero_pedido'] }})" size="xs" color="danger">
                             🛑
                         </x-filament::button>
                         @endif
@@ -281,8 +281,8 @@
                                         @endif
                                         @can('applyDiscount', auth()->user())
                                             @if(!in_array($pedido['estado'], ['pendiente_pago', 'finalizado', 'cancelado']))
-                                            <x-filament::button wire:click.stop="cancelarPedido({{ $pedido['id'] }})" wire:confirm="¿Cancelar pedido #{{ $pedido['numero_pedido'] }}? Se notificará al cliente." size="xs" color="danger">
-                                                🛑 Cancelar
+                                            <x-filament::button onclick="event.stopPropagation(); pdvCancelarPedido({{ $pedido['id'] }}, {{ $pedido['numero_pedido'] }})" size="xs" color="danger">
+                                                🛑
                                             </x-filament::button>
                                             @endif
                                         @endcan
@@ -599,6 +599,37 @@
             }, 800);
             document.addEventListener('visibilitychange', function vis(){
                 if (!document.hidden) { clearInterval(t); document.title = orig; document.removeEventListener('visibilitychange', vis); }
+            });
+        }
+
+        function pdvCancelarPedido(id, numero) {
+            Swal.fire({
+                title: '🛑 Cancelar Pedido #' + numero,
+                text: 'Selecciona el motivo de la cancelación:',
+                input: 'select',
+                inputOptions: {
+                    'rechazado': 'Rechazado',
+                    'doble': 'Se hizo doble',
+                    'tiempo': 'Por tiempo de espera',
+                    'ya_no_quiere': 'Ya no lo quiere',
+                },
+                inputPlaceholder: 'Selecciona un motivo',
+                showCancelButton: true,
+                confirmButtonText: 'Cancelar pedido',
+                cancelButtonText: 'Volver',
+                confirmButtonColor: '#dc2626',
+                showLoaderOnConfirm: true,
+                preConfirm: function(motivo) {
+                    if (!motivo) {
+                        Swal.showValidationMessage('Debes seleccionar un motivo');
+                        return false;
+                    }
+                    return motivo;
+                }
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    $wire.cancelarPedido(id, result.value);
+                }
             });
         }
 

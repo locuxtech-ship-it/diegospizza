@@ -191,7 +191,7 @@ class Comandas extends Page
         $this->cargarPedidos();
     }
 
-    public function cancelarPedido(int $pedidoId): void
+    public function cancelarPedido(int $pedidoId, string $motivo = ''): void
     {
         if (!auth()->user()->isAdmin()) {
             Notification::make()
@@ -204,7 +204,10 @@ class Comandas extends Page
         $pedido = Pedido::find($pedidoId);
         if (!$pedido) return;
 
-        $pedido->update(['estado' => 'cancelado']);
+        $pedido->update([
+            'estado' => 'cancelado',
+            'motivo_cancelacion' => $motivo,
+        ]);
 
         Notification::make()
             ->title("Pedido #{$pedido->numero_pedido} cancelado")
