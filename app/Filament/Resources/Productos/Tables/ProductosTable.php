@@ -42,12 +42,14 @@ class ProductosTable
                     ->trueIcon('heroicon-m-check-circle')
                     ->falseIcon('heroicon-m-x-circle'),
             ])
+            ->selectable(false)
             ->groups([
                 Group::make('categoria.nombre')
                     ->label('Categoría')
                     ->collapsible(),
             ])
             ->defaultGroup('categoria.nombre')
+            ->defaultSort('orden')
             ->paginated(false)
             ->filters([
                 //

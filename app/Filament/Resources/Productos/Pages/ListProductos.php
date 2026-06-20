@@ -9,6 +9,7 @@ use Filament\Resources\Pages\ListRecords;
 class ListProductos extends ListRecords
 {
     protected static string $resource = ProductoResource::class;
+    protected string $view = 'filament.resources.productos.pages.list-productos';
 
     protected function getHeaderActions(): array
     {

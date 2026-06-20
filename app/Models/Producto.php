@@ -18,6 +18,7 @@ class Producto extends Model
         'ingredientes',
         'disponible',
         'es_personalizable',
+        'orden',
     ];
 
     protected function casts(): array

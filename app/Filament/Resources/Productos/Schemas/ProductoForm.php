@@ -49,6 +49,11 @@ class ProductoForm
                     ->default(true),
                 Toggle::make('es_personalizable')
                     ->label('Permite personalizacion'),
+                TextInput::make('orden')
+                    ->label('Orden')
+                    ->numeric()
+                    ->default(0)
+                    ->helperText('Menor número = aparece primero'),
                 Repeater::make('variants')
                     ->relationship()
                     ->label('Tamaños / Variantes')
