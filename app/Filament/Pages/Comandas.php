@@ -193,9 +193,9 @@ class Comandas extends Page
 
     public function cancelarPedido(int $pedidoId, string $motivo = ''): void
     {
-        if (!auth()->user()->isAdmin()) {
+        if (!auth()->user()->canCancelarPedido()) {
             Notification::make()
-                ->title('Solo administradores pueden cancelar pedidos')
+                ->title('No tienes permiso para cancelar pedidos')
                 ->danger()
                 ->send();
             return;

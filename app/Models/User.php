@@ -41,6 +41,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->role === 'cajero';
     }
 
+    public function canCancelarPedido(): bool
+    {
+        return in_array($this->role, ['admin', 'cajero']);
+    }
+
     protected function casts(): array
     {
         return [

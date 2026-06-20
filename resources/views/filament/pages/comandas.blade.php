@@ -150,13 +150,11 @@
                             {{ $siguiente == 'en_camino' ? '🚗' : '📍' }}
                         </x-filament::button>
                     @endif
-                    @can('applyDiscount', auth()->user())
-                        @if(!in_array($pedido['estado'], ['pendiente_pago', 'finalizado', 'cancelado']))
-                        <x-filament::button onclick="event.stopPropagation(); pdvCancelarPedido({{ $pedido['id'] }}, {{ $pedido['numero_pedido'] }})" size="xs" color="danger">
-                            🛑
-                        </x-filament::button>
-                        @endif
-                    @endcan
+                    @if(!in_array($pedido['estado'], ['pendiente_pago', 'finalizado', 'cancelado']))
+                    <x-filament::button onclick="event.stopPropagation(); pdvCancelarPedido({{ $pedido['id'] }}, {{ $pedido['numero_pedido'] }})" size="xs" color="danger">
+                        🛑
+                    </x-filament::button>
+                    @endif
                 </div>
             </div>
             @empty
@@ -279,13 +277,11 @@
                                                 💳 Pagar
                                             </x-filament::button>
                                         @endif
-                                        @can('applyDiscount', auth()->user())
-                                            @if(!in_array($pedido['estado'], ['pendiente_pago', 'finalizado', 'cancelado']))
-                                            <x-filament::button onclick="event.stopPropagation(); pdvCancelarPedido({{ $pedido['id'] }}, {{ $pedido['numero_pedido'] }})" size="xs" color="danger">
-                                                🛑
-                                            </x-filament::button>
-                                            @endif
-                                        @endcan
+                                        @if(!in_array($pedido['estado'], ['pendiente_pago', 'finalizado', 'cancelado']))
+                                        <x-filament::button onclick="event.stopPropagation(); pdvCancelarPedido({{ $pedido['id'] }}, {{ $pedido['numero_pedido'] }})" size="xs" color="danger">
+                                            🛑
+                                        </x-filament::button>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
