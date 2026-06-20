@@ -253,6 +253,11 @@ class Comandas extends Page
         $this->actualizarDescuento();
     }
 
+    public function aplicarDescuento(): void
+    {
+        $this->actualizarDescuento();
+    }
+
     private function actualizarDescuento(): void
     {
         $val = (float) ($this->descuentoValor ?: 0);

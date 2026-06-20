@@ -388,15 +388,18 @@
                 @endif
                 {{-- Descuento --}}
                 @can('applyDiscount', auth()->user())
-                <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center;">
+                <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                     <span style="font-size: 12px; font-weight: 600; color: #6b7280;">🏷️ Descuento:</span>
                     <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
-                        <input type="radio" wire:model.live="descuentoTipo" value="fijo"> Fijo
+                        <input type="radio" wire:model.live="descuentoTipo" value="fijo"> en pesos
                     </label>
                     <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
-                        <input type="radio" wire:model.live="descuentoTipo" value="porcentaje"> %
+                        <input type="radio" wire:model.live="descuentoTipo" value="porcentaje"> Porcentaje
                     </label>
-                    <input type="number" step="1" wire:model.live="descuentoValor" min="0" placeholder="0" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px; width: 80px;">
+                    <input type="number" step="1" wire:model="descuentoValor" min="0" placeholder="0" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px; width: 80px;">
+                    <x-filament::button wire:click="aplicarDescuento" color="gray" size="xs">
+                        Aplicar
+                    </x-filament::button>
                 </div>
                 @endcan
             </div>
