@@ -23,6 +23,7 @@ class ProductosTable
                     ->label('Imagen')
                     ->square()
                     ->size(50)
+                    ->disk('public')
                     ->toggleable(),
                 TextColumn::make('nombre')
                     ->label('Producto')
