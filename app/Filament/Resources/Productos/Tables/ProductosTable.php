@@ -10,6 +10,7 @@ use Filament\Actions\EditAction;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 
 class ProductosTable
@@ -41,6 +42,11 @@ class ProductosTable
                     ->trueIcon('heroicon-m-check-circle')
                     ->falseIcon('heroicon-m-x-circle'),
             ])
+            ->groups([
+                Group::make('categoria.nombre')
+                    ->label('Categoría'),
+            ])
+            ->defaultGroup('categoria.nombre')
             ->filters([
                 //
             ])

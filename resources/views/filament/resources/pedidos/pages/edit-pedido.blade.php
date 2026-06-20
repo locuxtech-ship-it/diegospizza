@@ -1,12 +1,19 @@
 <x-filament-panels::page>
     @php $record = $this->getRecord(); @endphp
 
-    {{-- Read-only banner --}}
+    {{-- Status banners --}}
     @if($readOnly)
     <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 10px;">
         <span style="font-size: 18px;">🔒</span>
         <span style="font-size: 14px; font-weight: 600; color: #991b1b;">
-            Pedido {{ $record->estado === 'finalizado' ? 'finalizado' : 'cancelado' }} — solo lectura
+            Pedido cancelado — solo lectura
+        </span>
+    </div>
+    @elseif($productosReadOnly)
+    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 18px;">💳</span>
+        <span style="font-size: 14px; font-weight: 600; color: #16a34a;">
+            Pedido finalizado — solo se permite gestionar pagos
         </span>
     </div>
     @endif
@@ -58,7 +65,7 @@
                         <th style="padding: 8px 12px; text-align: center;">Precio</th>
                         <th style="padding: 8px 12px; text-align: center;">Cantidad</th>
                         <th style="padding: 8px 12px; text-align: right;">Subtotal</th>
-                        @if(!$readOnly)
+                        @if(!$productosReadOnly)
                         <th style="padding: 8px 12px; text-align: center;"></th>
                         @endif
                     </tr>

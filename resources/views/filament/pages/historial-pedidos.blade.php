@@ -250,6 +250,16 @@
                 </div>
                 @endif
 
+                {{-- Edit payment method --}}
+                @php
+                    $editUrl = \App\Filament\Resources\Pedidos\Pages\EditPedido::getUrl([$detallePedido['id']]);
+                @endphp
+                <div style="text-align: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                    <a href="{{ $editUrl }}" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; text-decoration: none;">
+                        ✏️ Gestionar método de pago
+                    </a>
+                </div>
+
             </div>
         </div>
     </div>

@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Models\Pago;
 use App\Models\Pedido;
 use App\Models\PedidoProducto;
+use App\Filament\Resources\Pedidos\Pages\EditPedido;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Notifications\Notification;

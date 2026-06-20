@@ -25,6 +25,7 @@ class EditPedido extends EditRecord
     }
 
     public $readOnly = false;
+    public $productosReadOnly = false;
 
     // Product management
     public $productosPedido = [];
@@ -61,12 +62,19 @@ class EditPedido extends EditRecord
     {
         parent::mount($record);
 
-        $this->readOnly = in_array($this->getRecord()->estado, ['finalizado', 'cancelado']);
+        $estado = $this->getRecord()->estado;
+        $this->readOnly = ($estado === 'cancelado');
+        $this->productosReadOnly = in_array($estado, ['finalizado', 'cancelado']);
 
-        if ($this->readOnly) {
+        if ($estado === 'cancelado') {
             Notification::make()
-                ->title($this->getRecord()->estado === 'finalizado' ? 'Pedido finalizado — solo lectura' : 'Pedido cancelado')
+                ->title('Pedido cancelado — solo lectura')
                 ->warning()
+                ->send();
+        } elseif ($estado === 'finalizado') {
+            Notification::make()
+                ->title('Pedido finalizado — solo se permite gestionar pagos')
+                ->info()
                 ->send();
         }
 
@@ -87,7 +95,7 @@ class EditPedido extends EditRecord
 
     protected function getFormActions(): array
     {
-        if ($this->readOnly) {
+        if ($this->readOnly || $this->getRecord()->estado === 'finalizado') {
             return [
                 Action::make('volver')
                     ->label('Volver a PDV')
@@ -125,7 +133,7 @@ class EditPedido extends EditRecord
 
     public function agregarProducto(): void
     {
-        if ($this->readOnly || !$this->nuevoProductoId) return;
+        if ($this->productosReadOnly || !$this->nuevoProductoId) return;
 
         $producto = Producto::with('variants')->find($this->nuevoProductoId);
         if (!$producto) return;
@@ -218,7 +226,7 @@ class EditPedido extends EditRecord
 
     public function cambiarCantidad(int $index, int $delta): void
     {
-        if ($this->readOnly || !isset($this->productosPedido[$index])) return;
+        if ($this->productosReadOnly || !isset($this->productosPedido[$index])) return;
 
         $nueva = (int) ($this->productosPedido[$index]['cantidad'] ?? 1) + $delta;
 
@@ -234,7 +242,7 @@ class EditPedido extends EditRecord
 
     public function quitarProducto(int $index): void
     {
-        if ($this->readOnly || !isset($this->productosPedido[$index])) return;
+        if ($this->productosReadOnly || !isset($this->productosPedido[$index])) return;
 
         array_splice($this->productosPedido, $index, 1);
         $this->recalcularSubtotalForm();
@@ -459,9 +467,10 @@ class EditPedido extends EditRecord
         ]);
 
         $pedido = $this->getRecord();
+        $esFinalizado = $pedido->estado === 'finalizado';
 
         // Apply discount if changed
-        if ($this->descuentoAplicado > 0) {
+        if (!$esFinalizado && $this->descuentoAplicado > 0) {
             $pedido->update([
                 'descuento_manual' => $this->descuentoAplicado,
                 'descuento_manual_tipo' => $this->descuentoTipo,
@@ -481,14 +490,16 @@ class EditPedido extends EditRecord
         }
 
         $restante = $this->totalConDescuento - $this->totalPagado;
-        if ($restante <= 0) {
-            $this->pagoError = 'Este pedido ya está completamente pagado';
-            return;
-        }
         $monto = (float) $this->pagoMonto;
-        if ($monto > $restante) {
-            $this->pagoError = 'El monto ingresado ($' . number_format($monto, 0, ',', '.') . ') supera el saldo pendiente ($' . number_format($restante, 0, ',', '.') . ')';
-            return;
+        if (!$esFinalizado) {
+            if ($restante <= 0) {
+                $this->pagoError = 'Este pedido ya está completamente pagado';
+                return;
+            }
+            if ($monto > $restante) {
+                $this->pagoError = 'El monto ingresado ($' . number_format($monto, 0, ',', '.') . ') supera el saldo pendiente ($' . number_format($restante, 0, ',', '.') . ')';
+                return;
+            }
         }
         $this->pagoError = '';
 
@@ -644,6 +655,7 @@ class EditPedido extends EditRecord
             'descuentoAplicado' => $this->descuentoAplicado,
             'categorias' => $categorias,
             'readOnly' => $this->readOnly,
+            'productosReadOnly' => $this->productosReadOnly,
             'saboresPizza' => $this->saboresPizza,
         ];
     }
