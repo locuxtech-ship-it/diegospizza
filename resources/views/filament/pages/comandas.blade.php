@@ -624,7 +624,7 @@
                 }
             }).then(function(result) {
                 if (result.isConfirmed) {
-                    $wire.cancelarPedido(id, result.value);
+                    Livewire.dispatch('cancelar-pedido', { pedidoId: id, motivo: result.value });
                 }
             });
         }
