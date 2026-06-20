@@ -101,8 +101,7 @@ class HistorialPedidos extends Page
 
     public function filtrar(): void
     {
-        $query = Pedido::with('cliente')
-            ->whereNotIn('estado', ['cancelado']);
+        $query = Pedido::with('cliente');
 
         if ($this->fechaInicio) {
             $query->whereDate('created_at', '>=', $this->fechaInicio);
@@ -114,13 +113,15 @@ class HistorialPedidos extends Page
         $pedidos = $query->orderBy('created_at', 'desc')->get();
 
         $this->pedidos = $pedidos->toArray();
-        $this->totalVentas = (float) $pedidos->sum('total');
-        $this->totalPedidos = $pedidos->count();
+
+        $sinCancelados = $pedidos->reject(fn($p) => $p->estado === 'cancelado');
+        $this->totalVentas = (float) $sinCancelados->sum('total');
+        $this->totalPedidos = $sinCancelados->count();
 
         if ($this->isAdmin) {
-            $this->totalEfectivo = (float) (clone $pedidos)->where('metodo_pago', 'efectivo')->sum('total');
-            $this->totalTarjeta = (float) (clone $pedidos)->where('metodo_pago', 'tarjeta')->sum('total');
-            $this->totalTransferencia = (float) (clone $pedidos)->where('metodo_pago', 'transferencia')->sum('total');
+            $this->totalEfectivo = (float) (clone $sinCancelados)->where('metodo_pago', 'efectivo')->sum('total');
+            $this->totalTarjeta = (float) (clone $sinCancelados)->where('metodo_pago', 'tarjeta')->sum('total');
+            $this->totalTransferencia = (float) (clone $sinCancelados)->where('metodo_pago', 'transferencia')->sum('total');
         }
     }
 
