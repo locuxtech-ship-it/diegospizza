@@ -53,16 +53,11 @@
 
         @if($vistaLista)
         <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
-            <div style="display: grid; grid-template-columns: 35px 0.8fr 0.6fr 1fr 45px 70px 90px 45px 85px auto; gap: 0; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">
-                <div style="padding: 8px; text-align: center;">#</div>
-                <div style="padding: 8px; text-align: left;">Cliente</div>
-                <div style="padding: 8px; text-align: left;">Teléfono</div>
-                <div style="padding: 8px; text-align: left;">Dirección</div>
-                <div style="padding: 8px; text-align: center;">Origen</div>
-                <div style="padding: 8px; text-align: right;">Total</div>
-                <div style="padding: 8px; text-align: center;">Pago</div>
-                <div style="padding: 8px; text-align: center;">Tiempo</div>
+            <div style="display: grid; grid-template-columns: 1.3fr 0.8fr 0.7fr 1.4fr auto; gap: 0; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">
+                <div style="padding: 8px; text-align: center;">Fecha</div>
                 <div style="padding: 8px; text-align: center;">Estado</div>
+                <div style="padding: 8px; text-align: center;">Total</div>
+                <div style="padding: 8px; text-align: left;">Cliente</div>
                 <div style="padding: 8px; text-align: center;">Acción</div>
             </div>
             @forelse($todos as $pedido)
@@ -73,58 +68,65 @@
                 $resumen = collect($productos)->map(fn($p) => $p['cantidad'] . 'x ' . (!empty($p['mitades']) ? 'Pizza Mediana Mitad y Mitad [' . collect($p['mitades'])->pluck('nombre')->implode('/') . ']' : $p['producto']['nombre'] . (!empty($p['variant_tamanio']) ? ' (' . $p['variant_tamanio'] . ')' : '')))->implode(', ');
                 $iconoEstado = match($pedido['estado']) { 'pendiente_pago' => '⏳', 'en_proceso' => '👨‍🍳', 'en_camino' => '🚗', 'entregado' => '📍', default => '' };
                 $siguiente = match($pedido['estado']) { 'pendiente_pago' => 'en_proceso', 'en_proceso' => 'en_camino', 'en_camino' => 'entregado', 'entregado' => 'finalizado', default => null };
+                $pedidoMinutos = \Carbon\Carbon::parse($pedido['created_at'])->diffInMinutes(now());
+                $colorTiempo = $pedidoMinutos > 60 ? '#dc2626' : ($pedidoMinutos > 30 ? '#d97706' : '#6b7280');
+                $bgTiempo = $pedidoMinutos > 60 ? '#fef2f2' : ($pedidoMinutos > 30 ? '#fef3c7' : 'transparent');
+                $colorEstado = match($pedido['estado']) { 'pendiente_pago' => '#ef4444', 'en_proceso' => '#ea580c', 'en_camino' => '#2563eb', 'entregado' => '#9333ea', default => '#6b7280' };
+                $bgEstado = match($pedido['estado']) { 'pendiente_pago' => '#fee2e2', 'en_proceso' => '#ffedd5', 'en_camino' => '#dbeafe', 'entregado' => '#f3e8ff', default => '#f3f4f6' };
             @endphp
-            <div wire:click="editarPedido({{ $pedido['id'] }})" style="display: grid; grid-template-columns: 35px 0.8fr 0.6fr 1fr 45px 70px 90px 45px 85px auto; gap: 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; cursor: pointer; transition: background 0.15s;"
+            <div wire:click="editarPedido({{ $pedido['id'] }})" style="display: grid; grid-template-columns: 1.3fr 0.8fr 0.7fr 1.4fr auto; gap: 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; cursor: pointer; transition: background 0.15s;"
                  onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
-                <div style="padding: 8px; text-align: center; font-weight: 700; color: #111827;">#{{ $pedido['numero_pedido'] }}</div>
-                <div style="padding: 8px; display: flex; align-items: center; gap: 4px; overflow: hidden;">
-                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $pedido['cliente']['nombre'] }}</span>
-                    @if(isset($pedido['cliente']['clasificacion']))
-                        <span style="flex-shrink: 0; font-size: 9px; padding: 1px 5px; border-radius: 4px; font-weight: 600;
-                            background: {{ $pedido['cliente']['clasificacion'] === 'elite' ? '#fef3c7' : ($pedido['cliente']['clasificacion'] === 'frecuente' ? '#ffedd5' : '#f3f4f6') }};
-                            color: {{ $pedido['cliente']['clasificacion'] === 'elite' ? '#92400e' : ($pedido['cliente']['clasificacion'] === 'frecuente' ? '#9a3412' : '#6b7280') }};">
-                            {{ $pedido['cliente']['clasificacion'] === 'elite' ? '⭐' : ($pedido['cliente']['clasificacion'] === 'frecuente' ? '🔥' : '🆕') }}
-                        </span>
-                    @endif
-                </div>
-                <div style="padding: 8px; color: #6b7280; font-size: 12px;">{{ $pedido['cliente']['telefono'] ?? '' }}</div>
-                <div style="padding: 8px; font-size: 11px; color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $dir }}">{{ $dir }}</div>
+                {{-- Fecha: # + tiempo + fecha --}}
                 <div style="padding: 8px; text-align: center;">
-                    <span style="font-size: 11px; padding: 2px 6px; border-radius: 6px; font-weight: 500; {{ ($pedido['origen'] ?? 'pdv') === 'web' ? 'background: #dbeafe; color: #2563eb;' : 'background: #fef3c7; color: #d97706;' }}">
+                    <div style="font-weight: 700; color: #111827; font-size: 14px;">#{{ $pedido['numero_pedido'] }}</div>
+                    <div style="font-size: 10px; color: {{ $colorTiempo }}; background: {{ $bgTiempo }}; padding: 1px 4px; border-radius: 4px; display: inline-block; margin-top: 2px;">
+                        ⏱ {{ $this->tiempoTranscurrido($pedido['created_at']) }}
+                    </div>
+                    <div style="font-size: 10px; color: #9ca3af; margin-top: 1px;">{{ \Carbon\Carbon::parse($pedido['created_at'])->format('d/m H:i') }}</div>
+                </div>
+                {{-- Estado: badge estado + origen --}}
+                <div style="padding: 8px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; justify-content: center;">
+                    <span style="font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600; background: {{ $bgEstado }}; color: {{ $colorEstado }};">{{ $iconoEstado }} {{ match($pedido['estado']) { 'pendiente_pago' => 'Pend. Pago', 'en_proceso' => 'Preparación', 'en_camino' => 'En Camino', 'entregado' => 'Ha Llegado', default => '' } }}</span>
+                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 500; {{ ($pedido['origen'] ?? 'pdv') === 'web' ? 'background: #dbeafe; color: #2563eb;' : 'background: #fef3c7; color: #d97706;' }}">
                         {{ strtoupper($pedido['origen'] ?? 'PDV') }}
                     </span>
                 </div>
-                <div style="padding: 8px; text-align: right; font-weight: 600; font-size: 12px;">${{ number_format($pedido['total'], 0, ',', '.') }}</div>
+                {{-- Total: monto + pago --}}
                 <div style="padding: 8px; text-align: center;">
-                    @if(!empty($pedido['metodo_pago']))
-                    <span style="font-size: 10px; padding: 2px 6px; border-radius: 6px; font-weight: 500;
-                         @if($pedido['metodo_pago'] == 'efectivo') background: #dcfce7; color: #16a34a;
-                        @elseif($pedido['metodo_pago'] == 'tarjeta') background: #dbeafe; color: #2563eb;
-                        @elseif($pedido['metodo_pago'] == 'mixto') background: #fef3c7; color: #d97706;
-                        @else background: #f3e8ff; color: #9333ea; @endif">
-                        @if($pedido['metodo_pago'] == 'efectivo') 💵
-                        @elseif($pedido['metodo_pago'] == 'tarjeta') 💳
-                        @elseif($pedido['metodo_pago'] == 'mixto') 🔀
-                        @else 🏦 @endif
-                        {{ $pedido['metodo_pago'] }}
-                    </span>
-                    @endif
-                    <span style="font-size: 10px; padding: 2px 6px; border-radius: 6px; font-weight: 500; {{ $pagado ? 'background: #dcfce7; color: #16a34a;' : 'background: #fef3c7; color: #d97706;' }}">
-                        {{ $pagado ? 'Pagado' : 'Pend.' }}
-                    </span>
+                    <div style="font-weight: 700; font-size: 14px; color: #111827;">${{ number_format($pedido['total'], 0, ',', '.') }}</div>
+                    <div style="margin-top: 2px;">
+                        @if(!empty($pedido['metodo_pago']))
+                        <span style="font-size: 9px; padding: 1px 4px; border-radius: 4px; font-weight: 500;
+                             @if($pedido['metodo_pago'] == 'efectivo') background: #dcfce7; color: #16a34a;
+                            @elseif($pedido['metodo_pago'] == 'tarjeta') background: #dbeafe; color: #2563eb;
+                            @elseif($pedido['metodo_pago'] == 'mixto') background: #fef3c7; color: #d97706;
+                            @else background: #f3e8ff; color: #9333ea; @endif">
+                            @if($pedido['metodo_pago'] == 'efectivo') 💵
+                            @elseif($pedido['metodo_pago'] == 'tarjeta') 💳
+                            @elseif($pedido['metodo_pago'] == 'mixto') 🔀
+                            @else 🏦 @endif
+                            {{ $pedido['metodo_pago'] }}
+                        </span>
+                        @endif
+                        <span style="font-size: 9px; padding: 1px 4px; border-radius: 4px; font-weight: 500; {{ $pagado ? 'background: #dcfce7; color: #16a34a;' : 'background: #fef3c7; color: #d97706;' }}">
+                            {{ $pagado ? 'Pagado' : 'Pend.' }}
+                        </span>
+                    </div>
                 </div>
-                @php $pedidoMinutos = \Carbon\Carbon::parse($pedido['created_at'])->diffInMinutes(now()); @endphp
-                @php $colorTiempo = $pedidoMinutos > 60 ? '#dc2626' : ($pedidoMinutos > 30 ? '#d97706' : '#6b7280'); @endphp
-                @php $bgTiempo = $pedidoMinutos > 60 ? '#fef2f2' : ($pedidoMinutos > 30 ? '#fef3c7' : 'transparent'); @endphp
-                <div style="padding: 8px; text-align: center;">
-                    <span style="font-size: 10px; color: {{ $colorTiempo }}; background: {{ $bgTiempo }}; padding: 2px 4px; border-radius: 4px;" title="{{ \Carbon\Carbon::parse($pedido['created_at'])->format('d/m/y H:i') }}">
-                        ⏱ {{ $this->tiempoTranscurrido($pedido['created_at']) }}
-                    </span>
-                </div>
-                @php $colorEstado = match($pedido['estado']) { 'pendiente_pago' => '#ef4444', 'en_proceso' => '#ea580c', 'en_camino' => '#2563eb', 'entregado' => '#9333ea', default => '#6b7280' }; @endphp
-                @php $bgEstado = match($pedido['estado']) { 'pendiente_pago' => '#fee2e2', 'en_proceso' => '#ffedd5', 'en_camino' => '#dbeafe', 'entregado' => '#f3e8ff', default => '#f3f4f6' }; @endphp
-                <div style="padding: 8px; text-align: center;">
-                    <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 500; background: {{ $bgEstado }}; color: {{ $colorEstado }};">{{ $iconoEstado }} {{ match($pedido['estado']) { 'pendiente_pago' => 'Pend. Pago', 'en_proceso' => 'Prep.', 'en_camino' => 'Camino', 'entregado' => 'Llegó', default => '' } }}</span>
+                {{-- Cliente: nombre + dirección + teléfono --}}
+                <div style="padding: 8px;">
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <span style="font-weight: 600; color: #111827; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $pedido['cliente']['nombre'] }}</span>
+                        @if(isset($pedido['cliente']['clasificacion']))
+                            <span style="flex-shrink: 0; font-size: 9px; padding: 1px 5px; border-radius: 4px; font-weight: 600;
+                                background: {{ $pedido['cliente']['clasificacion'] === 'elite' ? '#fef3c7' : ($pedido['cliente']['clasificacion'] === 'frecuente' ? '#ffedd5' : '#f3f4f6') }};
+                                color: {{ $pedido['cliente']['clasificacion'] === 'elite' ? '#92400e' : ($pedido['cliente']['clasificacion'] === 'frecuente' ? '#9a3412' : '#6b7280') }};">
+                                {{ $pedido['cliente']['clasificacion'] === 'elite' ? '⭐' : ($pedido['cliente']['clasificacion'] === 'frecuente' ? '🔥' : '🆕') }}
+                            </span>
+                        @endif
+                    </div>
+                    <div style="font-size: 11px; color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px;" title="{{ $dir }}">{{ $dir }}</div>
+                    <div style="font-size: 11px; color: #9ca3af; margin-top: 1px;">📞 {{ $pedido['cliente']['telefono'] ?? '' }}</div>
                 </div>
                 <div style="padding: 6px 8px; text-align: center; display: flex; gap: 3px; align-items: center; justify-content: center; flex-wrap: wrap;">
                     @if(!in_array($pedido['estado'], ['finalizado', 'cancelado']))
