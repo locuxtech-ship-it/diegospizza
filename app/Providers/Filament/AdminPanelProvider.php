@@ -83,15 +83,7 @@ class AdminPanelProvider extends PanelProvider
                 <link rel="manifest" href="/manifest-admin.json">
                 <link rel="icon" type="image/x-icon" href="/favicon.ico">
                 <link rel="apple-touch-icon" href="/images/icon-admin-192x192.png">
-                <style>
-                    .fi-sidebar-nav { width: 14rem !important; }
-                    @media (min-width: 1024px) {
-                        .fi-sidebar-nav .fi-sidebar-header {
-                            display: flex; align-items: center; justify-content: space-between;
-                        }
-                        .fi-sidebar-nav .fi-sidebar-header > div { flex: 1; }
-                    }
-                </style>'
+'
         );
 
         FilamentView::registerRenderHook(
