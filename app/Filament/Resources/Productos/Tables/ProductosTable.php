@@ -44,9 +44,11 @@ class ProductosTable
             ])
             ->groups([
                 Group::make('categoria.nombre')
-                    ->label('Categoría'),
+                    ->label('Categoría')
+                    ->collapsible(),
             ])
             ->defaultGroup('categoria.nombre')
+            ->paginated(false)
             ->filters([
                 //
             ])

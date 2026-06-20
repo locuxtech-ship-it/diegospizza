@@ -38,8 +38,8 @@ Build a complete web-based pizza delivery ordering system (Diego's Pizza) with L
 - (none)
 
 ## Next Steps
-- **Productos agrupados por categoría en admin** ✅ — `ProductosTable.php`: ya tiene `->groups([Group::make('categoria.nombre')])` + `->defaultGroup('categoria.nombre')`
-- **Cambiar método de pago en pedidos finalizados** ✅ — `EditPedido.php`: `readOnly` solo para cancelado, `productosReadOnly` para finalizado+cancelado, pagos editables siempre
+- **Productos agrupados por categoría en admin** — `ProductosTable.php`: agregado `->groups()` + `->defaultGroup('categoria.nombre')` para agrupar visualmente por categoría
+- **Cambiar método de pago en pedidos finalizados** — `EditPedido.php`: `readOnly` solo para cancelado, `productosReadOnly` separado para finalizado, pagos editables. Botón "Gestionar método de pago" en historial que redirige a EditPedido
 - **WhatsApp Bot** (Meta Cloud API free tier) — post-deploy. Number: +57 3106444759
 - **Fix PDV auto-print on printer PC** — Edge browser, iframe print + Web Audio
 - Deploy Docker config confirmed and running
