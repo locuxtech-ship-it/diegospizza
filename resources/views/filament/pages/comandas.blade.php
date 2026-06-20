@@ -150,6 +150,13 @@
                             {{ $siguiente == 'en_camino' ? '🚗 Enviar' : '📍 Llegó' }}
                         </x-filament::button>
                     @endif
+                    @can('applyDiscount', auth()->user())
+                        @if(!in_array($pedido['estado'], ['pendiente_pago', 'finalizado', 'cancelado']))
+                        <x-filament::button wire:click.stop="cancelarPedido({{ $pedido['id'] }})" wire:confirm="¿Cancelar pedido #{{ $pedido['numero_pedido'] }}? Se notificará al cliente." size="xs" color="danger">
+                            🛑 Cancelar
+                        </x-filament::button>
+                        @endif
+                    @endcan
                 </div>
             </div>
             @empty
@@ -272,6 +279,13 @@
                                                 💳 Pagar
                                             </x-filament::button>
                                         @endif
+                                        @can('applyDiscount', auth()->user())
+                                            @if(!in_array($pedido['estado'], ['pendiente_pago', 'finalizado', 'cancelado']))
+                                            <x-filament::button wire:click.stop="cancelarPedido({{ $pedido['id'] }})" wire:confirm="¿Cancelar pedido #{{ $pedido['numero_pedido'] }}? Se notificará al cliente." size="xs" color="danger">
+                                                🛑 Cancelar
+                                            </x-filament::button>
+                                            @endif
+                                        @endcan
                                     </div>
                                 </div>
                             </div>

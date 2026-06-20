@@ -191,6 +191,29 @@ class Comandas extends Page
         $this->cargarPedidos();
     }
 
+    public function cancelarPedido(int $pedidoId): void
+    {
+        if (!auth()->user()->isAdmin()) {
+            Notification::make()
+                ->title('Solo administradores pueden cancelar pedidos')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $pedido = Pedido::find($pedidoId);
+        if (!$pedido) return;
+
+        $pedido->update(['estado' => 'cancelado']);
+
+        Notification::make()
+            ->title("Pedido #{$pedido->numero_pedido} cancelado")
+            ->danger()
+            ->send();
+
+        $this->cargarPedidos();
+    }
+
     public function pagoCompleto(int $pedidoId): bool
     {
         $pedido = Pedido::find($pedidoId);
