@@ -53,7 +53,7 @@
 
         @if($vistaLista)
         <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
-            <div style="display: grid; grid-template-columns: 40px 1fr 0.8fr 1fr 50px 65px 55px 50px 95px auto; gap: 0; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">
+            <div style="display: grid; grid-template-columns: 40px 1fr 0.8fr 1fr 50px 65px 100px 50px 95px auto; gap: 0; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">
                 <div style="padding: 8px;">#</div>
                 <div style="padding: 8px;">Cliente</div>
                 <div style="padding: 8px;">Teléfono</div>
@@ -74,7 +74,7 @@
                 $iconoEstado = match($pedido['estado']) { 'pendiente_pago' => '⏳', 'en_proceso' => '👨‍🍳', 'en_camino' => '🚗', 'entregado' => '📍', default => '' };
                 $siguiente = match($pedido['estado']) { 'pendiente_pago' => 'en_proceso', 'en_proceso' => 'en_camino', 'en_camino' => 'entregado', 'entregado' => 'finalizado', default => null };
             @endphp
-            <div wire:click="editarPedido({{ $pedido['id'] }})" style="display: grid; grid-template-columns: 40px 1fr 0.8fr 1fr 50px 65px 55px 50px 95px auto; gap: 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; cursor: pointer; transition: background 0.15s;"
+            <div wire:click="editarPedido({{ $pedido['id'] }})" style="display: grid; grid-template-columns: 40px 1fr 0.8fr 1fr 50px 65px 100px 50px 95px auto; gap: 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; cursor: pointer; transition: background 0.15s;"
                  onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
                 <div style="padding: 8px; font-weight: 700; color: #111827;">#{{ $pedido['numero_pedido'] }}</div>
                 <div style="padding: 8px; display: flex; align-items: center; gap: 4px; overflow: hidden;">
@@ -96,7 +96,20 @@
                 </div>
                 <div style="padding: 8px; text-align: right; font-weight: 600; font-size: 12px;">${{ number_format($pedido['total'], 0, ',', '.') }}</div>
                 <div style="padding: 8px; text-align: center;">
-                    <span style="font-size: 11px; padding: 2px 6px; border-radius: 6px; font-weight: 500; {{ $pagado ? 'background: #dcfce7; color: #16a34a;' : 'background: #fef3c7; color: #d97706;' }}">
+                    @if(!empty($pedido['metodo_pago']))
+                    <span style="font-size: 10px; padding: 2px 6px; border-radius: 6px; font-weight: 500;
+                         @if($pedido['metodo_pago'] == 'efectivo') background: #dcfce7; color: #16a34a;
+                        @elseif($pedido['metodo_pago'] == 'tarjeta') background: #dbeafe; color: #2563eb;
+                        @elseif($pedido['metodo_pago'] == 'mixto') background: #fef3c7; color: #d97706;
+                        @else background: #f3e8ff; color: #9333ea; @endif">
+                        @if($pedido['metodo_pago'] == 'efectivo') 💵
+                        @elseif($pedido['metodo_pago'] == 'tarjeta') 💳
+                        @elseif($pedido['metodo_pago'] == 'mixto') 🔀
+                        @else 🏦 @endif
+                        {{ $pedido['metodo_pago'] }}
+                    </span>
+                    @endif
+                    <span style="font-size: 10px; padding: 2px 6px; border-radius: 6px; font-weight: 500; {{ $pagado ? 'background: #dcfce7; color: #16a34a;' : 'background: #fef3c7; color: #d97706;' }}">
                         {{ $pagado ? 'Pagado' : 'Pend.' }}
                     </span>
                 </div>
