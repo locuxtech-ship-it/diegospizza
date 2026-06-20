@@ -53,12 +53,12 @@
 
         @if($vistaLista)
         <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
-            <div style="display: grid; grid-template-columns: 1.3fr 0.8fr 0.7fr 1.4fr auto; gap: 0; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">
-                <div style="padding: 8px; text-align: center;">Fecha</div>
-                <div style="padding: 8px; text-align: center;">Estado</div>
-                <div style="padding: 8px; text-align: center;">Total</div>
+            <div style="display: grid; grid-template-columns: 1.3fr 0.8fr 0.7fr 1.4fr auto; gap: 0; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.05em;">
+                <div style="padding: 8px; text-align: left;">Fecha</div>
+                <div style="padding: 8px; text-align: left;">Estado</div>
+                <div style="padding: 8px; text-align: left;">Total</div>
                 <div style="padding: 8px; text-align: left;">Cliente</div>
-                <div style="padding: 8px; text-align: center;">Acción</div>
+                <div style="padding: 8px; text-align: left;">Acción</div>
             </div>
             @forelse($todos as $pedido)
             @php
@@ -82,7 +82,7 @@
                     <div style="font-size: 10px; color: {{ $colorTiempo }}; background: {{ $bgTiempo }}; padding: 1px 4px; border-radius: 4px; display: inline-block; margin-top: 2px;">
                         ⏱ {{ $this->tiempoTranscurrido($pedido['created_at']) }}
                     </div>
-                    <div style="font-size: 10px; color: #9ca3af; margin-top: 1px;">{{ \Carbon\Carbon::parse($pedido['created_at'])->format('d/m H:i') }}</div>
+                    <div style="font-size: 10px; color: #6b7280; margin-top: 1px;">{{ \Carbon\Carbon::parse($pedido['created_at'])->format('d/m H:i') }}</div>
                 </div>
                 {{-- Estado: badge estado + origen --}}
                 <div style="padding: 8px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; justify-content: center;">
@@ -125,8 +125,8 @@
                             </span>
                         @endif
                     </div>
-                    <div style="font-size: 11px; color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px;" title="{{ $dir }}">{{ $dir }}</div>
-                    <div style="font-size: 11px; color: #9ca3af; margin-top: 1px;">📞 {{ $pedido['cliente']['telefono'] ?? '' }}</div>
+                    <div style="font-size: 11px; color: #4b5563; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px;" title="{{ $dir }}">{{ $dir }}</div>
+                    <div style="font-size: 11px; color: #6b7280; margin-top: 1px;">📞 {{ $pedido['cliente']['telefono'] ?? '' }}</div>
                 </div>
                 <div style="padding: 6px 8px; text-align: center; display: flex; gap: 3px; align-items: center; justify-content: center; flex-wrap: wrap;">
                     @if(!in_array($pedido['estado'], ['finalizado', 'cancelado']))
@@ -173,7 +173,7 @@
                 </div>
             </div>
             @empty
-            <div style="text-align: center; padding: 32px 0; color: #9ca3af;">📋 Sin pedidos activos</div>
+            <div style="text-align: center; padding: 32px 0; color: #6b7280;">📋 Sin pedidos activos</div>
             @endforelse
         </div>
         @else
@@ -225,14 +225,14 @@
                                     @if(isset($pedido['cliente']['clasificacion']))
                                         <span style="font-size: 9px; padding: 1px 5px; border-radius: 4px; font-weight: 600;
                                             background: {{ $pedido['cliente']['clasificacion'] === 'elite' ? '#fef3c7' : ($pedido['cliente']['clasificacion'] === 'frecuente' ? '#ffedd5' : '#f3f4f6') }};
-                                            color: {{ $pedido['cliente']['clasificacion'] === 'elite' ? '#92400e' : ($pedido['cliente']['clasificacion'] === 'frecuente' ? '#9a3412' : '#6b7280') }};">
+                                color: {{ $pedido['cliente']['clasificacion'] === 'elite' ? '#92400e' : ($pedido['cliente']['clasificacion'] === 'frecuente' ? '#9a3412' : '#4b5563') }};">
                                             {{ $pedido['cliente']['clasificacion'] === 'elite' ? '⭐' : ($pedido['cliente']['clasificacion'] === 'frecuente' ? '🔥' : '🆕') }}
                                         </span>
                                     @endif
                                 </p>
-                                <p style="margin: 4px 0 0 0; font-size: 12px; color: #9ca3af;" title="{{ $dir }}">{{ $dir }}</p>
+                                <p style="margin: 4px 0 0 0; font-size: 12px; color: #6b7280;" title="{{ $dir }}">{{ $dir }}</p>
                                 @if(!empty($pedido['cliente']['telefono']))
-                                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #9ca3af;">📞 {{ $pedido['cliente']['telefono'] }}</p>
+                                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #6b7280;">📞 {{ $pedido['cliente']['telefono'] }}</p>
                                 @endif
 
                                 @php $productos = $this->getProductosPedido($pedido['id']); @endphp
@@ -303,7 +303,7 @@
                         @empty
                             <div style="text-align: center; padding: 32px 0;">
                                 <p style="font-size: 36px; margin: 0 0 8px 0;">📋</p>
-                                <p style="color: #9ca3af; margin: 0;">Sin pedidos</p>
+                                <p style="color: #6b7280; margin: 0;">Sin pedidos</p>
                             </div>
                         @endforelse
                     </div>
@@ -325,7 +325,7 @@
                         <span style="font-size: 12px; color: #6b7280;">{{ $pedidoFecha }}</span>
                     </div>
                 </div>
-                <button wire:click="cerrarModalPago" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #9ca3af; padding: 0 4px;">×</button>
+                <button wire:click="cerrarModalPago" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280; padding: 0 4px;">×</button>
             </div>
             <div style="padding: 16px 24px;">
 
@@ -445,7 +445,7 @@
                                 @else background: #f3e8ff; color: #9333ea; @endif">
                                 {{ $pago['metodo'] }}
                             </span>
-                            <span style="color: #9ca3af; font-size: 12px;">{{ \Carbon\Carbon::parse($pago['created_at'])->format('d/m/y H:i') }}</span>
+                            <span style="color: #6b7280; font-size: 12px;">{{ \Carbon\Carbon::parse($pago['created_at'])->format('d/m/y H:i') }}</span>
                         </div>
                         <button wire:click="eliminarPago({{ $pago['id'] }})" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px; padding: 0 4px;" title="Eliminar">×</button>
                     </div>
