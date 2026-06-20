@@ -151,7 +151,7 @@
                         </x-filament::button>
                     @endif
                     @if(!in_array($pedido['estado'], ['pendiente_pago', 'finalizado', 'cancelado']))
-                    <x-filament::button onclick="event.stopPropagation(); pdvCancelarPedido({{ $pedido['id'] }}, {{ $pedido['numero_pedido'] }})" size="xs" color="danger">
+                    <x-filament::button x-data x-on:click="event.stopPropagation(); Swal.fire({title:'🛑 Cancelar Pedido',input:'select',inputOptions:{rechazado:'Rechazado',doble:'Se hizo doble',tiempo:'Por tiempo de espera',ya_no_quiere:'Ya no lo quiere'},inputPlaceholder:'Selecciona un motivo',showCancelButton:true,confirmButtonText:'Cancelar pedido',cancelButtonText:'Volver',confirmButtonColor:'#dc2626',preConfirm:(m)=>{if(!m){Swal.showValidationMessage('Debes seleccionar un motivo');return false}return m}}).then((r)=>{if(r.isConfirmed){$wire.cancelarPedido({{ $pedido['id'] }},r.value)}})" size="xs" color="danger">
                         🛑
                     </x-filament::button>
                     @endif
@@ -278,7 +278,7 @@
                                             </x-filament::button>
                                         @endif
                                         @if(!in_array($pedido['estado'], ['pendiente_pago', 'finalizado', 'cancelado']))
-                                        <x-filament::button onclick="event.stopPropagation(); pdvCancelarPedido({{ $pedido['id'] }}, {{ $pedido['numero_pedido'] }})" size="xs" color="danger">
+                                        <x-filament::button x-data x-on:click="event.stopPropagation(); Swal.fire({title:'🛑 Cancelar Pedido',input:'select',inputOptions:{rechazado:'Rechazado',doble:'Se hizo doble',tiempo:'Por tiempo de espera',ya_no_quiere:'Ya no lo quiere'},inputPlaceholder:'Selecciona un motivo',showCancelButton:true,confirmButtonText:'Cancelar pedido',cancelButtonText:'Volver',confirmButtonColor:'#dc2626',preConfirm:(m)=>{if(!m){Swal.showValidationMessage('Debes seleccionar un motivo');return false}return m}}).then((r)=>{if(r.isConfirmed){$wire.cancelarPedido({{ $pedido['id'] }},r.value)}})" size="xs" color="danger">
                                             🛑
                                         </x-filament::button>
                                         @endif
@@ -595,37 +595,6 @@
             }, 800);
             document.addEventListener('visibilitychange', function vis(){
                 if (!document.hidden) { clearInterval(t); document.title = orig; document.removeEventListener('visibilitychange', vis); }
-            });
-        }
-
-        function pdvCancelarPedido(id, numero) {
-            Swal.fire({
-                title: '🛑 Cancelar Pedido #' + numero,
-                text: 'Selecciona el motivo de la cancelación:',
-                input: 'select',
-                inputOptions: {
-                    'rechazado': 'Rechazado',
-                    'doble': 'Se hizo doble',
-                    'tiempo': 'Por tiempo de espera',
-                    'ya_no_quiere': 'Ya no lo quiere',
-                },
-                inputPlaceholder: 'Selecciona un motivo',
-                showCancelButton: true,
-                confirmButtonText: 'Cancelar pedido',
-                cancelButtonText: 'Volver',
-                confirmButtonColor: '#dc2626',
-                showLoaderOnConfirm: true,
-                preConfirm: function(motivo) {
-                    if (!motivo) {
-                        Swal.showValidationMessage('Debes seleccionar un motivo');
-                        return false;
-                    }
-                    return motivo;
-                }
-            }).then(function(result) {
-                if (result.isConfirmed) {
-                    Livewire.dispatch('cancelar-pedido', { pedidoId: id, motivo: result.value });
-                }
             });
         }
 

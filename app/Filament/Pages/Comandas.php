@@ -191,12 +191,6 @@ class Comandas extends Page
         $this->cargarPedidos();
     }
 
-    #[On('cancelar-pedido')]
-    public function cancelarPedidoEvent(array $payload): void
-    {
-        $this->cancelarPedido((int) ($payload['pedidoId'] ?? 0), $payload['motivo'] ?? '');
-    }
-
     public function cancelarPedido(int $pedidoId, string $motivo = ''): void
     {
         if (!auth()->user()->canCancelarPedido()) {
