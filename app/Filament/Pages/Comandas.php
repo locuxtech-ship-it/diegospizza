@@ -7,6 +7,7 @@ use App\Models\NegocioSetting;
 use App\Models\Pago;
 use App\Models\Pedido;
 use App\Models\PedidoProducto;
+use App\Models\Punto;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Notifications\Notification;
@@ -92,7 +93,7 @@ class Comandas extends Page
         $this->pendientePago = Pedido::with('cliente')
             ->where('estado', 'pendiente_pago')
             ->whereDate('created_at', today())
-            ->orderBy('created_at')
+            ->orderBy('created_at', 'desc')
             ->get()
             ->toArray();
 
@@ -145,7 +146,7 @@ class Comandas extends Page
         $this->todos = Pedido::with('cliente')
             ->whereIn('estado', ['pendiente_pago', 'en_proceso', 'en_camino', 'entregado'])
             ->whereDate('created_at', today())
-            ->orderBy('created_at')
+            ->orderBy('created_at', 'desc')
             ->get()
             ->toArray();
     }
@@ -458,6 +459,32 @@ class Comandas extends Page
         if (!$pedido) return;
 
         $this->abrirModalPago($pedidoId);
+    }
+
+    public function eliminarPedido(int $pedidoId): void
+    {
+        if (!auth()->user()->isAdmin()) {
+            Notification::make()
+                ->title('Solo administradores pueden eliminar pedidos')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $pedido = Pedido::find($pedidoId);
+        if (!$pedido) return;
+
+        Punto::where('pedido_id', $pedidoId)->delete();
+        Pago::where('pedido_id', $pedidoId)->delete();
+        PedidoProducto::where('pedido_id', $pedidoId)->delete();
+        $pedido->delete();
+
+        Notification::make()
+            ->title("Pedido #{$pedidoId} eliminado")
+            ->danger()
+            ->send();
+
+        $this->cargarPedidos();
     }
 
     public function getProductosPedido(int $pedidoId): array
