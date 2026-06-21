@@ -54,11 +54,11 @@
         @if($vistaLista)
         <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
             <div style="display: grid; grid-template-columns: 0.7fr 0.8fr 0.7fr 1.4fr auto; gap: 0; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.05em;">
-                <div style="padding: 8px; text-align: center; justify-self: center;">Fecha</div>
-                <div style="padding: 8px; text-align: center; justify-self: center;">Estado</div>
-                <div style="padding: 8px; text-align: center; justify-self: center;">Total</div>
-                <div style="padding: 8px; text-align: center; justify-self: center;">Cliente</div>
-                <div style="padding: 8px; text-align: center; justify-self: center;">Acción</div>
+                <div style="padding: 8px; text-align: left;">Fecha</div>
+                <div style="padding: 8px; text-align: left;">Estado</div>
+                <div style="padding: 8px; text-align: left;">Total</div>
+                <div style="padding: 8px; text-align: left;">Cliente</div>
+                <div style="padding: 8px; text-align: left;">Acción</div>
             </div>
             @forelse($todos as $pedido)
             @php
