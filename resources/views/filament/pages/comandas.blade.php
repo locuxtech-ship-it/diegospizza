@@ -167,7 +167,7 @@
                     @endif
                     @if(!in_array($pedido['estado'], ['pendiente_pago', 'finalizado', 'cancelado']))
                     <x-filament::button x-data x-on:click="event.stopPropagation(); Swal.fire({title:'🛑 Cancelar Pedido',input:'select',inputOptions:{rechazado:'Rechazado',doble:'Se hizo doble',tiempo:'Por tiempo de espera',ya_no_quiere:'Ya no lo quiere'},inputPlaceholder:'Selecciona un motivo',showCancelButton:true,confirmButtonText:'Cancelar pedido',cancelButtonText:'Volver',confirmButtonColor:'#dc2626',preConfirm:(m)=>{if(!m){Swal.showValidationMessage('Debes seleccionar un motivo');return false}return m}}).then((r)=>{if(r.isConfirmed){$wire.cancelarPedido({{ $pedido['id'] }},r.value)}})" size="sm" color="danger">
-                        🛑 Cancelar
+                        🛑
                     </x-filament::button>
                     @endif
                 </div>
