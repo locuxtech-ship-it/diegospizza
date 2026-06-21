@@ -74,6 +74,7 @@ services:
       - "3000:3000"
     environment:
       - WHATSAPP_DEFAULT_SESSION=default
+      - WHATSAPP_RESTART_ALL_SESSIONS=True
       - WHATSAPP_WEBHOOK_URL=http://nginx/api/whatsapp/waha-webhook
       - WHATSAPP_WEBHOOK_EVENTS=message
       - WAHA_API_KEY=${WAHA_API_KEY}
