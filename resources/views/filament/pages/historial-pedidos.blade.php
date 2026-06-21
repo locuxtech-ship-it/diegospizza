@@ -123,7 +123,7 @@
                                 </span>
                             </td>
                             <td style="padding: 12px 16px; text-align: right; color: #6b7280; font-size: 12px;">
-                                {{ \Carbon\Carbon::parse($pedido['created_at'])->format('d/m/Y H:i') }}
+                                {{ \Carbon\Carbon::parse($pedido['created_at'], 'UTC')->setTimezone('America/Bogota')->format('d/m/Y H:i') }}
                             </td>
                             <td style="padding: 12px 16px; text-align: center;" onclick="event.stopPropagation()">
                                 <a href="#" onclick="printPedido({{ $pedido['id'] }}); return false;" style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 6px; font-size: 13px; text-decoration: none; background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb;" title="Reimprimir ticket">🖨️</a>
@@ -227,7 +227,7 @@
                                 @else background:#f3e8ff;color:#9333ea; @endif">
                                 {{ $pago['metodo'] }}
                             </span>
-                            <span style="color: #9ca3af; font-size: 12px;">{{ \Carbon\Carbon::parse($pago['created_at'])->format('d/m/y H:i') }}</span>
+                            <span style="color: #9ca3af; font-size: 12px;">{{ \Carbon\Carbon::parse($pago['created_at'], 'UTC')->setTimezone('America/Bogota')->format('d/m/y H:i') }}</span>
                         </div>
                     </div>
                     @endforeach
