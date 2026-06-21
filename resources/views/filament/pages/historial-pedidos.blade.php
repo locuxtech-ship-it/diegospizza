@@ -159,7 +159,7 @@
                             {{ $this->etiquetaEstado($detallePedido['estado']) }}
                         </span>
                         <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; font-weight: 600; background: {{ ($detallePedido['origen'] ?? 'pdv') === 'web' ? '#dbeafe' : '#f3e8ff' }}; color: {{ ($detallePedido['origen'] ?? 'pdv') === 'web' ? '#1e40af' : '#6b21a8' }};">{{ strtoupper($detallePedido['origen'] ?? 'PDV') }}</span>
-                        <span style="font-size: 12px; color: #6b7280;">{{ \Carbon\Carbon::parse($detallePedido['created_at'])->format('d/m/Y H:i') }}</span>
+                        <span style="font-size: 12px; color: #6b7280;">{{ \Carbon\Carbon::parse($detallePedido['created_at'], 'UTC')->setTimezone('America/Bogota')->format('d/m/Y H:i') }}</span>
                     </div>
                 </div>
                 <button wire:click="cerrarDetalle" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #9ca3af; padding: 0 4px;">×</button>

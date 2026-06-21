@@ -43,7 +43,7 @@
             </span>
         </div>
         <div style="display: flex; align-items: center; gap: 16px;">
-            <span style="font-size: 13px; color: #6b7280;">{{ $record->created_at->format('d/m/Y H:i') }}</span>
+            <span style="font-size: 13px; color: #6b7280;">{{ $record->created_at->setTimezone('America/Bogota')->format('d/m/Y H:i') }}</span>
             <span style="font-size: 20px; font-weight: 800; color: #111827;">${{ number_format($record->total, 0, ',', '.') }}</span>
         </div>
     </div>
@@ -177,7 +177,7 @@
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; font-weight: 700; background: #fef3c7; color: #92400e;">{{ $record->estado === 'pendiente_pago' ? 'Pendiente Pago' : $record->estado }}</span>
                     <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; font-weight: 600; background: {{ ($record->origen ?? 'pdv') === 'web' ? '#dbeafe' : '#f3e8ff' }}; color: {{ ($record->origen ?? 'pdv') === 'web' ? '#1e40af' : '#6b21a8' }};">{{ strtoupper($record->origen ?? 'PDV') }}</span>
-                    <span style="font-size: 12px; color: #6b7280;">{{ $record->created_at->format('d/m/y H:i') }}</span>
+                    <span style="font-size: 12px; color: #6b7280;">{{ $record->created_at->setTimezone('America/Bogota')->format('d/m/y H:i') }}</span>
                 </div>
             </div>
         </div>
@@ -297,7 +297,7 @@
                             @if(!empty($pago['referencia']))
                                 <span style="color: #6b7280; font-size: 12px;">Ref: {{ $pago['referencia'] }}</span>
                             @endif
-                            <span style="color: #9ca3af; font-size: 12px;">{{ \Carbon\Carbon::parse($pago['created_at'])->format('d/m/y H:i') }}</span>
+                            <span style="color: #9ca3af; font-size: 12px;">{{ \Carbon\Carbon::parse($pago['created_at'], 'UTC')->setTimezone('America/Bogota')->format('d/m/y H:i') }}</span>
                         </div>
                         @if(!$readOnly)
                         <button wire:click="eliminarPago({{ $pago['id'] }})" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px; padding: 0 4px;" title="Eliminar">×</button>

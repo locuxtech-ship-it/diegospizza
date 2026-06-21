@@ -36,7 +36,7 @@ class VentasDelDia extends BaseWidget
                 'cliente' => $p->cliente->nombre,
                 'total' => $p->total,
                 'estado' => $p->estado,
-                'hora' => $p->created_at->format('H:i'),
+                'hora' => $p->created_at->setTimezone('America/Bogota')->format('H:i'),
             ]);
 
         $promedio = $totalPedidos > 0 ? $totalVentas / $totalPedidos : 0;

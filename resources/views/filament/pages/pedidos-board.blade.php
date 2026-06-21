@@ -34,7 +34,7 @@
                         <p class="text-xs text-gray-500">📱 {{ $pedido['cliente']['telefono'] ?? '—' }}</p>
                         <p class="text-xs text-gray-500 mt-0.5">📍 {{ Str::limit(collect([$pedido['cliente']['conjunto'] ?? '', $pedido['cliente']['torre'] ?? '', $pedido['cliente']['apto'] ?? ''])->filter()->implode(', ') ?: '—', 50) }}</p>
                         <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
-                            <span class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($pedido['created_at'])->diffForHumans() }}</span>
+                            <span class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($pedido['created_at'], 'UTC')->setTimezone('America/Bogota')->diffForHumans() }}</span>
                             <div class="flex gap-1">
                                 <button wire:click="cancelarPedido({{ $pedido['id'] }})" class="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 font-medium">Cancelar</button>
                                 <button wire:click="cambiarEstado({{ $pedido['id'] }}, 'en_proceso')" class="text-xs text-white bg-yellow-500 hover:bg-yellow-600 px-2.5 py-1 rounded font-medium">Preparar</button>
@@ -69,7 +69,7 @@
                         <p class="text-xs text-gray-500">📱 {{ $pedido['cliente']['telefono'] ?? '—' }}</p>
                         <p class="text-xs text-gray-500 mt-0.5">📍 {{ Str::limit(collect([$pedido['cliente']['conjunto'] ?? '', $pedido['cliente']['torre'] ?? '', $pedido['cliente']['apto'] ?? ''])->filter()->implode(', ') ?: '—', 50) }}</p>
                         <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
-                            <span class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($pedido['created_at'])->diffForHumans() }}</span>
+                            <span class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($pedido['created_at'], 'UTC')->setTimezone('America/Bogota')->diffForHumans() }}</span>
                             <div class="flex gap-1">
                                 <button wire:click="cambiarEstado({{ $pedido['id'] }}, 'pendiente')" class="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded hover:bg-gray-100 font-medium">↩</button>
                                 <button wire:click="cambiarEstado({{ $pedido['id'] }}, 'en_camino')" class="text-xs text-white bg-orange-500 hover:bg-orange-600 px-2.5 py-1 rounded font-medium">Enviar</button>
@@ -105,7 +105,7 @@
                         <p class="text-xs text-gray-500 mt-0.5">📍 {{ Str::limit(collect([$pedido['cliente']['conjunto'] ?? '', $pedido['cliente']['torre'] ?? '', $pedido['cliente']['apto'] ?? ''])->filter()->implode(', ') ?: '—', 50) }}</p>
                         <p class="text-xs text-gray-400 mt-0.5">💳 {{ ucfirst($pedido['metodo_pago'] ?? '—') }}</p>
                         <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
-                            <span class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($pedido['created_at'])->diffForHumans() }}</span>
+                            <span class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($pedido['created_at'], 'UTC')->setTimezone('America/Bogota')->diffForHumans() }}</span>
                             <button wire:click="cambiarEstado({{ $pedido['id'] }}, 'entregado')" class="text-xs text-white bg-green-500 hover:bg-green-600 px-2.5 py-1 rounded font-medium">Entregado</button>
                         </div>
                     </div>

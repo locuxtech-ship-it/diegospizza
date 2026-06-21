@@ -44,7 +44,7 @@ class TicketController extends Controller
 
         // Order ref
         $t .= $this->center('Pedido #' . $pedido->numero_pedido, $cols) . "\n";
-        $t .= $this->center($pedido->created_at->format('d/m/Y H:i'), $cols) . "\n";
+        $t .= $this->center($pedido->created_at->setTimezone('America/Bogota')->format('d/m/Y H:i'), $cols) . "\n";
         $t .= $line . "\n";
 
         // Address

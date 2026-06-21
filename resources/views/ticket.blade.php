@@ -102,7 +102,7 @@ if ($ticketSize === '57') {
 
         <div class="order-ref">#{{ $pedido->numero_pedido }}</div>
         <div class="info-row">
-            <span>{{ $pedido->created_at->format('d/m/Y H:i') }}</span>
+            <span>{{ $pedido->created_at->setTimezone('America/Bogota')->format('d/m/Y H:i') }}</span>
             <span>{{ ucfirst($pedido->metodo_pago) }}</span>
         </div>
         <div class="info-row" style="margin-top: 1px;">

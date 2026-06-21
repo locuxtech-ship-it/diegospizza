@@ -241,7 +241,7 @@ class Checkout extends Component
         $lineas = [];
         $lineas[] = 'Vengo de https://diegospizzabq.click';
         $lineas[] = 'CO-' . $pedido->numero_pedido;
-        $lineas[] = '🗓️ ' . $pedido->created_at->format('d/m/Y') . ' ⏰ ' . $pedido->created_at->format('h:i a');
+        $lineas[] = '🗓️ ' . $pedido->created_at->setTimezone('America/Bogota')->format('d/m/Y') . ' ⏰ ' . $pedido->created_at->setTimezone('America/Bogota')->format('h:i a');
         $lineas[] = '';
         $lineas[] = 'Tipo de servicio: Domicilio';
         $lineas[] = '';

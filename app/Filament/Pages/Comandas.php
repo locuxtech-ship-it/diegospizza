@@ -235,7 +235,7 @@ class Comandas extends Page
         $this->pedidoNumero = $pedido->numero_pedido;
         $this->pedidoEstado = $pedido->estado;
         $this->pedidoOrigen = $pedido->origen ?? 'pdv';
-        $this->pedidoFecha = $pedido->created_at->format('d/m/y H:i');
+        $this->pedidoFecha = $pedido->created_at->setTimezone('America/Bogota')->format('d/m/y H:i');
         $this->pedidoMetodoPago = $pedido->metodo_pago;
         $this->pedidoSubtotal = (float) $pedido->subtotal;
         $this->totalPedido = (float) $pedido->total;
