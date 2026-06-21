@@ -16,7 +16,7 @@
                     ⟳ Refrescar
                 </button>
             </div>
-            <div style="padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 16px;">
+            <div @if($status === 'WAITING_QR') wire:poll.3s="pollQR" @endif style="padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 16px;">
                 @if($status === 'CONNECTED')
                     <div style="display: flex; align-items: center; gap: 10px; padding: 12px 24px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 9999px;">
                         <span style="width: 12px; height: 12px; background: #22c55e; border-radius: 50%; display: inline-block;"></span>

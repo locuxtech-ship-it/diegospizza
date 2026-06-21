@@ -78,16 +78,19 @@ class ChatBot extends Page
         $waha = app(WhatsAppService::class);
         $this->status = 'WAITING_QR';
         $waha->startSession();
-        for ($i = 0; $i < 20; $i++) {
-            sleep(2);
-            $data = $waha->getStatus();
-            if (($data['status'] ?? '') === 'SCAN_QR_CODE') {
-                $this->qrCode = $waha->getQR();
-                break;
+        $this->pollQR();
+    }
+
+    public function pollQR(): void
+    {
+        if ($this->status !== 'WAITING_QR') return;
+        $waha = app(WhatsAppService::class);
+        $data = $waha->getStatus();
+        if (($data['status'] ?? '') === 'SCAN_QR_CODE') {
+            $this->qrCode = $waha->getQR();
+            if ($this->qrCode) {
+                $this->status = 'SCAN_QR_CODE';
             }
-        }
-        if ($this->qrCode) {
-            $this->status = 'SCAN_QR_CODE';
         }
     }
 

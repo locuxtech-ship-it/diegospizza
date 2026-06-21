@@ -97,19 +97,12 @@ class WhatsAppService
             if ($start->successful()) {
                 return true;
             }
-            $status = $this->withAuth()->timeout(5)->get("{$this->baseUrl}/api/sessions/default");
-            if ($status->status() === 404) {
-                $create = $this->withAuth()->timeout(5)->asJson()->post("{$this->baseUrl}/api/sessions", ['name' => 'default']);
-                if (!$create->successful()) return false;
-                sleep(3);
-                $start = $this->withAuth()->timeout(5)->post("{$this->baseUrl}/api/sessions/default/start");
-                return $start->successful();
-            }
-            $this->withAuth()->timeout(5)->delete("{$this->baseUrl}/api/sessions/default");
-            sleep(2);
+            $this->withAuth()->timeout(3)->delete("{$this->baseUrl}/api/sessions/default");
+            usleep(500000);
+            $sess = $this->withAuth()->timeout(5)->get("{$this->baseUrl}/api/sessions/default");
             $create = $this->withAuth()->timeout(5)->asJson()->post("{$this->baseUrl}/api/sessions", ['name' => 'default']);
             if ($create->successful()) {
-                sleep(3);
+                usleep(500000);
                 $start = $this->withAuth()->timeout(5)->post("{$this->baseUrl}/api/sessions/default/start");
                 return $start->successful();
             }
