@@ -64,7 +64,7 @@ class WhatsAppService
     public function getQR(): ?string
     {
         try {
-            $response = $this->withAuth()->get("{$this->baseUrl}/api/default/auth/qr");
+            $response = $this->withAuth()->timeout(15)->get("{$this->baseUrl}/api/default/auth/qr");
             if ($response->successful()) {
                 $type = $response->header('Content-Type');
                 if ($type === 'image/png') {
@@ -93,8 +93,27 @@ class WhatsAppService
     public function startSession(): bool
     {
         try {
-            $response = $this->withAuth()->post("{$this->baseUrl}/api/sessions/default", []);
-            return $response->successful();
+            $start = $this->withAuth()->timeout(5)->post("{$this->baseUrl}/api/sessions/default/start");
+            if ($start->successful()) {
+                return true;
+            }
+            $status = $this->withAuth()->timeout(5)->get("{$this->baseUrl}/api/sessions/default");
+            if ($status->status() === 404) {
+                $create = $this->withAuth()->timeout(5)->asJson()->post("{$this->baseUrl}/api/sessions", ['name' => 'default']);
+                if (!$create->successful()) return false;
+                sleep(3);
+                $start = $this->withAuth()->timeout(5)->post("{$this->baseUrl}/api/sessions/default/start");
+                return $start->successful();
+            }
+            $this->withAuth()->timeout(5)->delete("{$this->baseUrl}/api/sessions/default");
+            sleep(2);
+            $create = $this->withAuth()->timeout(5)->asJson()->post("{$this->baseUrl}/api/sessions", ['name' => 'default']);
+            if ($create->successful()) {
+                sleep(3);
+                $start = $this->withAuth()->timeout(5)->post("{$this->baseUrl}/api/sessions/default/start");
+                return $start->successful();
+            }
+            return false;
         } catch (\Exception $e) {
             Log::error('WAHA start session failed', ['error' => $e->getMessage()]);
             return false;
