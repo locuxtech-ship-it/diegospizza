@@ -85,7 +85,7 @@
                     <div style="font-size: 10px; color: #6b7280; margin-top: 1px;">{{ \Carbon\Carbon::parse($pedido['created_at'], 'UTC')->setTimezone('America/Bogota')->format('d/m H:i') }}</div>
                 </div>
                 {{-- Estado: badge estado + origen --}}
-                <div style="padding: 8px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; justify-content: center;">
+                <div style="padding: 8px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; justify-content: center;">
                     <span style="font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600; background: {{ $bgEstado }}; color: {{ $colorEstado }};">{{ $iconoEstado }} {{ match($pedido['estado']) { 'pendiente_pago' => 'Pend. Pago', 'en_proceso' => 'Preparación', 'en_camino' => 'En Camino', 'entregado' => 'Ha Llegado', default => '' } }}</span>
                     <span style="font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 500; {{ ($pedido['origen'] ?? 'pdv') === 'web' ? 'background: #dbeafe; color: #2563eb;' : 'background: #fef3c7; color: #d97706;' }}">
                         {{ strtoupper($pedido['origen'] ?? 'PDV') }}
