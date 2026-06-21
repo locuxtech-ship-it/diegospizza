@@ -77,7 +77,7 @@
             <div wire:click="editarPedido({{ $pedido['id'] }})" style="display: grid; grid-template-columns: 0.7fr 0.8fr 0.7fr 1.4fr auto; gap: 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; cursor: pointer; transition: background 0.15s;"
                  onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
                 {{-- Fecha: # + tiempo + fecha --}}
-                <div style="padding: 8px;">
+                <div style="padding: 8px; text-align: center;">
                     <div style="font-weight: 700; color: #111827; font-size: 14px;">#{{ $pedido['numero_pedido'] }}</div>
                     <div style="font-size: 10px; color: {{ $colorTiempo }}; background: {{ $bgTiempo }}; padding: 1px 4px; border-radius: 4px; display: inline-block; margin-top: 2px;">
                         ⏱ {{ $this->tiempoTranscurrido($pedido['created_at']) }}
@@ -85,14 +85,14 @@
                     <div style="font-size: 10px; color: #6b7280; margin-top: 1px;">{{ \Carbon\Carbon::parse($pedido['created_at'], 'UTC')->setTimezone('America/Bogota')->format('d/m H:i') }}</div>
                 </div>
                 {{-- Estado: badge estado + origen --}}
-                <div style="padding: 8px; display: flex; flex-direction: column; gap: 4px;">
+                <div style="padding: 8px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; justify-content: center;">
                     <span style="font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600; background: {{ $bgEstado }}; color: {{ $colorEstado }};">{{ $iconoEstado }} {{ match($pedido['estado']) { 'pendiente_pago' => 'Pend. Pago', 'en_proceso' => 'Preparación', 'en_camino' => 'En Camino', 'entregado' => 'Ha Llegado', default => '' } }}</span>
                     <span style="font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 500; {{ ($pedido['origen'] ?? 'pdv') === 'web' ? 'background: #dbeafe; color: #2563eb;' : 'background: #fef3c7; color: #d97706;' }}">
                         {{ strtoupper($pedido['origen'] ?? 'PDV') }}
                     </span>
                 </div>
                 {{-- Total: monto + pago --}}
-                <div style="padding: 8px;">
+                <div style="padding: 8px; text-align: center;">
                     <div style="font-weight: 700; font-size: 14px; color: #111827;">${{ number_format($pedido['total'], 0, ',', '.') }}</div>
                     <div style="margin-top: 2px;">
                         @if(!empty($pedido['metodo_pago']))
@@ -114,8 +114,8 @@
                     </div>
                 </div>
                 {{-- Cliente: nombre + dirección + teléfono --}}
-                <div style="padding: 8px;">
-                    <div style="display: flex; align-items: center; gap: 4px;">
+                <div style="padding: 8px; text-align: center;">
+                    <div style="display: flex; align-items: center; gap: 4px; justify-content: center;">
                         <span style="font-weight: 600; color: #111827; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $pedido['cliente']['nombre'] }}</span>
                         @if(isset($pedido['cliente']['clasificacion']))
                             <span style="flex-shrink: 0; font-size: 9px; padding: 1px 5px; border-radius: 4px; font-weight: 600;
