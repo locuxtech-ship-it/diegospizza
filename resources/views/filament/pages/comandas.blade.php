@@ -53,7 +53,7 @@
 
         @if($vistaLista)
         <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
-            <div style="display: grid; grid-template-columns: 1.0fr 0.8fr 0.7fr 1.4fr auto; gap: 0; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.05em;">
+            <div style="display: grid; grid-template-columns: 0.7fr 0.8fr 0.7fr 1.4fr auto; gap: 0; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.05em;">
                 <div style="padding: 8px; text-align: center; justify-self: center;">Fecha</div>
                 <div style="padding: 8px; text-align: center; justify-self: center;">Estado</div>
                 <div style="padding: 8px; text-align: center; justify-self: center;">Total</div>
@@ -74,7 +74,7 @@
                 $colorEstado = match($pedido['estado']) { 'pendiente_pago' => '#ef4444', 'en_proceso' => '#ea580c', 'en_camino' => '#2563eb', 'entregado' => '#9333ea', default => '#6b7280' };
                 $bgEstado = match($pedido['estado']) { 'pendiente_pago' => '#fee2e2', 'en_proceso' => '#ffedd5', 'en_camino' => '#dbeafe', 'entregado' => '#f3e8ff', default => '#f3f4f6' };
             @endphp
-            <div wire:click="editarPedido({{ $pedido['id'] }})" style="display: grid; grid-template-columns: 1.0fr 0.8fr 0.7fr 1.4fr auto; gap: 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; cursor: pointer; transition: background 0.15s;"
+            <div wire:click="editarPedido({{ $pedido['id'] }})" style="display: grid; grid-template-columns: 0.7fr 0.8fr 0.7fr 1.4fr auto; gap: 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; cursor: pointer; transition: background 0.15s;"
                  onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
                 {{-- Fecha: # + tiempo + fecha --}}
                 <div style="padding: 8px; text-align: center;">
