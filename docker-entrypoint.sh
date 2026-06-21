@@ -30,6 +30,7 @@ if [ ! -L /var/www/public/storage ]; then
 fi
 
 php artisan migrate --force
+php artisan filament:optimize --no-interaction 2>/dev/null || true
 
 chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
