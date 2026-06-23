@@ -82,6 +82,7 @@ class EditPedido extends EditRecord
         $this->totalPedido = (float) $this->getRecord()->total;
         $this->totalConDescuento = $this->totalPedido;
         $this->cargarPagos();
+        $this->pagoMonto = max(0, $this->totalConDescuento - $this->totalPagado);
         $this->cargarCliente();
     }
 

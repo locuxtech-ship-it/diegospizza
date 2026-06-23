@@ -116,10 +116,14 @@ if ($ticketSize === '57') {
 
     <script>
         window.onload = function() {
-            setTimeout(function() { window.print(); }, 1000);
+            if (window === window.top) {
+                setTimeout(function() { window.print(); }, 1000);
+            }
         };
         window.onafterprint = function() {
-            setTimeout(function() { window.close(); }, 300);
+            if (window === window.top) {
+                setTimeout(function() { window.close(); }, 300);
+            }
         };
     </script>
 </body>

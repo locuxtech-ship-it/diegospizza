@@ -258,6 +258,7 @@ class Comandas extends Page
             ->get()
             ->toArray();
         $this->cargarPagos();
+        $this->pagoMonto = max(0, $this->totalConDescuento - $this->totalPagado);
         $this->modalPago = true;
     }
 
