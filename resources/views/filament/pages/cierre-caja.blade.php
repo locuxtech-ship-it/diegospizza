@@ -58,7 +58,7 @@
                 <input type="text" wire:model.live="nuevoGastoDesc" placeholder="Descripción del gasto" style="flex: 2; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 14px;">
                 <div style="display: flex; align-items: center; border: 1px solid #d1d5db; border-radius: 8px; overflow: hidden;">
                     <span style="background: #f3f4f6; padding: 8px 10px; font-size: 14px; color: #6b7280; border-right: 1px solid #d1d5db;">$</span>
-                    <input type="number" step="1" wire:model.live="nuevoGastoMonto" min="1" placeholder="0" style="width: 100px; border: none; padding: 8px 10px; font-size: 14px; outline: none;">
+                    <input type="text" inputmode="numeric" wire:model="nuevoGastoMonto" placeholder="0" style="width: 100px; border: none; padding: 8px 10px; font-size: 14px; outline: none;">
                 </div>
                 <x-filament::button wire:click="agregarGasto" color="danger" size="sm">
                     + Agregar gasto
@@ -107,7 +107,7 @@
                     <span style="font-size: 14px; font-weight: 600; color: #374151; margin-right: 8px;">Efectivo Real (contado):</span>
                     <div style="display: flex; align-items: center; border: 1px solid #d1d5db; border-radius: 8px; overflow: hidden;">
                         <span style="background: #f3f4f6; padding: 8px 10px; font-size: 14px; color: #6b7280; border-right: 1px solid #d1d5db;">$</span>
-                        <input type="number" step="1" wire:model.live="efectivoReal" min="0" placeholder="0" style="width: 130px; border: none; padding: 8px 10px; font-size: 14px; outline: none;">
+                        <input type="text" inputmode="numeric" wire:model.blur="efectivoReal" placeholder="0" style="width: 130px; border: none; padding: 8px 10px; font-size: 14px; outline: none;">
                     </div>
                 </div>
             </div>
