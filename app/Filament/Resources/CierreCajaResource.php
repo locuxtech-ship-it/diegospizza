@@ -6,7 +6,7 @@ use App\Filament\Resources\CierreCaja\Pages\ListCierreCajas;
 use App\Filament\Resources\CierreCaja\Pages\ViewCierreCaja;
 use App\Models\CierreCaja;
 use BackedEnum;
-use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Textarea;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -97,20 +97,46 @@ class CierreCajaResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
+        $fmt = fn ($v) => $v !== null ? '$' . number_format((float) $v, 0, ',', '.') : '-';
+
         return $schema
             ->schema([
-                TextInput::make('fecha')->label('Fecha')->disabled(),
-                TextInput::make('user.name')->label('Usuario')->disabled(),
-                TextInput::make('total_ventas')->label('Total Ventas')->disabled(),
-                TextInput::make('total_efectivo')->label('Total Efectivo')->disabled(),
-                TextInput::make('total_transferencias')->label('Total Transferencias')->disabled(),
-                TextInput::make('total_tarjeta')->label('Total Tarjeta')->disabled(),
-                TextInput::make('total_gastos')->label('Total Gastos')->disabled(),
-                TextInput::make('efectivo_esperado')->label('Efectivo Esperado')->disabled(),
-                TextInput::make('efectivo_real')->label('Efectivo Real')->disabled(),
-                TextInput::make('diferencia')->label('Diferencia')->disabled(),
-                TextInput::make('estado')->label('Estado')->disabled(),
-                Textarea::make('observaciones')->label('Observaciones')->disabled(),
+                Placeholder::make('fecha')
+                    ->label('Fecha')
+                    ->content(fn ($record) => $record?->fecha?->format('d/m/Y') ?? '-'),
+                Placeholder::make('user.name')
+                    ->label('Usuario')
+                    ->content(fn ($record) => $record?->user?->name ?? '-'),
+                Placeholder::make('total_ventas')
+                    ->label('Total Ventas')
+                    ->content(fn ($record) => $fmt($record?->total_ventas)),
+                Placeholder::make('total_efectivo')
+                    ->label('Total Efectivo')
+                    ->content(fn ($record) => $fmt($record?->total_efectivo)),
+                Placeholder::make('total_transferencias')
+                    ->label('Total Transferencias')
+                    ->content(fn ($record) => $fmt($record?->total_transferencias)),
+                Placeholder::make('total_tarjeta')
+                    ->label('Total Tarjeta')
+                    ->content(fn ($record) => $fmt($record?->total_tarjeta)),
+                Placeholder::make('total_gastos')
+                    ->label('Total Gastos')
+                    ->content(fn ($record) => $fmt($record?->total_gastos)),
+                Placeholder::make('efectivo_esperado')
+                    ->label('Efectivo Esperado')
+                    ->content(fn ($record) => $fmt($record?->efectivo_esperado)),
+                Placeholder::make('efectivo_real')
+                    ->label('Efectivo Real')
+                    ->content(fn ($record) => $fmt($record?->efectivo_real)),
+                Placeholder::make('diferencia')
+                    ->label('Diferencia')
+                    ->content(fn ($record) => ($record?->diferencia !== null ? (($record->diferencia >= 0 ? '+' : '') . '$' . number_format((float) $record->diferencia, 0, ',', '.')) : '-')),
+                Placeholder::make('estado')
+                    ->label('Estado')
+                    ->content(fn ($record) => ucfirst($record?->estado ?? '-')),
+                Textarea::make('observaciones')
+                    ->label('Observaciones')
+                    ->disabled(),
             ])
             ->columns(2);
     }
