@@ -359,6 +359,38 @@ class Comandas extends Page
         $this->cargarPedidos();
     }
 
+    public function guardarCambios(): void
+    {
+        $pedido = Pedido::find($this->pedidoPagoId);
+        if (!$pedido) return;
+
+        if ($this->descuentoAplicado > 0) {
+            $pedido->update([
+                'descuento_manual' => $this->descuentoAplicado,
+                'descuento_manual_tipo' => $this->descuentoTipo === 'fijo' ? 'monto' : $this->descuentoTipo,
+                'descuento_manual_valor' => $this->descuentoValor,
+                'total' => $this->totalConDescuento,
+            ]);
+        }
+
+        if ($pedido->cliente) {
+            $pedido->cliente->update([
+                'nombre' => $this->clienteNombre,
+                'telefono' => $this->clienteTelefono,
+                'conjunto' => $this->clienteConjunto,
+                'torre' => $this->clienteTorre,
+                'apto' => $this->clienteApto,
+            ]);
+        }
+
+        Notification::make()
+            ->title("Pedido #{$pedido->numero_pedido} guardado")
+            ->success()
+            ->send();
+
+        $this->cargarPagos();
+    }
+
     public function registrarPago(): void
     {
         $this->validate([

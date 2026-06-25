@@ -489,6 +489,11 @@
                 </div>
             </div>
             @endif
+            <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: flex-end;">
+                <x-filament::button wire:click="guardarCambios" color="gray" size="sm">
+                    💾 Guardar cambios
+                </x-filament::button>
+            </div>
         </div>
     </div>
     @endif

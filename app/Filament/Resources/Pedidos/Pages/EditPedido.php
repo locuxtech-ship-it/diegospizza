@@ -401,6 +401,11 @@ class EditPedido extends EditRecord
             }
         }
 
+        $this->data['descuento_manual'] = $this->descuentoAplicado;
+        $this->data['descuento_manual_tipo'] = $this->descuentoTipo === 'fijo' ? 'monto' : $this->descuentoTipo;
+        $this->data['descuento_manual_valor'] = $this->descuentoValor;
+        $this->data['total'] = $this->totalConDescuento;
+
         $this->save(false, false);
         $this->guardarProductos();
 
