@@ -273,6 +273,9 @@ class ManualOrder extends Page
             'nombre' => $this->nombre,
             'direccion' => '',
             'notas' => $this->notas ?: $cliente->notas,
+            'conjunto' => $this->conjunto,
+            'torre' => $this->torre,
+            'apto' => $this->apto,
         ]);
 
         $direccionId = null;
@@ -288,12 +291,6 @@ class ManualOrder extends Page
                 'es_principal' => $cliente->direcciones()->count() === 0,
             ]);
             $direccionId = $dir->id;
-        } elseif ($cliente->direcciones()->count() > 0 && !$this->direccionSeleccionadaId) {
-            $cliente->update([
-                'conjunto' => $this->conjunto,
-                'torre' => $this->torre,
-                'apto' => $this->apto,
-            ]);
         }
 
         $subtotal = 0;

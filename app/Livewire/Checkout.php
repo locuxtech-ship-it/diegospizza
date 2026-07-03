@@ -204,6 +204,9 @@ class Checkout extends Component
             'nombre' => $this->nombre,
             'direccion' => '',
             'notas' => $this->notas ?: $cliente->notas,
+            'conjunto' => $this->conjunto,
+            'torre' => $this->torre,
+            'apto' => $this->apto,
         ]);
 
         // Save or select address
@@ -220,14 +223,6 @@ class Checkout extends Component
                 'es_principal' => $cliente->direcciones()->count() === 0,
             ]);
             $direccionId = $dir->id;
-        } elseif ($cliente->direcciones()->count() > 0 && !$this->direccionSeleccionadaId) {
-            // User typed a new address without saving - just use it for this order
-            // Don't save to direcciones, but update cli primary fields
-            $cliente->update([
-                'conjunto' => $this->conjunto,
-                'torre' => $this->torre,
-                'apto' => $this->apto,
-            ]);
         }
 
         $pedido = Pedido::create([
