@@ -53,6 +53,19 @@
 
     {{-- Content --}}
     <div class="max-w-4xl mx-auto px-4 py-6">
+        @if(session('error'))
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 text-center">
+            <p class="text-red-700 font-medium">{{ session('error') }}</p>
+        </div>
+        @endif
+
+        @if(\App\Models\NegocioSetting::isPaused())
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 text-center">
+            <p class="text-yellow-700 font-medium">🟡 Estamos en pausa por alta demanda</p>
+            <p class="text-gray-500 text-sm mt-1">Estamos trabajando para atenderte pronto. Vuelve a intentar más tarde.</p>
+        </div>
+        @endif
+
         @if(!$estaAbierto)
         <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 text-center">
             <p class="text-red-700 font-medium">⏰ Actualmente estamos cerrados</p>

@@ -60,6 +60,11 @@ class Checkout extends Component
 
     public function mount()
     {
+        if (NegocioSetting::isPaused()) {
+            session()->flash('error', 'Estamos en pausa por alta demanda. Por favor intenta más tarde.');
+            return redirect()->route('menu');
+        }
+
         $this->items = session()->get('carrito', []);
         if (empty($this->items)) {
             return redirect()->route('menu');
@@ -140,6 +145,11 @@ class Checkout extends Component
 
     public function procesarPedido()
     {
+        if (NegocioSetting::isPaused()) {
+            session()->flash('error', 'Estamos en pausa por alta demanda. Por favor intenta más tarde.');
+            return redirect()->route('menu');
+        }
+
         $this->validate();
 
         if (empty($this->items)) {

@@ -241,6 +241,25 @@
                 </div>
             </div>
 
+            {{-- Pausar Pedidos --}}
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+                <div style="background: linear-gradient(to right, #fef2f2, white); padding: 16px 24px; border-bottom: 1px solid #e5e7eb;">
+                    <h2 style="margin: 0; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">⏸️ Pausar Pedidos</h2>
+                </div>
+                <div style="padding: 24px;">
+                    <p style="margin: 0 0 12px; font-size: 13px; color: #6b7280;">Activa esta opción para pausar la recepción de pedidos web (por alta demanda, cierre temporal, etc.). Los clientes verán un mensaje en el checkout y no podrán confirmar pedidos.</p>
+                    <label style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; {{ $pedidos_pausados ? 'background: #fef2f2; border-color: #fecaca;' : 'background: #f9fafb;' }}">
+                        <span style="font-size: 14px; font-weight: 600; color: #374151;">
+                            <span style="margin-right: 8px;">{{ $pedidos_pausados ? '🟡' : '🟢' }}</span>
+                            Pedidos {{ $pedidos_pausados ? 'Pausados' : 'Activos' }}
+                        </span>
+                        <button type="button" wire:click="$set('pedidos_pausados', {{ $pedidos_pausados ? 'false' : 'true' }})" style="position: relative; width: 44px; height: 24px; border-radius: 12px; border: none; cursor: pointer; transition: all 0.2s; {{ $pedidos_pausados ? 'background: #f59e0b;' : 'background: #22c55e;' }}">
+                            <span style="position: absolute; top: 2px; width: 20px; height: 20px; border-radius: 50%; background: white; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); {{ $pedidos_pausados ? 'right: 2px;' : 'left: 2px;' }}"></span>
+                        </button>
+                    </label>
+                </div>
+            </div>
+
             {{-- Save --}}
             <button type="submit" style="width: 100%; background: linear-gradient(to right, #dc2626, #ef4444); color: white; padding: 14px 24px; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer;">
                 💾 Guardar Cambios

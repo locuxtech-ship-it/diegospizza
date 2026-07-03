@@ -37,6 +37,7 @@ class NegocioSetting extends Model
         'ticket_fuente',
         'horarios_por_dia',
         'chatbot_settings',
+        'pedidos_pausados',
     ];
 
     protected function casts(): array
@@ -58,6 +59,7 @@ class NegocioSetting extends Model
             'puntos_ganancia_valor' => 'integer',
             'puntos_recompensas' => 'array',
             'horarios_por_dia' => 'array',
+            'pedidos_pausados' => 'boolean',
         ];
     }
 
@@ -95,6 +97,11 @@ class NegocioSetting extends Model
             'apertura' => $settings->horario_apertura ?? '11:00',
             'cierre' => $settings->horario_cierre ?? '23:00',
         ];
+    }
+
+    public static function isPaused(): bool
+    {
+        return self::getSettings()->pedidos_pausados ?? false;
     }
 
     public static function isOpen(): bool

@@ -91,18 +91,28 @@ class AdminPanelProvider extends PanelProvider
             'panels::body.start',
             function (): string {
                 if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'cajero'])) return '';
-                $abierto = \App\Models\NegocioSetting::isOpen();
-                $hoy = \App\Models\NegocioSetting::getTodayHours();
+                $settings = \App\Models\NegocioSetting::getSettings();
+                $abierto = $settings->isOpen();
+                $hoy = $settings->getTodayHours();
                 $dia = ucfirst(now()->locale('es')->dayName);
                 $color = $abierto ? '#16a34a' : '#dc2626';
                 $icono = $abierto ? '🟢' : '🔴';
                 $texto = $abierto ? 'Abierto' : 'Cerrado';
-                return '<div style="text-align:center;padding:4px 0;">
+                $pausado = $settings->isPaused();
+                $banners = '<div style="text-align:center;padding:4px 0;">
                 <span style="display:inline-flex;align-items:center;gap:8px;background:' . $color . ';color:white;padding:4px 16px;border-radius:9999px;font-size:13px;font-weight:600;flex-wrap:wrap;justify-content:center;">
                     <span>' . $icono . ' Menú Digital: ' . $texto . '</span>
                     <span style="opacity:0.85;">— ' . $dia . ' ' . $hoy['apertura'] . ' a ' . $hoy['cierre'] . '</span>
                 </span>
             </div>';
+                if ($pausado) {
+                    $banners .= '<div style="text-align:center;padding:4px 0;">
+                    <span style="display:inline-flex;align-items:center;gap:8px;background:#d97706;color:white;padding:4px 16px;border-radius:9999px;font-size:13px;font-weight:600;">
+                        🟡 Pedidos web pausados — los clientes no pueden ordenar
+                    </span>
+                </div>';
+                }
+                return $banners;
             }
         );
 

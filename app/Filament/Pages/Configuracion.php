@@ -47,6 +47,7 @@ class Configuracion extends Page
     public $mensaje = '';
     public $metodos_pago_activos = [];
     public $horarios_por_dia = [];
+    public $pedidos_pausados = false;
 
     public function mount()
     {
@@ -85,6 +86,7 @@ class Configuracion extends Page
         $this->ticket_fuente = $negocio->ticket_fuente ?? 'courier';
         $this->metodos_pago_activos = $negocio->metodos_pago_activos ?? ['efectivo', 'tarjeta', 'transferencia'];
         $this->horarios_por_dia = $negocio->horarios_por_dia ?? [];
+        $this->pedidos_pausados = $negocio->pedidos_pausados ?? false;
         $this->logoPreview = $negocio->logo ? Storage::disk('public')->url($negocio->logo) : '';
     }
 
@@ -132,6 +134,7 @@ class Configuracion extends Page
             'ticket_fuente' => $this->ticket_fuente,
             'metodos_pago_activos' => $this->metodos_pago_activos,
             'horarios_por_dia' => $this->horarios_por_dia,
+            'pedidos_pausados' => $this->pedidos_pausados,
         ];
 
         if ($this->logo) {
