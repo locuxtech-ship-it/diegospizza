@@ -1,17 +1,25 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("ALTER TABLE negocio_settings ADD COLUMN horarios_por_dia LONGTEXT NULL AFTER horario_cierre");
+        if (!Schema::hasColumn('negocio_settings', 'horarios_por_dia')) {
+            Schema::table('negocio_settings', function ($table) {
+                $table->text('horarios_por_dia')->nullable()->after('horario_cierre');
+            });
+        }
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE negocio_settings DROP COLUMN horarios_por_dia");
+        if (Schema::hasColumn('negocio_settings', 'horarios_por_dia')) {
+            Schema::table('negocio_settings', function ($table) {
+                $table->dropColumn('horarios_por_dia');
+            });
+        }
     }
 };

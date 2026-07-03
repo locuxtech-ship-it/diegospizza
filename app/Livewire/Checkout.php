@@ -30,6 +30,10 @@ class Checkout extends Component
     public $notas = '';
     public $metodoPago = 'efectivo';
 
+    public $direccionesDisponibles = [];
+    public $direccionSeleccionadaId = null;
+    public $guardarDireccion = false;
+
     public $pedidoCreado = false;
     public $pedidoId = null;
     public $whatsappUrl = '';
@@ -85,6 +89,8 @@ class Checkout extends Component
         $this->recompensasDisponibles = [];
         $this->recompensaSeleccionadaIndex = null;
         $this->total = $this->subtotal;
+        $this->direccionesDisponibles = [];
+        $this->direccionSeleccionadaId = null;
 
         $cliente = Cliente::where('telefono', $this->telefono)->first();
         if ($cliente) {
@@ -107,17 +113,43 @@ class Checkout extends Component
             if (empty($this->nombre)) {
                 $this->nombre = $cliente->nombre;
             }
-            if (empty($this->conjunto) && $cliente->conjunto) {
+
+            // Load saved addresses
+            $this->direccionesDisponibles = $cliente->direcciones()
+                ->orderBy('es_principal', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->toArray();
+
+            if (!empty($this->direccionesDisponibles)) {
+                // Default to first address
+                $this->seleccionarDireccion($this->direccionesDisponibles[0]['id']);
+            } elseif ($cliente->conjunto) {
                 $this->conjunto = $cliente->conjunto;
-            }
-            if (empty($this->torre) && $cliente->torre) {
-                $this->torre = $cliente->torre;
-            }
-            if (empty($this->apto) && $cliente->apto) {
-                $this->apto = $cliente->apto;
+                $this->torre = $cliente->torre ?? '';
+                $this->apto = $cliente->apto ?? '';
             }
         } else {
             $this->clienteInfo = null;
+        }
+    }
+
+    public function seleccionarDireccion(?int $direccionId): void
+    {
+        $this->direccionSeleccionadaId = $direccionId;
+
+        if ($direccionId === null) {
+            $this->conjunto = '';
+            $this->torre = '';
+            $this->apto = '';
+            return;
+        }
+
+        $dir = collect($this->direccionesDisponibles)->firstWhere('id', $direccionId);
+        if ($dir) {
+            $this->conjunto = $dir['conjunto'];
+            $this->torre = $dir['torre'] ?? '';
+            $this->apto = $dir['apto'] ?? '';
         }
     }
 
@@ -171,14 +203,36 @@ class Checkout extends Component
         $cliente->update([
             'nombre' => $this->nombre,
             'direccion' => '',
-            'conjunto' => $this->conjunto,
-            'torre' => $this->torre,
-            'apto' => $this->apto,
             'notas' => $this->notas ?: $cliente->notas,
         ]);
 
+        // Save or select address
+        $direccionId = null;
+        if ($this->direccionSeleccionadaId && collect($this->direccionesDisponibles)->pluck('id')->contains($this->direccionSeleccionadaId)) {
+            $direccionId = $this->direccionSeleccionadaId;
+        } elseif ($this->guardarDireccion) {
+            $dir = ClienteDireccion::create([
+                'cliente_id' => $cliente->id,
+                'alias' => 'Dirección ' . ($cliente->direcciones()->count() + 1),
+                'conjunto' => $this->conjunto,
+                'torre' => $this->torre,
+                'apto' => $this->apto,
+                'es_principal' => $cliente->direcciones()->count() === 0,
+            ]);
+            $direccionId = $dir->id;
+        } elseif ($cliente->direcciones()->count() > 0 && !$this->direccionSeleccionadaId) {
+            // User typed a new address without saving - just use it for this order
+            // Don't save to direcciones, but update cli primary fields
+            $cliente->update([
+                'conjunto' => $this->conjunto,
+                'torre' => $this->torre,
+                'apto' => $this->apto,
+            ]);
+        }
+
         $pedido = Pedido::create([
             'cliente_id' => $cliente->id,
+            'cliente_direccion_id' => $direccionId,
             'subtotal' => $this->subtotal,
             'descuento_puntos' => $this->descuentoPuntos,
             'total' => $this->total,
@@ -257,7 +311,7 @@ class Checkout extends Component
         $lineas[] = '';
         $lineas[] = 'Nombre: ' . $cliente->nombre;
         $lineas[] = 'Teléfono: 57 ' . $cliente->telefono;
-        $lineas[] = 'Dirección: ' . $cliente->direccion_completa;
+        $lineas[] = 'Dirección: ' . $pedido->direccion_completa;
         $lineas[] = '';
         $lineas[] = '📝 Productos';
         foreach ($this->items as $item) {

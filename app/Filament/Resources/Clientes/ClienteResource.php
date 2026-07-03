@@ -67,7 +67,7 @@ class ClienteResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            \App\Filament\Resources\Clientes\RelationManagers\DireccionesRelationManager::class,
         ];
     }
 

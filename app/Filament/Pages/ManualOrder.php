@@ -40,6 +40,10 @@ class ManualOrder extends Page
     public $pedidoId = null;
     public $total = 0;
 
+    public $direccionesDisponibles = [];
+    public $direccionSeleccionadaId = null;
+    public $guardarDireccion = false;
+
     public $productoMitad = null;
     public $mitad1 = null;
     public $mitad2 = null;
@@ -55,6 +59,9 @@ class ManualOrder extends Page
     public function updatedTelefono()
     {
         $cliente = Cliente::where('telefono', $this->telefono)->first();
+        $this->direccionesDisponibles = [];
+        $this->direccionSeleccionadaId = null;
+
         if ($cliente) {
             $totalPedidos = $cliente->pedidos()->count();
             $this->clienteInfo = [
@@ -65,11 +72,39 @@ class ManualOrder extends Page
                 'clasificacion_label' => $cliente->clasificacion_label,
             ];
             if (empty($this->nombre)) $this->nombre = $cliente->nombre;
-            if (empty($this->conjunto) && $cliente->conjunto) $this->conjunto = $cliente->conjunto;
-            if (empty($this->torre) && $cliente->torre) $this->torre = $cliente->torre;
-            if (empty($this->apto) && $cliente->apto) $this->apto = $cliente->apto;
+
+            $this->direccionesDisponibles = $cliente->direcciones()
+                ->orderBy('es_principal', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->toArray();
+
+            if (!empty($this->direccionesDisponibles)) {
+                $this->seleccionarDireccion($this->direccionesDisponibles[0]['id']);
+            } elseif ($cliente->conjunto) {
+                $this->conjunto = $cliente->conjunto;
+                $this->torre = $cliente->torre ?? '';
+                $this->apto = $cliente->apto ?? '';
+            }
         } else {
             $this->clienteInfo = null;
+        }
+    }
+
+    public function seleccionarDireccion(?int $direccionId): void
+    {
+        $this->direccionSeleccionadaId = $direccionId;
+        if ($direccionId === null) {
+            $this->conjunto = '';
+            $this->torre = '';
+            $this->apto = '';
+            return;
+        }
+        $dir = collect($this->direccionesDisponibles)->firstWhere('id', $direccionId);
+        if ($dir) {
+            $this->conjunto = $dir['conjunto'];
+            $this->torre = $dir['torre'] ?? '';
+            $this->apto = $dir['apto'] ?? '';
         }
     }
 
@@ -237,11 +272,29 @@ class ManualOrder extends Page
         $cliente->update([
             'nombre' => $this->nombre,
             'direccion' => '',
-            'conjunto' => $this->conjunto,
-            'torre' => $this->torre,
-            'apto' => $this->apto,
             'notas' => $this->notas ?: $cliente->notas,
         ]);
+
+        $direccionId = null;
+        if ($this->direccionSeleccionadaId && collect($this->direccionesDisponibles)->pluck('id')->contains($this->direccionSeleccionadaId)) {
+            $direccionId = $this->direccionSeleccionadaId;
+        } elseif ($this->guardarDireccion) {
+            $dir = \App\Models\ClienteDireccion::create([
+                'cliente_id' => $cliente->id,
+                'alias' => 'Dirección ' . ($cliente->direcciones()->count() + 1),
+                'conjunto' => $this->conjunto,
+                'torre' => $this->torre,
+                'apto' => $this->apto,
+                'es_principal' => $cliente->direcciones()->count() === 0,
+            ]);
+            $direccionId = $dir->id;
+        } elseif ($cliente->direcciones()->count() > 0 && !$this->direccionSeleccionadaId) {
+            $cliente->update([
+                'conjunto' => $this->conjunto,
+                'torre' => $this->torre,
+                'apto' => $this->apto,
+            ]);
+        }
 
         $subtotal = 0;
         foreach ($this->carrito as $item) {
@@ -250,6 +303,7 @@ class ManualOrder extends Page
 
         $pedido = Pedido::create([
             'cliente_id' => $cliente->id,
+            'cliente_direccion_id' => $direccionId,
             'subtotal' => $subtotal,
             'descuento_puntos' => 0,
             'total' => $subtotal,

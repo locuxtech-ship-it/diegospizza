@@ -26,6 +26,7 @@ class Pedido extends Model
         'notas',
         'motivo_cancelacion',
         'fecha_entrega',
+        'cliente_direccion_id',
     ];
 
     protected function casts(): array
@@ -131,6 +132,36 @@ class Pedido extends Model
     public function cliente(): BelongsTo
     {
         return $this->belongsTo(Cliente::class);
+    }
+
+    public function direccion(): BelongsTo
+    {
+        return $this->belongsTo(ClienteDireccion::class, 'cliente_direccion_id');
+    }
+
+    public function getDireccionConjuntoAttribute(): string
+    {
+        return $this->direccion?->conjunto ?? $this->cliente?->conjunto ?? '';
+    }
+
+    public function getDireccionTorreAttribute(): string
+    {
+        return $this->direccion?->torre ?? $this->cliente?->torre ?? '';
+    }
+
+    public function getDireccionAptoAttribute(): string
+    {
+        return $this->direccion?->apto ?? $this->cliente?->apto ?? '';
+    }
+
+    public function getDireccionCompletaAttribute(): string
+    {
+        $parts = array_filter([
+            $this->direccion_conjunto,
+            $this->direccion_torre,
+            $this->direccion_apto,
+        ]);
+        return implode(', ', $parts);
     }
 
     public function productos(): HasMany

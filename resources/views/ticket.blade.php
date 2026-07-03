@@ -115,12 +115,12 @@ if ($ticketSize === '57') {
         <div class="section-title">📍 DIRECCION</div>
         <div class="address-box">
             <div style="font-size: {{ $fsInfo }}px;">{{ $pedido->cliente->nombre }}</div>
-            <div style="font-size: {{ $fsInfo }}px; margin-top: 1px;">Conjunto: {{ $pedido->cliente->conjunto }}</div>
-            @if($pedido->cliente->torre)
-                <div style="font-size: {{ $fsInfo }}px;">Torre: {{ $pedido->cliente->torre }}</div>
+            <div style="font-size: {{ $fsInfo }}px; margin-top: 1px;">Conjunto: {{ $pedido->direccion_conjunto }}</div>
+            @if($pedido->direccion_torre)
+                <div style="font-size: {{ $fsInfo }}px;">Torre: {{ $pedido->direccion_torre }}</div>
             @endif
-            @if($pedido->cliente->apto)
-                <div style="font-size: {{ $fsInfo }}px;">Apto: {{ $pedido->cliente->apto }}</div>
+            @if($pedido->direccion_apto)
+                <div style="font-size: {{ $fsInfo }}px;">Apto: {{ $pedido->direccion_apto }}</div>
             @endif
             <div style="font-size: {{ $fsInfo }}px;">Tel: {{ $pedido->cliente->telefono }}</div>
         </div>

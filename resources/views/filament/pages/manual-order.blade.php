@@ -145,6 +145,22 @@
                             </div>
                             @endif
                         </div>
+                        @if(count($direccionesDisponibles) > 0)
+                        <div style="margin-bottom: 8px;">
+                            <label style="font-size: 11px; font-weight: 600; color: #374151; margin-bottom: 6px; display: block;">📍 Dirección guardada</label>
+                            @foreach($direccionesDisponibles as $dir)
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; margin-bottom: 4px; border: 1px solid {{ $direccionSeleccionadaId === $dir['id'] ? '#ef4444' : '#e5e7eb' }}; background: {{ $direccionSeleccionadaId === $dir['id'] ? '#fef2f2' : '#f9fafb' }};">
+                                <input type="radio" wire:click="seleccionarDireccion({{ $dir['id'] }})" {{ $direccionSeleccionadaId === $dir['id'] ? 'checked' : '' }} style="accent-color: #dc2626;">
+                                <span style="font-weight: 600;">{{ $dir['alias'] ?? 'Dirección' }}:</span>
+                                <span style="color: #6b7280;">{{ $dir['conjunto'] }}{{ $dir['torre'] ? ', Torre ' . $dir['torre'] : '' }}{{ $dir['apto'] ? ', Apto ' . $dir['apto'] : '' }}</span>
+                            </label>
+                            @endforeach
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; border: 1px solid {{ $direccionSeleccionadaId === null ? '#ef4444' : '#e5e7eb' }}; background: {{ $direccionSeleccionadaId === null ? '#fef2f2' : '#f9fafb' }};">
+                                <input type="radio" wire:click="seleccionarDireccion(null)" {{ $direccionSeleccionadaId === null ? 'checked' : '' }} style="accent-color: #dc2626;">
+                                <span>✏️ Otra dirección</span>
+                            </label>
+                        </div>
+                        @endif
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                             <div>
                                 <label style="font-size: 11px; font-weight: 600; color: #374151;">Conjunto *</label>
@@ -160,6 +176,12 @@
                                 <input type="text" wire:model.live="apto" placeholder="N°" style="margin-top: 3px; width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 10px; font-size: 13px;">
                             </div>
                         </div>
+                        @if(count($direccionesDisponibles) > 0)
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; color: #6b7280;">
+                            <input type="checkbox" wire:model.live="guardarDireccion" style="accent-color: #dc2626;">
+                            Guardar dirección para próximos pedidos
+                        </label>
+                        @endif
                         <div>
                             <label style="font-size: 11px; font-weight: 600; color: #374151;">Notas <span style="color: #9ca3af; font-weight: 400;">(opcional)</span></label>
                             <textarea wire:model.live="notas" placeholder="Instrucciones especiales" rows="2" style="margin-top: 3px; width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 10px; font-size: 13px; resize: none;"></textarea>

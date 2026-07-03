@@ -339,6 +339,15 @@
                 <p style="margin: 0 0 4px; font-size: 14px; font-weight: 700; color: #111827;">Cliente: {{ $clienteNombre }}</p>
                 <p style="margin: 0 0 2px; font-size: 13px; color: #6b7280;">Teléfono: +57 {{ $clienteTelefono }}</p>
                 <p style="margin: 0; font-size: 13px; color: #6b7280;">{{ $clienteDireccion }}</p>
+                @if(count($direccionesDisponibles) > 1)
+                <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px;">
+                    @foreach($direccionesDisponibles as $dir)
+                    <button type="button" wire:click="seleccionarDireccionModal({{ $dir['id'] }})" style="padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; border: 1px solid {{ $direccionSeleccionadaId === $dir['id'] ? '#ef4444' : '#d1d5db' }}; background: {{ $direccionSeleccionadaId === $dir['id'] ? '#fef2f2' : '#f9fafb' }}; color: {{ $direccionSeleccionadaId === $dir['id'] ? '#dc2626' : '#374151' }};">
+                        {{ $dir['alias'] ?? 'Dir' }}: {{ $dir['conjunto'] }}
+                    </button>
+                    @endforeach
+                </div>
+                @endif
             </div>
 
             {{-- Products ordered --}}

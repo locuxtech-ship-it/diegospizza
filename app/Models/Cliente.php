@@ -72,6 +72,17 @@ class Cliente extends Model
         };
     }
 
+    public function direcciones(): HasMany
+    {
+        return $this->hasMany(ClienteDireccion::class);
+    }
+
+    public function direccionPrincipal(): ?ClienteDireccion
+    {
+        return $this->direcciones()->where('es_principal', true)->first()
+            ?? $this->direcciones()->first();
+    }
+
     public function pedidos(): HasMany
     {
         return $this->hasMany(Pedido::class);

@@ -50,12 +50,12 @@ class TicketController extends Controller
         // Address
         $t .= 'DIRECCION' . "\n";
         $t .= $pedido->cliente->nombre . "\n";
-        $t .= 'Conjunto: ' . $pedido->cliente->conjunto . "\n";
-        if ($pedido->cliente->torre) {
-            $t .= 'Torre: ' . $pedido->cliente->torre . "\n";
+        $t .= 'Conjunto: ' . $pedido->direccion_conjunto . "\n";
+        if ($pedido->direccion_torre) {
+            $t .= 'Torre: ' . $pedido->direccion_torre . "\n";
         }
-        if ($pedido->cliente->apto) {
-            $t .= 'Apto: ' . $pedido->cliente->apto . "\n";
+        if ($pedido->direccion_apto) {
+            $t .= 'Apto: ' . $pedido->direccion_apto . "\n";
         }
         $t .= 'Tel: ' . $pedido->cliente->telefono . "\n";
 

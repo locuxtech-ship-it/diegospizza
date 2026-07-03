@@ -126,6 +126,31 @@
                             </div>
                             @endif
 
+                            @if(count($direccionesDisponibles) > 0)
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">📍 Dirección de entrega</label>
+                                <div class="space-y-2">
+                                    @foreach($direccionesDisponibles as $dir)
+                                    <label class="flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 {{ $direccionSeleccionadaId === $dir['id'] ? 'border-red-500 bg-red-50' : 'border-gray-100 hover:border-gray-200 bg-gray-50' }}">
+                                        <input type="radio" wire:click="seleccionarDireccion({{ $dir['id'] }})" {{ $direccionSeleccionadaId === $dir['id'] ? 'checked' : '' }} class="mt-1 text-red-600 focus:ring-red-500 sr-only">
+                                        <span class="text-lg">{{ $dir['es_principal'] ? '🏠' : '📍' }}</span>
+                                        <div class="text-sm">
+                                            <span class="font-semibold text-gray-800">{{ $dir['alias'] ?? 'Dirección' }}</span>
+                                            <p class="text-gray-500 text-xs mt-0.5">{{ $dir['conjunto'] }}{{ $dir['torre'] ? ', Torre ' . $dir['torre'] : '' }}{{ $dir['apto'] ? ', Apto ' . $dir['apto'] : '' }}</p>
+                                        </div>
+                                    </label>
+                                    @endforeach
+                                    <label class="flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 {{ $direccionSeleccionadaId === null ? 'border-red-500 bg-red-50' : 'border-gray-100 hover:border-gray-200 bg-gray-50' }}">
+                                        <input type="radio" wire:click="seleccionarDireccion(null)" {{ $direccionSeleccionadaId === null ? 'checked' : '' }} class="mt-1 text-red-600 focus:ring-red-500 sr-only">
+                                        <span class="text-lg">✏️</span>
+                                        <div>
+                                            <span class="font-semibold text-gray-800 text-sm">Otra dirección</span>
+                                            <p class="text-gray-400 text-xs">Ingresa una dirección diferente</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            @endif
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Conjunto *</label>
@@ -141,6 +166,12 @@
                                     <input wire:model.live="apto" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="N°">
                                 </div>
                             </div>
+                            @if(count($direccionesDisponibles) > 0)
+                            <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-600">
+                                <input type="checkbox" wire:model.live="guardarDireccion" class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                                Guardar dirección para próximos pedidos
+                            </label>
+                            @endif
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
                                 <textarea wire:model.live="notas" rows="2" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="¿Alguna instrucción especial?"></textarea>

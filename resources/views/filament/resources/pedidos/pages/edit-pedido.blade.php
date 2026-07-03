@@ -187,7 +187,7 @@
             <div style="margin-bottom: 16px;">
                 <p style="margin: 0 0 4px; font-size: 14px; font-weight: 700; color: #111827;">Cliente: {{ $record->cliente->nombre ?? '' }}</p>
                 <p style="margin: 0 0 2px; font-size: 13px; color: #6b7280;">Teléfono: +57 {{ $record->cliente->telefono ?? '' }}</p>
-                @php $dirCliente = $record->cliente ? collect(array_filter([$record->cliente->direccion, $record->cliente->conjunto, $record->cliente->torre ? "torre {$record->cliente->torre}" : null, $record->cliente->apto ? "apto {$record->cliente->apto}" : null]))->implode(', ') : ''; @endphp
+                @php $dirCliente = $record->direccion_completa; @endphp
                 <p style="margin: 0; font-size: 13px; color: #6b7280;">{{ $dirCliente }}</p>
             </div>
 

@@ -79,6 +79,8 @@ class Comandas extends Page
     public $descuentoAplicado = 0;
     public $totalConDescuento = 0;
     public $pagoError = '';
+    public $direccionesDisponibles = [];
+    public $direccionSeleccionadaId = null;
 
     public function mount(): void
     {
@@ -269,8 +271,11 @@ class Comandas extends Page
         $this->clienteConjunto = $pedido->cliente?->conjunto ?? '';
         $this->clienteTorre = $pedido->cliente?->torre ?? '';
         $this->clienteApto = $pedido->cliente?->apto ?? '';
-        $dir = $pedido->cliente;
-        $this->clienteDireccion = $dir ? collect(array_filter([$dir->direccion, $dir->conjunto, $dir->torre ? "torre {$dir->torre}" : null, $dir->apto ? "apto {$dir->apto}" : null]))->implode(', ') : '';
+        $this->clienteDireccion = $pedido->direccion_completa;
+        $this->direccionesDisponibles = $pedido->cliente
+            ? $pedido->cliente->direcciones()->orderBy('es_principal', 'desc')->orderBy('created_at', 'desc')->get()->toArray()
+            : [];
+        $this->direccionSeleccionadaId = $pedido->cliente_direccion_id;
         $this->productosPedido = PedidoProducto::with('producto')
             ->where('pedido_id', $pedidoId)
             ->get()
@@ -316,6 +321,23 @@ class Comandas extends Page
         $this->totalConDescuento = max(0, $this->totalPedido - $this->descuentoAplicado);
     }
 
+    public function seleccionarDireccionModal(?int $direccionId): void
+    {
+        $this->direccionSeleccionadaId = $direccionId;
+        if ($direccionId === null) {
+            $this->clienteConjunto = '';
+            $this->clienteTorre = '';
+            $this->clienteApto = '';
+            return;
+        }
+        $dir = collect($this->direccionesDisponibles)->firstWhere('id', $direccionId);
+        if ($dir) {
+            $this->clienteConjunto = $dir['conjunto'];
+            $this->clienteTorre = $dir['torre'] ?? '';
+            $this->clienteApto = $dir['apto'] ?? '';
+        }
+    }
+
     public function guardarCliente(): void
     {
         $pedido = Pedido::find($this->pedidoPagoId);
@@ -328,6 +350,8 @@ class Comandas extends Page
             'torre' => $this->clienteTorre,
             'apto' => $this->clienteApto,
         ]);
+
+        $pedido->update(['cliente_direccion_id' => $this->direccionSeleccionadaId]);
 
         Notification::make()
             ->title('Datos del cliente actualizados')
@@ -399,6 +423,7 @@ class Comandas extends Page
                 'torre' => $this->clienteTorre,
                 'apto' => $this->clienteApto,
             ]);
+            $pedido->update(['cliente_direccion_id' => $this->direccionSeleccionadaId]);
         }
 
         Notification::make()
