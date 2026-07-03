@@ -51,6 +51,7 @@ class Comandas extends Page
     public $prevPendientePagoIds = '';
     public $pdvNuevosPedidosJson = '';
     public $vistaLista = true;
+    public $pedidos_pausados = false;
 
     public $modalPago = false;
     public $pedidoPagoId = null;
@@ -81,12 +82,14 @@ class Comandas extends Page
 
     public function mount(): void
     {
+        $this->pedidos_pausados = NegocioSetting::isPaused();
         $this->cargarPedidos();
     }
 
     #[On('pedidoActualizado')]
     public function cargarPedidos(): void
     {
+        $this->pedidos_pausados = NegocioSetting::isPaused();
         // Convertir pedidos antiguos "pendiente" a "en_proceso"
         Pedido::where('estado', 'pendiente')->update(['estado' => 'en_proceso']);
 
@@ -149,6 +152,21 @@ class Comandas extends Page
             ->orderBy('created_at', 'desc')
             ->get()
             ->toArray();
+    }
+
+    public function togglePausar(): void
+    {
+        if (!auth()->user()->isAdmin()) return;
+
+        $settings = NegocioSetting::getSettings();
+        $settings->update(['pedidos_pausados' => !$this->pedidos_pausados]);
+        $this->pedidos_pausados = !$this->pedidos_pausados;
+
+        $estado = $this->pedidos_pausados ? 'pausados' : 'reactivados';
+        Notification::make()
+            ->title("Pedidos web {$estado}")
+            ->success()
+            ->send();
     }
 
     public function cambiarEstado(int $pedidoId, string $nuevoEstado): void

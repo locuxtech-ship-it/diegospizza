@@ -49,6 +49,11 @@
             <button onclick="window.probarNotificacion()" style="padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid #d1d5db; cursor: pointer; background: #fef3c7; color: #92400e;">
                 🔔 Probar
             </button>
+            @can('applyDiscount', auth()->user())
+            <button wire:click="togglePausar" style="padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid #d1d5db; cursor: pointer; {{ $pedidos_pausados ? 'background: #f59e0b; color: white; border-color: #f59e0b;' : 'background: #e5e7eb; color: #374151;' }}" title="{{ $pedidos_pausados ? 'Pedidos pausados — haz clic para reactivar' : 'Pausar recepción de pedidos web' }}">
+                ⏸️ {{ $pedidos_pausados ? 'Pausado' : 'Pausar' }}
+            </button>
+            @endcan
         </div>
 
         @if($vistaLista)
