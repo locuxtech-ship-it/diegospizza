@@ -343,6 +343,11 @@ class Comandas extends Page
         $pedido = Pedido::find($this->pedidoPagoId);
         if (!$pedido || !$pedido->cliente) return;
 
+        if (!isset($this->clienteConjunto) || trim($this->clienteConjunto) === '') {
+            Notification::make()->title('El conjunto/residencia es obligatorio')->danger()->send();
+            return;
+        }
+
         $pedido->cliente->update([
             'nombre' => $this->clienteNombre,
             'telefono' => $this->clienteTelefono,
@@ -405,6 +410,11 @@ class Comandas extends Page
     {
         $pedido = Pedido::find($this->pedidoPagoId);
         if (!$pedido) return;
+
+        if (!isset($this->clienteConjunto) || trim($this->clienteConjunto) === '') {
+            Notification::make()->title('El conjunto/residencia es obligatorio')->danger()->send();
+            return;
+        }
 
         if ($this->descuentoAplicado > 0) {
             $pedido->update([
@@ -474,6 +484,11 @@ class Comandas extends Page
             return;
         }
         $this->pagoError = '';
+
+        if (!isset($this->clienteConjunto) || trim($this->clienteConjunto) === '') {
+            $this->pagoError = 'El conjunto/residencia es obligatorio';
+            return;
+        }
 
         Pago::create([
             'pedido_id' => $this->pedidoPagoId,

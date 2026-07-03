@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class Pedido extends Model
 {
@@ -48,6 +49,15 @@ class Pedido extends Model
             if (!$pedido->numero_pedido) {
                 $ultimo = static::whereDate('created_at', today())->max('numero_pedido');
                 $pedido->numero_pedido = ($ultimo ?? 0) + 1;
+            }
+
+            if (!$pedido->cliente_direccion_id && $pedido->cliente_id) {
+                $cliente = \App\Models\Cliente::find($pedido->cliente_id);
+                if (!$cliente || empty($cliente->conjunto)) {
+                    throw ValidationException::withMessages([
+                        'conjunto' => 'El conjunto/residencia es obligatorio para registrar el pedido',
+                    ]);
+                }
             }
         });
 
