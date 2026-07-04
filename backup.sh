@@ -7,7 +7,7 @@ set -e
 # Almacenamiento: local + opcional Google Drive (rclone)
 # ==============================================
 
-BACKUP_DIR="/var/backups/diegospizza"
+BACKUP_DIR="$HOME/backups/diegospizza"
 PROJECT_DIR="/home/oliver/diegospizza"
 DATE=$(date +%Y%m%d_%H%M%S)
 
