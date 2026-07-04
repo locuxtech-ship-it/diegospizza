@@ -51,11 +51,26 @@ log "  DB dump: $(du -h "$TEMP_DIR/database.sql.gz" | cut -f1)"
 # 2. Volumenes docker (storage, waha sessions)
 log "Respaldando volumenes docker..."
 for vol in diegospizza_dbdata diegospizza_storage_data diegospizza_waha_sessions; do
-    mount=$(docker volume inspect "$vol" 2>/dev/null | grep '"Mountpoint"' | awk -F'"' '{print $4}')
+    mount=$(docker volume inspect "$vol" 2>/dev/null | grep Mountpoint | head -1 | cut -d'"' -f4)
     if [ -n "$mount" ] && [ -d "$mount" ]; then
         name="${vol#diegospizza_}"
-        sudo tar czf "$TEMP_DIR/vol_${name}.tar.gz" -C "$(dirname "$mount")" "$(basename "$mount")" 2>/dev/null
-        log "  Volume $name: $(du -h "$TEMP_DIR/vol_${name}.tar.gz" | cut -f1)"
+        tar czf "$TEMP_DIR/vol_${name}.tar.gz" -C "$(dirname "$mount")" "$(basename "$mount")" 2>/dev/null
+        if [ -f "$TEMP_DIR/vol_${name}.tar.gz" ]; then
+            log "  Volume $name: $(du -h "$TEMP_DIR/vol_${name}.tar.gz" | cut -f1)"
+        else
+            log "  Volume $name: error al comprimir (permisos?)"
+        fi
+    elif [ -n "$mount" ]; then
+        # Sin permisos sudo para leer /var/lib/docker
+        log "  Volume $name: sin permisos de lectura, usando docker cp alternativo"
+        name="${vol#diegospizza_}"
+        # Crear un contenedor temporal para copiar los datos
+        docker run --rm -v "$vol":/vol alpine tar czf - -C /vol . 2>/dev/null > "$TEMP_DIR/vol_${name}.tar.gz"
+        if [ -f "$TEMP_DIR/vol_${name}.tar.gz" ] && [ -s "$TEMP_DIR/vol_${name}.tar.gz" ]; then
+            log "  Volume $name (via docker): $(du -h "$TEMP_DIR/vol_${name}.tar.gz" | cut -f1)"
+        else
+            log "  Volume $name: no se pudo respaldar"
+        fi
     else
         log "  Volume $vol: no encontrado, saltando"
     fi

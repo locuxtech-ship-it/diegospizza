@@ -81,14 +81,10 @@ for vol_file in "$TEMP_DIR"/vol_*.tar.gz; do
     [ -f "$vol_file" ] || continue
     name=$(basename "$vol_file" .tar.gz | sed 's/vol_//')
     echo "  Restaurando volumen: $name"
-    docker volume inspect diegospizza_${name} &>/dev/null || docker volume create diegospizza_${name}
-    mount=$(docker volume inspect diegospizza_${name} | grep '"Mountpoint"' | awk -F'"' '{print $4}')
-    sudo tar xzf "$vol_file" -C "$mount" 2>/dev/null || {
-        echo "  Extrayendo a ubicación temporal..."
-        temp_vol=$(mktemp -d)
-        tar xzf "$vol_file" -C "$temp_vol"
-        sudo cp -a "${temp_vol}/_data/." "$mount/" 2>/dev/null || echo "  Warning: contenido del volume copiado"
-        rm -rf "$temp_vol"
+    docker volume inspect "diegospizza_${name}" &>/dev/null || docker volume create "diegospizza_${name}"
+    # Usar un contenedor temporal para copiar datos al volume (no requiere sudo)
+    docker run --rm -v "diegospizza_${name}:/vol" -v "$vol_file:/backup.tar.gz" alpine sh -c "tar xzf /backup.tar.gz -C /vol" 2>/dev/null || {
+        echo "  Error restaurando volume $name"
     }
 done
 echo "  OK"
