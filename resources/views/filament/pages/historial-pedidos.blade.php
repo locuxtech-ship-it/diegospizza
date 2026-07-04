@@ -1,7 +1,6 @@
 <x-filament-panels::page>
     <div style="display: flex; flex-direction: column; gap: 24px;">
-        {{-- Filters (admin only) --}}
-        @if($isAdmin)
+        {{-- Filters --}}
         <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px;">
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <x-filament::button wire:click="aplicarPeriodo('hoy')" :color="$periodo === 'hoy' ? 'primary' : 'gray'" size="sm">Hoy</x-filament::button>
@@ -24,15 +23,9 @@
             </div>
             @endif
         </div>
-        @else
-        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px 16px;">
-            <span style="font-size: 13px; font-weight: 600; color: #374151;">📋 Pedidos de hoy</span>
-        </div>
-        @endif
 
-        {{-- Stats (admin only) --}}
-        @if($isAdmin)
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+        {{-- Stats --}}
+        <div style="display: grid; grid-template-columns: repeat({{ $isAdmin ? 4 : 3 }}, 1fr); gap: 16px;">
             <div style="background: linear-gradient(to bottom right, #fef2f2, #fee2e2); border: 1px solid #fecaca; border-radius: 12px; padding: 16px;">
                 <p style="margin: 0; color: #ef4444; font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Total Ventas</p>
                 <p style="margin: 4px 0 0 0; color: #991b1b; font-size: 24px; font-weight: 700;">${{ number_format($totalVentas, 0, ',', '.') }}</p>
@@ -45,12 +38,13 @@
                 <p style="margin: 0; color: #22c55e; font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Efectivo</p>
                 <p style="margin: 4px 0 0 0; color: #166534; font-size: 18px; font-weight: 700;">${{ number_format($totalEfectivo, 0, ',', '.') }}</p>
             </div>
+            @if($isAdmin)
             <div style="background: linear-gradient(to bottom right, #eff6ff, #dbeafe); border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px;">
                 <p style="margin: 0; color: #3b82f6; font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Tarjeta / Transf.</p>
                 <p style="margin: 4px 0 0 0; color: #1e3a5f; font-size: 18px; font-weight: 700;">${{ number_format($totalTarjeta + $totalTransferencia, 0, ',', '.') }}</p>
             </div>
+            @endif
         </div>
-        @endif
 
         {{-- Table --}}
         <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">

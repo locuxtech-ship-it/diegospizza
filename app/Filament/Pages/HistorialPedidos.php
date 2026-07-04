@@ -79,10 +79,6 @@ class HistorialPedidos extends Page
 
     public function aplicarPeriodo(string $periodo): void
     {
-        if (!$this->isAdmin) {
-            $periodo = 'hoy';
-        }
-
         $this->periodo = $periodo;
 
         match ($periodo) {
@@ -119,8 +115,8 @@ class HistorialPedidos extends Page
         $this->totalVentas = (float) $sinCancelados->sum('total');
         $this->totalPedidos = $sinCancelados->count();
 
+        $this->totalEfectivo = (float) (clone $sinCancelados)->where('metodo_pago', 'efectivo')->sum('total');
         if ($this->isAdmin) {
-            $this->totalEfectivo = (float) (clone $sinCancelados)->where('metodo_pago', 'efectivo')->sum('total');
             $this->totalTarjeta = (float) (clone $sinCancelados)->where('metodo_pago', 'tarjeta')->sum('total');
             $this->totalTransferencia = (float) (clone $sinCancelados)->where('metodo_pago', 'transferencia')->sum('total');
         }
