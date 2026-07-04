@@ -10,6 +10,13 @@ set -e
 BACKUP_DIR="/var/backups/diegospizza"
 PROJECT_DIR="/home/oliver/diegospizza"
 DATE=$(date +%Y%m%d_%H%M%S)
+
+# Cargar variables del .env (DB_PASSWORD, etc)
+if [ -f "$PROJECT_DIR/.env" ]; then
+    set -a
+    source "$PROJECT_DIR/.env"
+    set +a
+fi
 BACKUP_FILE="${BACKUP_DIR}/diegospizza_${DATE}.tar.gz"
 RETENTION_DAYS=14
 LOG_FILE="${BACKUP_DIR}/backup.log"
