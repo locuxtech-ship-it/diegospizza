@@ -106,6 +106,27 @@ El backup automatico esta configurado en el crontab del usuario oliver:
 Para verlo: `crontab -l`
 Para editarlo: `crontab -e`
 
+## Sincronizar produccion a entorno local
+
+Para trabajar con datos reales de produccion en tu maquina local:
+
+### Windows (PowerShell)
+```powershell
+.\scripts\sync-prod-data.ps1
+```
+
+Esto descarga el ultimo backup del servidor y lo importa a tu SQLite local.
+Requiere: SSH key configurada, PHP 8.3+ con extensiones pdo_mysql y pdo_sqlite.
+
+### Linux/Mac
+```bash
+# Descargar backup del servidor
+scp "oliver@100.122.80.102:$(ssh oliver@100.122.80.102 'ls -t ~/backups/diegospizza/diegospizza_*.tar.gz | head -1')" /tmp/diegospizza_prod.tar.gz
+
+# Importar
+php artisan db:import-prod /tmp/diegospizza_prod.tar.gz
+```
+
 ## Notas importantes
 
 - El .env contiene contrasenas reales (DB, API keys). El backup incluye una copia.
