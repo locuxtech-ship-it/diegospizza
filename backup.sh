@@ -11,6 +11,9 @@ BACKUP_DIR="$HOME/backups/diegospizza"
 PROJECT_DIR="/home/oliver/diegospizza"
 DATE=$(date +%Y%m%d_%H%M%S)
 
+# Asegurar PATH (rclone está en ~/.local/bin)
+export PATH="$HOME/.local/bin:$PATH"
+
 # Cargar variables del .env (DB_PASSWORD, etc)
 if [ -f "$PROJECT_DIR/.env" ]; then
     set -a
