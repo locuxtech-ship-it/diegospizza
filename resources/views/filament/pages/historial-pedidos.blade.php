@@ -25,11 +25,13 @@
         </div>
 
         {{-- Stats --}}
-        <div style="display: grid; grid-template-columns: repeat({{ $isAdmin ? 4 : 3 }}, 1fr); gap: 16px;">
+        <div style="display: grid; grid-template-columns: repeat({{ $isAdmin ? 4 : 2 }}, 1fr); gap: 16px;">
+            @if($isAdmin)
             <div style="background: linear-gradient(to bottom right, #fef2f2, #fee2e2); border: 1px solid #fecaca; border-radius: 12px; padding: 16px;">
                 <p style="margin: 0; color: #ef4444; font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Total Ventas</p>
                 <p style="margin: 4px 0 0 0; color: #991b1b; font-size: 24px; font-weight: 700;">${{ number_format($totalVentas, 0, ',', '.') }}</p>
             </div>
+            @endif
             <div style="background: linear-gradient(to bottom right, #f9fafb, #f3f4f6); border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px;">
                 <p style="margin: 0; color: #6b7280; font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Pedidos</p>
                 <p style="margin: 4px 0 0 0; color: #374151; font-size: 24px; font-weight: 700;">{{ $totalPedidos }}</p>
