@@ -32,7 +32,7 @@ class ImportProdData extends Command
                 $phar->extractTo($workDir, null, true);
             } catch (\Exception $e) {
                 $this->warn("PharData fallo, intentando tar CLI: " . $e->getMessage());
-                $this->run("tar -xzf \"$path\" -C \"$workDir\" 2>/dev/null", true);
+                $this->runCmd("tar -xzf \"$path\" -C \"$workDir\" 2>/dev/null", true);
                 if (!glob("$workDir/database.sql*")) {
                     $workDir = $path;
                 }
@@ -226,7 +226,7 @@ class ImportProdData extends Command
         rmdir($dir);
     }
 
-    private function run(string $cmd, bool $ignoreErrors = false): bool
+    private function runCmd(string $cmd, bool $ignoreErrors = false): bool
     {
         $output = [];
         $code = 0;
