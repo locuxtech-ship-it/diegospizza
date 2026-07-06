@@ -416,13 +416,18 @@ class Comandas extends Page
             return;
         }
 
+        $updateData = [];
+        if ($this->pagoMetodo) {
+            $updateData['metodo_pago'] = $this->pagoMetodo;
+        }
         if ($this->descuentoAplicado > 0) {
-            $pedido->update([
-                'descuento_manual' => $this->descuentoAplicado,
-                'descuento_manual_tipo' => $this->descuentoTipo === 'fijo' ? 'monto' : $this->descuentoTipo,
-                'descuento_manual_valor' => $this->descuentoValor,
-                'total' => $this->totalConDescuento,
-            ]);
+            $updateData['descuento_manual'] = $this->descuentoAplicado;
+            $updateData['descuento_manual_tipo'] = $this->descuentoTipo === 'fijo' ? 'monto' : $this->descuentoTipo;
+            $updateData['descuento_manual_valor'] = $this->descuentoValor;
+            $updateData['total'] = $this->totalConDescuento;
+        }
+        if (!empty($updateData)) {
+            $pedido->update($updateData);
         }
 
         if ($pedido->cliente) {
