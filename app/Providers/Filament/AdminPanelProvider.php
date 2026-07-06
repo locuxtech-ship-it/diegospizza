@@ -9,7 +9,9 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use App\Filament\Pages\ChatBot;
 use App\Filament\Pages\Comandas;
 use App\Filament\Auth\EditProfile;
+use App\Http\Middleware\IdentifyTenant;
 use App\Models\NegocioSetting;
+use App\Models\Tenant;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -33,15 +35,29 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->passwordReset()
             ->profile(EditProfile::class)
-            ->brandName("Diego's Pizza")
-            ->brandLogo(fn (): string => NegocioSetting::first()?->logo
-                ? asset('storage/' . NegocioSetting::first()->logo)
-                : asset('images/logo.svg'))
+            ->brandName(fn (): string => app()->bound(Tenant::class)
+                ? app(Tenant::class)->nombre_negocio
+                : "Diego's Pizza")
+            ->brandLogo(function (): string {
+                $tenant = app()->bound(Tenant::class) ? app(Tenant::class) : null;
+                if ($tenant?->logo) {
+                    return asset('storage/' . $tenant->logo);
+                }
+                $settings = NegocioSetting::first();
+                if ($settings?->logo) {
+                    return asset('storage/' . $settings->logo);
+                }
+                return asset('images/logo.svg');
+            })
             ->brandLogoHeight('2.5rem')
             ->homeUrl('/admin/comandas')
-            ->colors([
-                'primary' => Color::Red,
-            ])
+            ->colors(function () {
+                $tenant = app()->bound(Tenant::class) ? app(Tenant::class) : null;
+                if ($tenant?->colores && isset($tenant->colores['primary'])) {
+                    return ['primary' => Color::hex($tenant->colores['primary'])];
+                }
+                return ['primary' => Color::Red];
+            })
             ->navigationGroups([
                 'Punto de Venta',
                 'Ventas',
@@ -60,6 +76,7 @@ class AdminPanelProvider extends PanelProvider
                 AccountWidget::class,
             ])
             ->middleware([
+                IdentifyTenant::class,
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
