@@ -1,7 +1,7 @@
 {
-    "name": "Diego's Pizza Admin",
-    "short_name": "DP Admin",
-    "description": "Panel de administración Diego's Pizza",
+    "name": "HungerClick Admin",
+    "short_name": "HC Admin",
+    "description": "Panel de administración HungerClick",
     "start_url": "/admin",
     "display": "standalone",
     "background_color": "#1e1e2e",

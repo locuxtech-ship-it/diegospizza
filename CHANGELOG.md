@@ -1,4 +1,4 @@
-# Changelog — Diego's Pizza
+# Changelog — HungerClick
 
 ## [02-06-2026] — Fix Seguridad Finalizar Pedido (Admin + Cajero)
 

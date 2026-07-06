@@ -55,7 +55,7 @@ class WhatsAppController extends Controller
 
     protected function processMessage(string $from, string $text, string $name, WhatsAppService $whatsapp, NegocioSetting $settings, array $chatbot): void
     {
-        $empresa = $settings->nombre_negocio ?? "Diego's Pizza";
+        $empresa = $settings->nombre_negocio ?? "HungerClick";
 
         if (in_array($text, ['hola', 'buenas', 'hi', 'hello', 'info', 'menú', 'menu', 'inicio'])) {
             $welcome = $chatbot['welcome_message'] ?? "Hola {nombre}\n¡Bienvenido/a a {empresa}! 🍕\n\n¿Cómo podemos ayudarte hoy?";

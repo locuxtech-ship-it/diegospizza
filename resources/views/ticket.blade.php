@@ -94,7 +94,7 @@ if ($ticketSize === '57') {
             @if($mostrarLogo && $negocio->logo)
                 <img src="{{ asset('storage/'.$negocio->logo) }}" alt="Logo" class="logo-img">
             @endif
-            <h1>{{ $negocio->nombre_negocio ?? "Diego's Pizza" }}</h1>
+            <h1>{{ $negocio->nombre_negocio ?? "HungerClick" }}</h1>
             <p>{{ $negocio->direccion ?? '' }}</p>
         </div>
 
@@ -182,7 +182,7 @@ if ($ticketSize === '57') {
 
         <div class="footer">
             <p>¡Gracias por tu pedido!</p>
-            <p>{{ $negocio->nombre_negocio ?? "Diego's Pizza" }}</p>
+            <p>{{ $negocio->nombre_negocio ?? "HungerClick" }}</p>
         </div>
     </div>
 

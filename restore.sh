@@ -2,7 +2,7 @@
 set -e
 
 # ==============================================
-# Diego's Pizza — Restauración completa
+# HungerClick — Restauración completa
 # Recupera desde un backup en un servidor nuevo
 # ==============================================
 
@@ -22,7 +22,7 @@ cleanup() {
 trap cleanup EXIT
 
 echo "=========================================="
-echo "Restauración Diego's Pizza"
+echo "Restauración HungerClick"
 echo "=========================================="
 
 # 1. Verificar prerequisitos

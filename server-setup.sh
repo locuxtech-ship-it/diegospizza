@@ -2,7 +2,7 @@
 set -e
 
 echo "========================================"
-echo " Diego's Pizza - Server Setup"
+echo " HungerClick - Server Setup"
 echo "========================================"
 
 cd /opt/diegospizza

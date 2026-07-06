@@ -34,7 +34,7 @@ class Fidelidad extends Page
     {
         $settings = NegocioSetting::first();
         if (!$settings) {
-            $settings = NegocioSetting::create(['nombre_negocio' => "Diego's Pizza"]);
+            $settings = NegocioSetting::create(['nombre_negocio' => "HungerClick"]);
         }
         $this->puntos_ganancia_monto = $settings->puntos_ganancia_monto ?? 100;
         $this->puntos_ganancia_valor = $settings->puntos_ganancia_valor ?? 1;

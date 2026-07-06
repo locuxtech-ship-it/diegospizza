@@ -1,8 +1,8 @@
 @echo off
-title Monitor Diego's Pizza
+title Monitor HungerClick
 echo.
 echo ============================================
-echo  Monitor de Impresion - Diego's Pizza
+echo  Monitor de Impresion - HungerClick
 echo ============================================
 echo.
 echo Cerrando Edge si esta abierto...

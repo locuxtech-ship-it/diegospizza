@@ -13,9 +13,9 @@
                     @endif
                     <div class="min-w-0">
                         <h1 class="text-xl sm:text-3xl font-bold tracking-tight truncate drop-shadow-lg">
-                            {{ $negocio->nombre_negocio ?? "Diego's Pizza" }}
+                            {{ $negocio->nombre_negocio ?? "HungerClick" }}
                         </h1>
-                        <p class="text-gray-300 mt-0.5 text-xs sm:text-sm truncate drop-shadow">Bienvenido a Diego's Pizza Alameda</p>
+                        <p class="text-gray-300 mt-0.5 text-xs sm:text-sm truncate drop-shadow">Bienvenido a {{ $negocio->nombre_negocio ?? 'HungerClick' }}</p>
                     </div>
                 </div>
 
@@ -238,14 +238,14 @@
     {{-- Footer --}}
     <div class="bg-gray-900 text-gray-400 mt-12 py-8">
         <div class="max-w-4xl mx-auto px-4 text-center text-sm">
-            <p class="text-white font-bold text-base sm:text-lg">{{ $negocio->nombre_negocio ?? "Diego's Pizza" }}</p>
-            <p class="mt-1 text-xs sm:text-sm">Bienvenido a Diego's Pizza Alameda</p>
+            <p class="text-white font-bold text-base sm:text-lg">{{ $negocio->nombre_negocio ?? "HungerClick" }}</p>
+            <p class="mt-1 text-xs sm:text-sm">Bienvenido a {{ $negocio->nombre_negocio ?? 'HungerClick' }}</p>
             <div class="flex flex-col sm:flex-row sm:justify-center gap-1.5 sm:gap-6 mt-4 text-xs">
                 <span>📍 Domicilio Solo en el Sector de Alameda Del Rio</span>
                 <span>⏰ {{ \App\Models\NegocioSetting::getTodayHours()['apertura'] }} - {{ \App\Models\NegocioSetting::getTodayHours()['cierre'] }}</span>
                 <span>📞 {{ $negocio->telefono ?? '(555) 1234-5678' }}</span>
             </div>
-            <p class="mt-6 text-xs opacity-50">© {{ date('Y') }} {{ $negocio->nombre_negocio ?? "Diego's Pizza" }}. Todos los derechos reservados.</p>
+            <p class="mt-6 text-xs opacity-50">© {{ date('Y') }} {{ $negocio->nombre_negocio ?? "HungerClick" }}. Todos los derechos reservados.</p>
         </div>
     </div>
 </div>

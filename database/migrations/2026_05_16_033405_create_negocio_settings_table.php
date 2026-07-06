@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('negocio_settings', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre_negocio')->default("Diego's Pizza");
+            $table->string('nombre_negocio')->default("HungerClick");
             $table->string('telefono')->nullable();
             $table->string('direccion')->nullable();
             $table->string('horario_apertura')->default('11:00');

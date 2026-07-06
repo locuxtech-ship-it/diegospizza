@@ -55,7 +55,7 @@ if ($ticketSize === '57') {
 <body>
     <div class="page-content">
         <div class="header">
-            <h1>{{ $negocio->nombre_negocio ?? "Diego's Pizza" }}</h1>
+            <h1>{{ $negocio->nombre_negocio ?? "HungerClick" }}</h1>
             <p>CIERRE DE CAJA</p>
             <p>{{ $cierre->fecha->format('d/m/Y') }}</p>
         </div>
@@ -110,7 +110,7 @@ if ($ticketSize === '57') {
         <div class="divider"></div>
 
         <div class="footer">
-            <p>{{ $negocio->nombre_negocio ?? "Diego's Pizza" }}</p>
+            <p>{{ $negocio->nombre_negocio ?? "HungerClick" }}</p>
         </div>
     </div>
 

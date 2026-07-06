@@ -5,7 +5,7 @@ param(
 )
 
 # ============================================
-# Diego's Pizza — Sincronizar produccion a dev
+# HungerClick — Sincronizar produccion a dev
 # ============================================
 # 1. Descarga el backup mas reciente del servidor
 # 2. Ejecuta php artisan db:import-prod para importar a SQLite
@@ -15,7 +15,7 @@ $ErrorActionPreference = "Stop"
 $ProjectDir = Split-Path -Parent $PSScriptRoot
 
 Write-Host "======================================" -ForegroundColor Cyan
-Write-Host " Diego's Pizza - Sync desde Produccion" -ForegroundColor Cyan
+Write-Host " HungerClick - Sync desde Produccion" -ForegroundColor Cyan
 Write-Host "======================================" -ForegroundColor Cyan
 Write-Host ""
 

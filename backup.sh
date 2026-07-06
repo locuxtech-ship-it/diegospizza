@@ -2,7 +2,7 @@
 set -e
 
 # ==============================================
-# Diego's Pizza — Backup Completo
+# HungerClick — Backup Completo
 # Respaldos: DB, volumes docker, .env
 # Almacenamiento: local + opcional Google Drive (rclone)
 # ==============================================

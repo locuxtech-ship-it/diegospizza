@@ -1,7 +1,7 @@
-# Diego's Pizza — Anchored Summary
+# HungerClick — Anchored Summary
 
 ## Goal
-Build a complete web-based pizza delivery ordering system (Diego's Pizza) with Laravel + FilamentPHP + Livewire — loyalty program, configurable points/rewards, payment management, full PDV lifecycle, end-of-day cash close.
+Build a complete web-based food ordering system (HungerClick) with Laravel + FilamentPHP + Livewire — loyalty program, configurable points/rewards, payment management, full PDV lifecycle, end-of-day cash close.
 
 ## Constraints & Preferences
 - Customer orders online → admin receives & prints command ticket

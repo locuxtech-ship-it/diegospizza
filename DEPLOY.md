@@ -1,4 +1,4 @@
-# 🚀 Guía de Deploy — Diego's Pizza
+# 🚀 Guía de Deploy — HungerClick
 
 ## 📦 Archivos que ya tengo listos en tu PC
 

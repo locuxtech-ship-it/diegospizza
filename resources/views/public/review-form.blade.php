@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deja tu reseña - Diego's Pizza</title>
+    <title>Deja tu reseña - HungerClick</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -100,7 +100,7 @@
 </head>
 <body>
     <div class="card">
-        <div class="logo">Diego's Pizza</div>
+        <div class="logo">HungerClick</div>
         <div class="subtitle">¿Cómo fue tu experiencia?</div>
 
         @if(session('success'))

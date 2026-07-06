@@ -1,6 +1,6 @@
 {
-    "name": "Diego's Pizza",
-    "short_name": "Diegos Pizza",
+    "name": "HungerClick",
+    "short_name": "HungerClick",
     "description": "Pizza a la piedra artesanal",
     "start_url": "/",
     "display": "standalone",

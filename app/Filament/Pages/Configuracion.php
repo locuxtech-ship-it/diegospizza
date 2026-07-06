@@ -54,7 +54,7 @@ class Configuracion extends Page
         $negocio = NegocioSetting::first();
         if (!$negocio) {
             $negocio = NegocioSetting::create([
-                'nombre_negocio' => "Diego's Pizza",
+                'nombre_negocio' => "HungerClick",
                 'horario_apertura' => '11:00',
                 'horario_cierre' => '23:00',
                 'dias_laborales' => ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],

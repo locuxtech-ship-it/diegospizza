@@ -37,7 +37,7 @@ class AdminPanelProvider extends PanelProvider
             ->profile(EditProfile::class)
             ->brandName(fn (): string => app()->bound(Tenant::class)
                 ? app(Tenant::class)->nombre_negocio
-                : "Diego's Pizza")
+                : "HungerClick")
             ->brandLogo(function (): string {
                 $tenant = app()->bound(Tenant::class) ? app(Tenant::class) : null;
                 if ($tenant?->logo) {

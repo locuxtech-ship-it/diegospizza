@@ -1,4 +1,4 @@
-# Diego's Pizza — Documentación del Sistema
+# HungerClick — Documentación del Sistema
 
 ## Stack Tecnológico
 - **Laravel 13** + **FilamentPHP 5** + **Livewire 4** + **Tailwind CSS 4**

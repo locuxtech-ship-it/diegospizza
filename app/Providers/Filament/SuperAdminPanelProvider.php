@@ -26,7 +26,7 @@ class SuperAdminPanelProvider extends PanelProvider
             ->path('superadmin')
             ->login()
             ->authGuard('super_admin')
-            ->brandName('Multi-Tenant Admin')
+            ->brandName('HungerClick')
             ->colors([
                 'primary' => Color::Slate,
             ])

@@ -36,7 +36,7 @@ class TicketController extends Controller
         $t = '';
 
         // Header
-        $t .= $this->center($negocio->nombre_negocio ?? "Diego's Pizza", $cols) . "\n";
+        $t .= $this->center($negocio->nombre_negocio ?? "HungerClick", $cols) . "\n";
         if ($negocio->direccion) {
             $t .= $this->center($negocio->direccion, $cols) . "\n";
         }
@@ -108,7 +108,7 @@ class TicketController extends Controller
 
         // Footer
         $t .= $this->center('Gracias por tu pedido!', $cols) . "\n";
-        $t .= $this->center($negocio->nombre_negocio ?? "Diego's Pizza", $cols) . "\n";
+        $t .= $this->center($negocio->nombre_negocio ?? "HungerClick", $cols) . "\n";
 
         return response($t, 200, ['Content-Type' => 'text/plain; charset=utf-8']);
     }
