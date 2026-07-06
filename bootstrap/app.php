@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'api/whatsapp/waha-webhook',
         ]);
+        $middleware->alias([
+            'tenant' => \App\Http\Middleware\IdentifyTenant::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
