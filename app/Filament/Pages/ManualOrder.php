@@ -331,20 +331,6 @@ class ManualOrder extends Page
             'fecha_pago' => now(),
         ]);
 
-        $settings = NegocioSetting::getSettings();
-        $montoPor = (float) ($settings->puntos_ganancia_monto ?? 100);
-        $valorPor = (int) ($settings->puntos_ganancia_valor ?? 1);
-        $puntosGanados = $montoPor > 0 ? (int) (($subtotal / $montoPor) * $valorPor) : 0;
-        if ($puntosGanados > 0) {
-            Punto::create([
-                'cliente_id' => $cliente->id,
-                'puntos' => $puntosGanados,
-                'concepto' => "Compra PDV #{$pedido->numero_pedido}",
-                'pedido_id' => $pedido->id,
-            ]);
-            $cliente->increment('puntos_acumulados', $puntosGanados);
-        }
-
         $this->limpiarCarrito();
         $this->pedidoCreado = true;
         $this->pedidoId = $pedido->id;

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\NegocioSetting;
+use App\Models\Punto;
 use App\Services\WhatsAppService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -69,6 +70,12 @@ class Pedido extends Model
             $original = $pedido->getOriginal('estado');
             if ($original !== null && $original !== $pedido->estado) {
                 $pedido->sendNotification($pedido->estado);
+
+                if ($pedido->estado === 'finalizado') {
+                    $pedido->asignarPuntosGanados();
+                } elseif ($original === 'finalizado') {
+                    $pedido->revertirPuntosGanados();
+                }
             }
         });
     }
@@ -136,6 +143,50 @@ class Pedido extends Model
                     ]);
                 }
             }
+        }
+    }
+
+    public function asignarPuntosGanados(): void
+    {
+        if ($this->descuento_puntos > 0) return;
+
+        $alreadyAssigned = Punto::where('pedido_id', $this->id)
+            ->where('puntos', '>', 0)
+            ->exists();
+        if ($alreadyAssigned) return;
+
+        $settings = NegocioSetting::getSettings();
+        $montoPor = (float) ($settings->puntos_ganancia_monto ?? 100);
+        $valorPor = (int) ($settings->puntos_ganancia_valor ?? 1);
+        $total = (float) $this->total;
+
+        if ($montoPor <= 0 || $total <= 0) return;
+
+        $puntosGanados = (int) (($total / $montoPor) * $valorPor);
+        if ($puntosGanados <= 0) return;
+
+        Punto::create([
+            'cliente_id' => $this->cliente_id,
+            'puntos' => $puntosGanados,
+            'concepto' => "Compra #{$this->numero_pedido}",
+            'pedido_id' => $this->id,
+        ]);
+
+        $this->cliente?->increment('puntos_acumulados', $puntosGanados);
+    }
+
+    public function revertirPuntosGanados(): void
+    {
+        $puntosRegistrados = Punto::where('pedido_id', $this->id)
+            ->where('puntos', '>', 0)
+            ->sum('puntos');
+
+        if ($puntosRegistrados > 0) {
+            Punto::where('pedido_id', $this->id)
+                ->where('puntos', '>', 0)
+                ->delete();
+
+            $this->cliente?->decrement('puntos_acumulados', $puntosRegistrados);
         }
     }
 
