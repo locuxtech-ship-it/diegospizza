@@ -31,8 +31,7 @@ class CuponDescuentoResource extends Resource
                 ->label('Código')
                 ->required()
                 ->maxLength(50)
-                ->unique(ignoreRecord: true)
-                ->uppercase(),
+                ->unique(ignoreRecord: true),
             Select::make('tipo')
                 ->label('Tipo')
                 ->options(['porcentaje' => 'Porcentaje (%)', 'monto' => 'Monto fijo ($)'])

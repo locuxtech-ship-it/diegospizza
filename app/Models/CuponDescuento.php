@@ -23,6 +23,11 @@ class CuponDescuento extends Model
         'cliente_id',
     ];
 
+    public function setCodigoAttribute($value): void
+    {
+        $this->attributes['codigo'] = strtoupper($value);
+    }
+
     protected function casts(): array
     {
         return [
