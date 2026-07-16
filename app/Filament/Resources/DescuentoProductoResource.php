@@ -21,7 +21,7 @@ use UnitEnum;
 class DescuentoProductoResource extends Resource
 {
     protected static ?string $model = DescuentoProducto::class;
-    protected static ?string $navigationIcon = 'heroicon-o-tag';
+    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-tag';
     protected static string | UnitEnum | null $navigationGroup = 'Promociones';
 
     public static function form(Form $form): Form
