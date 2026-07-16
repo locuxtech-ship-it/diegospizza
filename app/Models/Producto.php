@@ -39,4 +39,35 @@ class Producto extends Model
     {
         return $this->hasMany(ProductoVariant::class)->orderBy('orden');
     }
+
+    public function getDescuentoActivoAttribute(): ?DescuentoProducto
+    {
+        return DescuentoProducto::descuentoParaProducto($this->id, $this->categoria_id);
+    }
+
+    public function getPrecioConDescuentoAttribute(): ?float
+    {
+        $desc = $this->descuento_activo;
+        return $desc ? (float) $desc->calcularPrecio((float) $this->precio) : null;
+    }
+
+    public static function descuentosMap(): array
+    {
+        $activos = DescuentoProducto::where('activo', true)
+            ->where('fecha_inicio', '<=', now())
+            ->where('fecha_expiracion', '>=', now())
+            ->get();
+
+        $porProducto = [];
+        $porCategoria = [];
+        foreach ($activos as $d) {
+            if ($d->producto_id) {
+                $porProducto[$d->producto_id] = $d;
+            } elseif ($d->categoria_id) {
+                $porCategoria[$d->categoria_id] = $d;
+            }
+        }
+
+        return compact('porProducto', 'porCategoria');
+    }
 }

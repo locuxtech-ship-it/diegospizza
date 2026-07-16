@@ -37,8 +37,13 @@
                         @php
                             $precioBase = (float) $producto->precio;
                             $hasVariants = $producto->variants && $producto->variants->isNotEmpty();
+                            $descuentoProd = $descuentosMap['porProducto'][$producto->id] ?? ($descuentosMap['porCategoria'][$producto->categoria_id] ?? null);
+                            $precioConDescuento = $descuentoProd ? $descuentoProd->calcularPrecio($precioBase) : $precioBase;
                         @endphp
-                        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px;">
+                        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; position: relative;">
+                            @if($descuentoProd)
+                            <div style="position:absolute;top:8px;right:8px;background:#dc2626;color:white;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;">{{ $descuentoProd->getLabel() }}</div>
+                            @endif
                             <div style="display: flex; align-items: start; gap: 10px;">
                                 @if($producto->imagen)
                                 <img src="{{ asset('storage/' . $producto->imagen) }}" alt="" style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover; flex-shrink: 0;">
@@ -59,14 +64,31 @@
                             @elseif($hasVariants)
                             <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 4px;">
                                 @foreach($producto->variants as $variant)
+                                @php
+                                    $vp = (float) $variant->precio;
+                                    $vpDesc = $descuentoProd ? $descuentoProd->calcularPrecio($vp) : $vp;
+                                @endphp
                                 <button wire:click="agregarAlCarrito({{ $producto->id }}, {{ $variant->id }})" style="padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; border: 1px solid #e5e7eb; background: white; color: #374151; cursor: pointer;">
-                                    {{ $variant->tamanio }} <strong>${{ number_format($variant->precio, 0, ',', '.') }}</strong>
+                                    {{ $variant->tamanio }}
+                                    @if($vpDesc < $vp)
+                                        <span style="text-decoration:line-through;color:#9ca3af;">${{ number_format($vp, 0, ',', '.') }}</span>
+                                        <strong style="color:#dc2626;">${{ number_format($vpDesc, 0, ',', '.') }}</strong>
+                                    @else
+                                        <strong>${{ number_format($vp, 0, ',', '.') }}</strong>
+                                    @endif
                                 </button>
                                 @endforeach
                             </div>
                             @else
                             <div style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between;">
+                                @if($precioConDescuento < $precioBase)
+                                <div>
+                                    <span style="font-weight: 700; font-size: 15px; color: #dc2626;">${{ number_format($precioConDescuento, 0, ',', '.') }}</span>
+                                    <span style="font-size: 12px; color: #9ca3af; text-decoration:line-through;margin-left:4px;">${{ number_format($precioBase, 0, ',', '.') }}</span>
+                                </div>
+                                @else
                                 <span style="font-weight: 700; font-size: 15px; color: #111827;">${{ number_format($precioBase, 0, ',', '.') }}</span>
+                                @endif
                                 <button wire:click="agregarAlCarrito({{ $producto->id }})" style="padding: 5px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; border: none; background: #111827; color: white; cursor: pointer;">
                                     + Agregar
                                 </button>
@@ -96,7 +118,14 @@
                             @if($item['mitades'] ?? null)
                             <p style="margin: 0; font-size: 10px; color: #ea580c;">{{ collect($item['mitades'])->pluck('nombre')->implode(' / ') }}</p>
                             @endif
-                            <p style="margin: 0; color: #6b7280;">${{ number_format($item['precio'], 0, ',', '.') }} c/u</p>
+                            <p style="margin: 0; color: #6b7280;">
+                                @if($item['precio_original'] ?? null)
+                                    <span style="text-decoration:line-through;color:#9ca3af;">${{ number_format($item['precio_original'], 0, ',', '.') }}</span>
+                                    <span style="color:#dc2626;font-weight:600;">${{ number_format($item['precio'], 0, ',', '.') }}</span>
+                                @else
+                                    ${{ number_format($item['precio'], 0, ',', '.') }}
+                                @endif c/u
+                            </p>
                         </div>
                         <div style="display: flex; align-items: center; gap: 6px;">
                             <button wire:click="cambiarCantidad('{{ $key }}', -1)" style="width: 24px; height: 24px; border-radius: 6px; border: 1px solid #d1d5db; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;">−</button>

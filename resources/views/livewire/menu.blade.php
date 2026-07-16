@@ -99,16 +99,33 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     @forelse($categoria->productosDisponibles as $producto)
-                        @php $hasVariants = $producto->variants && $producto->variants->isNotEmpty(); @endphp
+                        @php
+                            $hasVariants = $producto->variants && $producto->variants->isNotEmpty();
+                            $desc = $descuentosMap['porProducto'][$producto->id] ?? $descuentosMap['porCategoria'][$producto->categoria_id] ?? null;
+                        @endphp
                         <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-200 flex flex-col">
                             <div class="h-36 sm:h-40 bg-gray-50 flex items-center justify-center relative overflow-hidden flex-shrink-0">
+                                @if($desc)
+                                    <div style="position:absolute;top:10px;left:0;background:#dc2626;color:white;font-size:11px;font-weight:800;padding:3px 10px 3px 8px;border-radius:0 6px 6px 0;z-index:2;box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+                                        {{ $desc->getLabel() }}
+                                    </div>
+                                @endif
                                 @if($producto->imagen)
                                     <img src="{{ asset('storage/' . $producto->imagen) }}" alt="{{ $producto->nombre }}" class="w-full h-full object-cover">
                                 @else
                                     <span class="text-6xl">🍕</span>
                                 @endif
                                 <span class="absolute top-3 right-3 font-bold text-sm px-3 py-1 rounded-full bg-white shadow-sm" style="color: #FF8D08;">
-                                    @if($producto->es_personalizable)
+                                    @if($desc)
+                                        <span style="text-decoration:line-through;color:#9ca3af;margin-right:4px;">
+                                            @if($hasVariants)
+                                                ${{ number_format($producto->variants->min('precio'), 0, ',', '.') }}
+                                            @else
+                                                ${{ number_format($producto->precio, 0, ',', '.') }}
+                                            @endif
+                                        </span>
+                                        ${{ number_format($desc->calcularPrecio((float) ($hasVariants ? $producto->variants->min('precio') : $producto->precio)), 0, ',', '.') }}
+                                    @elseif($producto->es_personalizable)
                                         Mitad y Mitad
                                     @elseif($hasVariants)
                                     Desde ${{ number_format($producto->variants->min('precio'), 0, ',', '.') }}

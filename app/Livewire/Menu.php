@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Categoria;
+use App\Models\DescuentoProducto;
 use App\Models\NegocioSetting;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -110,11 +111,14 @@ class Menu extends Component
             $categoriasFiltradas = $categorias->where('id', $this->categoriaId);
         }
 
+        $descuentosMap = Producto::descuentosMap();
+
         return view('livewire.menu', [
             'categorias' => $categorias,
             'categoriasFiltradas' => $categoriasFiltradas,
             'negocio' => $this->negocio,
             'estaAbierto' => $this->estaAbierto,
+            'descuentosMap' => $descuentosMap,
         ]);
     }
 }

@@ -46,6 +46,7 @@ class AdminPanelProvider extends PanelProvider
                 'Punto de Venta',
                 'Ventas',
                 'Menu',
+                'Promociones',
                 'Configuración',
             ])
             ->sidebarCollapsibleOnDesktop()

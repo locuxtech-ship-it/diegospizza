@@ -99,7 +99,11 @@
                                     <span class="text-gray-600">📦 <strong>{{ $clienteInfo['total_pedidos'] }}</strong> pedidos</span>
                                     <span class="text-gray-600">⭐ <strong>{{ $clienteInfo['puntos'] }}</strong> puntos</span>
                                 </div>
-                                @if(!empty($clienteInfo['recompensas']))
+                                @if($cuponAplicado || $hayDescuentosProducto)
+                                    <div style="border-top: 1px dashed #fed7aa; padding-top: 8px;">
+                                        <p style="font-size: 12px; color: #9ca3af; margin: 0;">⛔ Canje de puntos no disponible si usas un cupón o hay descuentos activos en productos</p>
+                                    </div>
+                                @elseif(!empty($clienteInfo['recompensas']))
                                     <div style="border-top: 1px dashed #fed7aa; padding-top: 8px;">
                                         <p style="font-size: 12px; color: #9a3412; font-weight: 600; margin-bottom: 6px;">🏆 Elige tu recompensa:</p>
                                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; border-radius: 8px; font-size: 13px; {{ $recompensaSeleccionadaIndex === null ? 'background: #fef3c7; font-weight: 700;' : '' }}">
@@ -211,7 +215,13 @@
                                             @if($item['mitades'] ?? null)
                                                 <span class="text-xs" style="color: #ea580c;">{{ collect($item['mitades'])->pluck('nombre')->implode(' / ') }}</span> ·
                                             @endif
-                                            {{ $item['cantidad'] }} x ${{ number_format($item['precio'], 0, ',', '.') }}
+                                            {{ $item['cantidad'] }} x
+                                            @if($item['precio_original'] ?? null)
+                                                <span style="text-decoration:line-through;color:#9ca3af;">${{ number_format($item['precio_original'], 0, ',', '.') }}</span>
+                                                <span style="color:#dc2626;font-weight:600;">${{ number_format($item['precio'], 0, ',', '.') }}</span>
+                                            @else
+                                                ${{ number_format($item['precio'], 0, ',', '.') }}
+                                            @endif
                                         </p>
                                     </div>
                                     <span class="text-sm font-bold text-gray-800 flex-shrink-0 ml-2">${{ number_format($item['precio'] * $item['cantidad'], 0, ',', '.') }}</span>
@@ -224,6 +234,33 @@
                                 <span class="text-gray-500">Subtotal</span>
                                 <span>${{ number_format($subtotal, 0, ',', '.') }}</span>
                             </div>
+                            @if($cuponAplicado)
+                                <div class="flex justify-between text-sm" style="color: #ea580c;">
+                                    <span>Cupón {{ $cuponAplicado->codigo }}</span>
+                                    <span>-${{ number_format($descuentoCupon, 0, ',', '.') }}</span>
+                                </div>
+                            @endif
+                            @if(!$cuponAplicado)
+                                <div class="pt-2">
+                                    <div class="flex gap-2">
+                                        <input type="text" wire:model.live="codigoCupon" placeholder="¿Tienes un cupón?"
+                                            class="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                            style="text-transform: uppercase;">
+                                        <button wire:click="aplicarCupon" type="button"
+                                            class="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white text-xs font-bold rounded-xl hover:from-red-700 hover:to-red-600 transition-all active:scale-95">
+                                            Aplicar
+                                        </button>
+                                    </div>
+                                    @if($errorCupon)
+                                        <p class="text-red-500 text-xs mt-1">{{ $errorCupon }}</p>
+                                    @endif
+                                </div>
+                            @else
+                                <div class="flex items-center gap-2 pt-1">
+                                    <span class="text-xs font-semibold" style="color: #ea580c;">✅ Cupón aplicado</span>
+                                    <button wire:click="quitarCupon" type="button" class="text-xs text-red-500 hover:underline">Quitar</button>
+                                </div>
+                            @endif
                             @if($descuentoPuntos > 0 && $recompensaAplicada)
                                 <div class="flex justify-between text-sm text-green-600">
                                     <span>Descuento puntos</span>

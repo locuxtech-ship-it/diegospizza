@@ -42,7 +42,12 @@
                                             {{ collect($item['mitades'])->pluck('nombre')->implode(' / ') }}
                                         </span> ·
                                     @endif
-                                    ${{ number_format($item['precio'], 0, ',', '.') }} c/u
+                                    @if($item['precio_original'] ?? null)
+                                        <span style="text-decoration:line-through;color:#9ca3af;">${{ number_format($item['precio_original'], 0, ',', '.') }}</span>
+                                        <span style="color:#dc2626;font-weight:600;">${{ number_format($item['precio'], 0, ',', '.') }}</span>
+                                    @else
+                                        ${{ number_format($item['precio'], 0, ',', '.') }}
+                                    @endif c/u
                                 </p>
                             </div>
                             <div class="flex items-center gap-2">

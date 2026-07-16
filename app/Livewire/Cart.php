@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\DescuentoProducto;
 use App\Models\Producto;
 use App\Models\ProductoVariant;
 use Livewire\Component;
@@ -54,17 +55,27 @@ class Cart extends Component
             $key .= '_' . md5(json_encode($mitades));
         }
         $precio = $producto->precio;
+        $precioOriginal = $precio;
         $variantTamanio = null;
         $nombre = $nombreOverride ?? $producto->nombre;
 
         if ($variantId) {
             $variant = ProductoVariant::findOrFail($variantId);
             $precio = $variant->precio;
+            $precioOriginal = $precio;
             $variantTamanio = $variant->tamanio;
         }
 
         if ($precioOverride !== null) {
             $precio = (float) $precioOverride;
+            $precioOriginal = $precio;
+        }
+
+        // Apply active product/category discount
+        $desc = DescuentoProducto::descuentoParaProducto($producto->id, $producto->categoria_id);
+        if ($desc) {
+            $precioOriginal = $precio;
+            $precio = $desc->calcularPrecio((float) $precio);
         }
 
         if (isset($this->items[$key])) {
@@ -76,6 +87,7 @@ class Cart extends Component
                 'variant_id' => $variantId,
                 'variant_tamanio' => $variantTamanio,
                 'precio' => $precio,
+                'precio_original' => $precioOriginal !== $precio ? $precioOriginal : null,
                 'cantidad' => 1,
                 'imagen' => $producto->imagen,
                 'mitades' => $mitades,

@@ -78,7 +78,6 @@ services:
       - WHATSAPP_RESTART_ALL_SESSIONS=True
       - WHATSAPP_WEBHOOK_URL=http://nginx/api/whatsapp/waha-webhook
       - WHATSAPP_WEBHOOK_EVENTS=message
-      - WAHA_API_KEY=${WAHA_API_KEY}
       - TZ=America/Bogota
     volumes:
       - waha_sessions:/app/sessions

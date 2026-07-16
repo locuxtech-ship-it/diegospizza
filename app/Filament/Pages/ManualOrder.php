@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\Categoria;
 use App\Models\Cliente;
+use App\Models\DescuentoProducto;
 use App\Models\NegocioSetting;
 use App\Models\Pago;
 use App\Models\Pedido;
@@ -144,6 +145,13 @@ class ManualOrder extends Page
         $precioSabor1 = (float) ($mediana1?->precio ?? $vars1->first()?->precio ?? $sabor1->precio);
         $precioSabor2 = (float) ($mediana2?->precio ?? $vars2->first()?->precio ?? $sabor2->precio);
         $precio = max($precioSabor1, $precioSabor2);
+        $precioOriginal = $precio;
+
+        $descuento = DescuentoProducto::descuentoParaProducto($this->productoMitad);
+        if ($descuento) {
+            $precio = $descuento->calcularPrecio($precio);
+        }
+
         $mitades = [
             ['producto_id' => $sabor1->id, 'nombre' => $sabor1->nombre, 'precio' => $precioSabor1],
             ['producto_id' => $sabor2->id, 'nombre' => $sabor2->nombre, 'precio' => $precioSabor2],
@@ -151,6 +159,10 @@ class ManualOrder extends Page
 
         $key = $this->productoMitad->id . '_mitad_' . md5(json_encode($mitades));
         $nombre = $this->productoMitad->nombre . ' (Mitad y Mitad)';
+
+        if ($precio >= $precioOriginal) {
+            $precioOriginal = null;
+        }
 
         if (isset($this->carrito[$key])) {
             $this->carrito[$key]['cantidad']++;
@@ -161,6 +173,7 @@ class ManualOrder extends Page
                 'variant_tamanio' => null,
                 'nombre' => $nombre,
                 'precio' => $precio,
+                'precio_original' => $precioOriginal,
                 'cantidad' => 1,
                 'mitades' => $mitades,
             ];
@@ -181,24 +194,36 @@ class ManualOrder extends Page
             return;
         }
 
-        $precio = (float) $producto->precio;
+        $precioOriginal = (float) $producto->precio;
+        $precio = $precioOriginal;
         $nombre = $producto->nombre;
         $variantTamanio = null;
 
         if ($variantId) {
             $variant = $producto->variants->firstWhere('id', $variantId);
             if ($variant) {
-                $precio = (float) $variant->precio;
+                $precioOriginal = (float) $variant->precio;
+                $precio = $precioOriginal;
                 $variantTamanio = $variant->tamanio;
             }
         } elseif ($producto->variants->isNotEmpty()) {
             $variant = $producto->variants->first();
-            $precio = (float) $variant->precio;
+            $precioOriginal = (float) $variant->precio;
+            $precio = $precioOriginal;
             $variantId = $variant->id;
             $variantTamanio = $variant->tamanio;
         }
 
+        $descuento = DescuentoProducto::descuentoParaProducto($producto);
+        if ($descuento) {
+            $precio = $descuento->calcularPrecio($precio);
+        }
+
         $key = $productoId . '_' . ($variantId ?? '0');
+
+        if ($precio >= $precioOriginal) {
+            $precioOriginal = null;
+        }
 
         if (isset($this->carrito[$key])) {
             $this->carrito[$key]['cantidad']++;
@@ -209,6 +234,7 @@ class ManualOrder extends Page
                 'variant_tamanio' => $variantTamanio,
                 'nombre' => $nombre,
                 'precio' => $precio,
+                'precio_original' => $precioOriginal,
                 'cantidad' => 1,
             ];
         }
@@ -380,6 +406,8 @@ class ManualOrder extends Page
             ? $categorias->where('id', $this->categoriaActiva)
             : $categorias;
 
-        return compact('categorias', 'categoriasFiltradas');
+        $descuentosMap = Producto::descuentosMap($categorias->pluck('productosDisponibles')->flatten(), false);
+
+        return compact('categorias', 'categoriasFiltradas', 'descuentosMap');
     }
 }

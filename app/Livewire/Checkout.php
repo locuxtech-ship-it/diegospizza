@@ -3,6 +3,8 @@
 namespace App\Livewire;
 
 use App\Models\Cliente;
+use App\Models\ClienteDireccion;
+use App\Models\CuponDescuento;
 use App\Models\NegocioSetting;
 use App\Models\Pago;
 use App\Models\Pedido;
@@ -22,6 +24,11 @@ class Checkout extends Component
     public $recompensasDisponibles = [];
     public $recompensaSeleccionadaIndex = null;
 
+    public $codigoCupon = '';
+    public $cuponAplicado = null;
+    public $descuentoCupon = 0;
+    public $errorCupon = '';
+
     public $nombre = '';
     public $telefono = '';
     public $conjunto = '';
@@ -40,6 +47,9 @@ class Checkout extends Component
     public $whatsappComprobanteUrl = '';
 
     public $clienteInfo = null;
+
+    // Computed by JS on the frontend, but we expose it for the view
+    public $hayDescuentosProducto = false;
 
     protected function rules(): array
     {
@@ -79,7 +89,98 @@ class Checkout extends Component
     public function calcularTotales()
     {
         $this->subtotal = array_sum(array_map(fn($item) => $item['precio'] * $item['cantidad'], $this->items));
-        $this->total = $this->subtotal;
+        $this->total = $this->subtotal - $this->descuentoPuntos - $this->descuentoCupon;
+        if ($this->total < 0) $this->total = 0;
+        $this->hayDescuentosProducto = $this->checkHayDescuentosProducto();
+    }
+
+    private function checkHayDescuentosProducto(): bool
+    {
+        $ids = collect($this->items)->pluck('id')->unique()->toArray();
+        if (empty($ids)) return false;
+
+        $now = now();
+        $directos = \App\Models\DescuentoProducto::where('activo', true)
+            ->where('producto_id', $ids)
+            ->where('fecha_inicio', '<=', $now)
+            ->where('fecha_expiracion', '>=', $now)
+            ->count();
+
+        if ($directos > 0) return true;
+
+        $cats = \App\Models\Producto::whereIn('id', $ids)->pluck('categoria_id')->unique()->filter()->toArray();
+        if (empty($cats)) return false;
+
+        return \App\Models\DescuentoProducto::where('activo', true)
+            ->whereNull('producto_id')
+            ->whereIn('categoria_id', $cats)
+            ->where('fecha_inicio', '<=', $now)
+            ->where('fecha_expiracion', '>=', $now)
+            ->exists();
+    }
+
+    public function aplicarCupon()
+    {
+        $this->errorCupon = '';
+        $codigo = trim($this->codigoCupon);
+        if (empty($codigo)) {
+            $this->errorCupon = 'Ingresa un código';
+            return;
+        }
+
+        $cupon = CuponDescuento::where('codigo', $codigo)->first();
+        if (!$cupon) {
+            $this->errorCupon = 'Código inválido';
+            return;
+        }
+
+        $cliente = null;
+        $clienteId = null;
+        if ($this->telefono) {
+            $cliente = Cliente::where('telefono', $this->telefono)->first();
+            $clienteId = $cliente?->id;
+        }
+
+        if (!$cupon->esValido($this->subtotal, $clienteId)) {
+            $msg = 'El cupón no está disponible';
+            if ($cupon->cliente_id && $clienteId && $cupon->cliente_id !== $clienteId) {
+                $msg = 'Este cupón es para otro cliente';
+            } elseif ($cupon->usos_maximos && $cupon->usos_actuales >= $cupon->usos_maximos) {
+                $msg = 'El cupón ya no tiene usos disponibles';
+            } elseif ($cupon->fecha_inicio && now()->lt($cupon->fecha_inicio)) {
+                $msg = 'El cupón aún no está vigente';
+            } elseif ($cupon->fecha_expiracion && now()->gt($cupon->fecha_expiracion)) {
+                $msg = 'El cupón ha expirado';
+            } elseif ($cupon->monto_minimo && $this->subtotal < $cupon->monto_minimo) {
+                $msg = 'El pedido mínimo es de $' . number_format((float) $cupon->monto_minimo, 0, ',', '.');
+            } elseif ($cupon->por_cliente && $clienteId) {
+                $msg = 'Ya usaste este cupón anteriormente';
+            }
+            $this->errorCupon = $msg;
+            return;
+        }
+
+        $this->cuponAplicado = $cupon;
+        $this->descuentoCupon = $cupon->calcularDescuento($this->subtotal);
+        $this->codigoCupon = $cupon->codigo;
+
+        // Remove any points discount when coupon is applied
+        if ($this->descuentoPuntos > 0) {
+            $this->descuentoPuntos = 0;
+            $this->recompensaAplicada = null;
+            $this->recompensaSeleccionadaIndex = null;
+        }
+
+        $this->calcularTotales();
+    }
+
+    public function quitarCupon()
+    {
+        $this->codigoCupon = '';
+        $this->cuponAplicado = null;
+        $this->descuentoCupon = 0;
+        $this->errorCupon = '';
+        $this->calcularTotales();
     }
 
     public function updatedTelefono()
@@ -122,7 +223,6 @@ class Checkout extends Component
                 ->toArray();
 
             if (!empty($this->direccionesDisponibles)) {
-                // Default to first address
                 $this->seleccionarDireccion($this->direccionesDisponibles[0]['id']);
             } elseif ($cliente->conjunto) {
                 $this->conjunto = $cliente->conjunto;
@@ -155,12 +255,20 @@ class Checkout extends Component
 
     public function seleccionarRecompensa(?int $index)
     {
+        if ($this->cuponAplicado || $this->hayDescuentosProducto) {
+            $this->recompensaSeleccionadaIndex = null;
+            $this->descuentoPuntos = 0;
+            $this->recompensaAplicada = null;
+            $this->calcularTotales();
+            return;
+        }
+
         $this->recompensaSeleccionadaIndex = $index;
 
         if ($index === null || !isset($this->recompensasDisponibles[$index])) {
             $this->descuentoPuntos = 0;
             $this->recompensaAplicada = null;
-            $this->total = $this->subtotal;
+            $this->calcularTotales();
             return;
         }
 
@@ -172,7 +280,7 @@ class Checkout extends Component
         } else {
             $this->descuentoPuntos = min($recompensa['valor'], $this->subtotal);
         }
-        $this->total = $this->subtotal - $this->descuentoPuntos;
+        $this->calcularTotales();
     }
 
     public function procesarPedido()
@@ -230,6 +338,9 @@ class Checkout extends Component
             'cliente_direccion_id' => $direccionId,
             'subtotal' => $this->subtotal,
             'descuento_puntos' => $this->descuentoPuntos,
+            'cupon_descuento_id' => $this->cuponAplicado?->id,
+            'descuento_cupon' => $this->descuentoCupon,
+            'con_descuento_producto' => $this->hayDescuentosProducto,
             'total' => $this->total,
             'origen' => 'web',
             'estado' => 'pendiente_pago',
@@ -257,6 +368,11 @@ class Checkout extends Component
             'confirmado' => false,
             'fecha_pago' => now(),
         ]);
+
+        // Increment coupon usage
+        if ($this->cuponAplicado) {
+            $this->cuponAplicado->increment('usos_actuales');
+        }
 
         if ($this->descuentoPuntos > 0 && $this->recompensaAplicada) {
             $puntosCanje = (int) $this->recompensaAplicada['puntos'];

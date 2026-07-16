@@ -21,6 +21,9 @@ class Pedido extends Model
         'descuento_manual',
         'descuento_manual_tipo',
         'descuento_manual_valor',
+        'cupon_descuento_id',
+        'descuento_cupon',
+        'con_descuento_producto',
         'total',
         'estado',
         'origen',
@@ -149,6 +152,8 @@ class Pedido extends Model
     public function asignarPuntosGanados(): void
     {
         if ($this->descuento_puntos > 0) return;
+        if ($this->cupon_descuento_id) return;
+        if ($this->con_descuento_producto) return;
 
         $alreadyAssigned = Punto::where('pedido_id', $this->id)
             ->where('puntos', '>', 0)
