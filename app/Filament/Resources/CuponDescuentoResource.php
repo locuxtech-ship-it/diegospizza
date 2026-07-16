@@ -88,7 +88,7 @@ class CuponDescuentoResource extends Resource
                 TextColumn::make('valor')
                     ->label('Valor')
                     ->money('COP', divideBy: 1)
-                    ->formatStateUsing(fn ($state, $record) => $record->tipo === 'porcentaje' ? "{$state}%" : '$' . number_format((float) $state, 0, ',', '.')),
+                    ->formatStateUsing(fn ($state, $record) => $record->tipo === 'porcentaje' ? (int) $state . '%' : '$' . number_format((float) $state, 0, ',', '.')),
                 TextColumn::make('usos_actuales')
                     ->label('Usos')
                     ->sortable(),

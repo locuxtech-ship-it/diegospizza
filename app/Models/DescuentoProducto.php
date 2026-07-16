@@ -59,7 +59,7 @@ class DescuentoProducto extends Model
     public function getLabel(): string
     {
         if ($this->tipo === 'porcentaje') {
-            return "-{$this->valor}%";
+            return '-' . (int) $this->valor . '%';
         }
         return '-$' . number_format((float) $this->valor, 0, ',', '.');
     }

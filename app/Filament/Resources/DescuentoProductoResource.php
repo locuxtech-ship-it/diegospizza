@@ -73,7 +73,7 @@ class DescuentoProductoResource extends Resource
                     ->formatStateUsing(fn ($state) => $state === 'porcentaje' ? '%' : '$'),
                 TextColumn::make('valor')
                     ->label('Valor')
-                    ->formatStateUsing(fn ($state, $record) => $record->tipo === 'porcentaje' ? "{$state}%" : '$' . number_format((float) $state, 0, ',', '.')),
+                    ->formatStateUsing(fn ($state, $record) => $record->tipo === 'porcentaje' ? (int) $state . '%' : '$' . number_format((float) $state, 0, ',', '.')),
                 TextColumn::make('producto.nombre')
                     ->label('Producto')
                     ->placeholder('—'),
