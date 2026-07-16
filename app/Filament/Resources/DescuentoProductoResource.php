@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Models\DescuentoProducto;
+use BackedEnum;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -15,12 +16,13 @@ use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class DescuentoProductoResource extends Resource
 {
     protected static ?string $model = DescuentoProducto::class;
     protected static ?string $navigationIcon = 'heroicon-o-tag';
-    protected static ?string $navigationGroup = 'Promociones';
+    protected static string | UnitEnum | null $navigationGroup = 'Promociones';
 
     public static function form(Form $form): Form
     {
