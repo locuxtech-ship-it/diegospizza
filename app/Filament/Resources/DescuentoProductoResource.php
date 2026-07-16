@@ -8,8 +8,8 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
@@ -24,9 +24,9 @@ class DescuentoProductoResource extends Resource
     protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-tag';
     protected static string | UnitEnum | null $navigationGroup = 'Promociones';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form->schema([
+        return $schema->components([
             Select::make('tipo')
                 ->label('Tipo')
                 ->options(['porcentaje' => 'Porcentaje (%)', 'monto' => 'Monto fijo ($)'])
