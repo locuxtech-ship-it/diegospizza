@@ -11,6 +11,7 @@ COPY --chown=www-data:www-data . .
 RUN mkdir -p bootstrap/cache && composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
 FROM app_base AS app
+COPY php-overrides.ini /usr/local/etc/php/conf.d/php-overrides.ini
 RUN mkdir -p /var/log/supervisor
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 COPY supervisord.conf /etc/supervisor/supervisord.conf
