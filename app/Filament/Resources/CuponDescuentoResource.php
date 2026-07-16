@@ -108,4 +108,13 @@ class CuponDescuentoResource extends Resource
             ->actions([EditAction::make()])
             ->bulkActions([BulkActionGroup::make([DeleteBulkAction::make()])]);
     }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => \App\Filament\Resources\CuponDescuentoResource\Pages\ListCuponDescuentos::route('/'),
+            'create' => \App\Filament\Resources\CuponDescuentoResource\Pages\CreateCuponDescuento::route('/create'),
+            'edit' => \App\Filament\Resources\CuponDescuentoResource\Pages\EditCuponDescuento::route('/{record}/edit'),
+        ];
+    }
 }

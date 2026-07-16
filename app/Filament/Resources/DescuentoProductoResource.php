@@ -96,4 +96,13 @@ class DescuentoProductoResource extends Resource
             ->actions([EditAction::make()])
             ->bulkActions([BulkActionGroup::make([DeleteBulkAction::make()])]);
     }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => \App\Filament\Resources\DescuentoProductoResource\Pages\ListDescuentoProductos::route('/'),
+            'create' => \App\Filament\Resources\DescuentoProductoResource\Pages\CreateDescuentoProducto::route('/create'),
+            'edit' => \App\Filament\Resources\DescuentoProductoResource\Pages\EditDescuentoProducto::route('/{record}/edit'),
+        ];
+    }
 }
