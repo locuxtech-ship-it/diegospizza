@@ -9,6 +9,8 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use App\Filament\Pages\ChatBot;
 use App\Filament\Pages\Comandas;
 use App\Filament\Auth\EditProfile;
+use App\Filament\Resources\CuponDescuentoResource;
+use App\Filament\Resources\DescuentoProductoResource;
 use App\Models\NegocioSetting;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -50,6 +52,10 @@ class AdminPanelProvider extends PanelProvider
                 'Configuración',
             ])
             ->sidebarCollapsibleOnDesktop()
+            ->resources([
+                CuponDescuentoResource::class,
+                DescuentoProductoResource::class,
+            ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
