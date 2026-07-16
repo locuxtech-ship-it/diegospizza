@@ -87,6 +87,82 @@
             @endforeach
         </div>
 
+        {{-- Destacados / Ofertas --}}
+        @if($destacados->isNotEmpty())
+            <div class="mb-10">
+                <div class="flex items-center justify-between mb-5">
+                    <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                        @if($tieneDescuentos ?? false)
+                            <span style="background:#dc2626;color:white;font-size:11px;font-weight:800;padding:2px 8px;border-radius:4px;">OFERTAS</span>
+                        @else
+                            ⭐
+                        @endif
+                        {{ $tieneDescuentos ? 'Ofertas' : 'Los más pedidos' }}
+                    </h2>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    @foreach($destacados as $producto)
+                        @php
+                            $hasVariants = $producto->variants && $producto->variants->isNotEmpty();
+                            $desc = $descuentosMap['porProducto'][$producto->id] ?? $descuentosMap['porCategoria'][$producto->categoria_id] ?? null;
+                        @endphp
+                        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-200 flex flex-col @if($desc) ring-2 ring-red-200 @endif">
+                            <div class="h-36 sm:h-40 bg-gray-50 flex items-center justify-center relative overflow-hidden flex-shrink-0">
+                                @if($desc)
+                                    <div style="position:absolute;top:10px;left:0;background:#dc2626;color:white;font-size:11px;font-weight:800;padding:3px 10px 3px 8px;border-radius:0 6px 6px 0;z-index:2;box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+                                        {{ $desc->getLabel() }}
+                                    </div>
+                                @endif
+                                @if($producto->imagen)
+                                    <img src="{{ asset('storage/' . $producto->imagen) }}" alt="{{ $producto->nombre }}" class="w-full h-full object-cover">
+                                @else
+                                    <span class="text-6xl">🍕</span>
+                                @endif
+                                <span class="absolute top-3 right-3 font-bold text-sm px-3 py-1 rounded-full bg-white shadow-sm" style="color: #FF8D08;">
+                                    @if($desc)
+                                        <span style="text-decoration:line-through;color:#9ca3af;margin-right:4px;">
+                                            @if($hasVariants)
+                                                ${{ number_format($producto->variants->min('precio'), 0, ',', '.') }}
+                                            @else
+                                                ${{ number_format($producto->precio, 0, ',', '.') }}
+                                            @endif
+                                        </span>
+                                        ${{ number_format($desc->calcularPrecio((float) ($hasVariants ? $producto->variants->min('precio') : $producto->precio)), 0, ',', '.') }}
+                                    @elseif($producto->es_personalizable)
+                                        Mitad y Mitad
+                                    @elseif($hasVariants)
+                                    Desde ${{ number_format($producto->variants->min('precio'), 0, ',', '.') }}
+                                    @else
+                                    ${{ number_format($producto->precio, 0, ',', '.') }}
+                                    @endif
+                                </span>
+                            </div>
+                            <div class="p-4 flex flex-col flex-1">
+                                <h3 class="font-bold text-gray-900 text-base">{{ $producto->nombre }}</h3>
+                                @if($producto->ingredientes)
+                                    <div class="flex-1">
+                                        <p class="text-xs text-gray-400 mt-1.5 line-clamp-2">
+                                            @foreach(explode(',', $producto->ingredientes) as $ingrediente)
+                                                <span class="inline-block bg-gray-50 rounded-full px-2 py-0.5 text-xs mr-1 mb-1 text-gray-500">{{ trim($ingrediente) }}</span>
+                                            @endforeach
+                                        </p>
+                                    </div>
+                                @else
+                                    <div class="flex-1"></div>
+                                @endif
+                                <button @if($hasVariants || $producto->es_personalizable) wire:click="seleccionarProducto({{ $producto->id }})" @else wire:click="$dispatch('productoAgregado', { productoId: {{ $producto->id }} })" @endif
+                                    class="mt-3 w-full py-2.5 rounded-xl text-sm font-bold text-white transition-all duration-200 active:scale-95 shadow-sm flex-shrink-0"
+                                    style="background-color: #FF8D08;"
+                                    @if(!$estaAbierto) disabled @endif>
+                                    @if($estaAbierto) + Agregar @else Cerrado @endif
+                                </button>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         {{-- Products Grid --}}
         @foreach($categoriasFiltradas as $categoria)
             <div class="mb-10" id="cat-{{ $categoria->id }}">

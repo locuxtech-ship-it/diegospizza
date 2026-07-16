@@ -114,12 +114,40 @@ class Menu extends Component
 
         $descuentosMap = Producto::descuentosMap();
 
+        $destacados = collect();
+        $tieneDescuentos = !empty($descuentosMap['porProducto']) || !empty($descuentosMap['porCategoria']);
+
+        if ($tieneDescuentos) {
+            $productoIds = collect($descuentosMap['porProducto'])->keys();
+            $categoriaIds = collect($descuentosMap['porCategoria'])->keys();
+            $destacados = Producto::with('variants')->where('disponible', true)
+                ->where(function ($q) use ($productoIds, $categoriaIds) {
+                    if ($productoIds->isNotEmpty()) $q->whereIn('id', $productoIds);
+                    if ($categoriaIds->isNotEmpty()) $q->orWhereIn('categoria_id', $categoriaIds);
+                })
+                ->get();
+        } else {
+            $destacadosId = \App\Models\PedidoProducto::select('producto_id')
+                ->selectRaw('COUNT(*) as total')
+                ->groupBy('producto_id')
+                ->orderByDesc('total')
+                ->limit(8)
+                ->pluck('producto_id');
+            if ($destacadosId->isNotEmpty()) {
+                $destacados = Producto::with('variants')->where('disponible', true)
+                    ->whereIn('id', $destacadosId)
+                    ->get();
+            }
+        }
+
         return view('livewire.menu', [
             'categorias' => $categorias,
             'categoriasFiltradas' => $categoriasFiltradas,
             'negocio' => $this->negocio,
             'estaAbierto' => $this->estaAbierto,
             'descuentosMap' => $descuentosMap,
+            'destacados' => $destacados,
+            'tieneDescuentos' => $tieneDescuentos,
         ]);
     }
 }
