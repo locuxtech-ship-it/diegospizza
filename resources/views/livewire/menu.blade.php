@@ -88,7 +88,7 @@
         </div>
 
         {{-- Destacados / Ofertas --}}
-        @if($destacados->isNotEmpty())
+        @if($destacados->isNotEmpty() && is_null($categoriaId))
             <div class="mb-10">
                 <div class="flex items-center justify-between mb-5">
                     <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
