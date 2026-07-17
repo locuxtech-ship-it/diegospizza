@@ -124,6 +124,7 @@ class AdminPanelProvider extends PanelProvider
                     .dark table thead th { color: rgb(209 213 219) !important; }
                     .dark input[style*="border: 1px solid #d1d5db"],
                     .dark input[type="date"] { background: rgb(55 65 81); color: rgb(243 244 246); border-color: rgb(75 85 99) !important; }
+                    .dark select { background: rgb(55 65 81); color: rgb(243 244 246); border-color: rgb(75 85 99) !important; }
                     .dark [style*="rgba(0,0,0,0.5)"]:not([class]),
                     .dark [style*="rgba(0,0,0,0.2)"]:not([class]) { background: rgba(0,0,0,0.7) !important; }
                     .dark [style*="white)"] { background: linear-gradient(to right, rgb(55 65 81), rgb(31 41 55)) !important; }
