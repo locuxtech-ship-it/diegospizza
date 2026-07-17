@@ -97,6 +97,36 @@ class AdminPanelProvider extends PanelProvider
                 <link rel="manifest" href="/manifest-admin.json">
                 <link rel="icon" type="image/x-icon" href="/favicon.ico">
                 <link rel="apple-touch-icon" href="/images/icon-admin-192x192.png">
+                <style>
+                    .dark [style*="background: white"],
+                    .dark [style*="background-color: white"],
+                    .dark [style*="background:#fff"],
+                    .dark [style*="background-color:#fff"] { background: rgb(31 41 55) !important; }
+                    .dark [style*="background: #f9fafb"],
+                    .dark [style*="background:#f9fafb"] { background: rgb(55 65 81) !important; }
+                    .dark [style*="background: #f3f4f6"] { background: rgb(75 85 99) !important; }
+                    .dark [style*="background: #fffbeb"] { background: rgb(55 45 20) !important; }
+                    .dark [style*="border: 1px solid #e5e7eb"],
+                    .dark [style*="border:1px solid #e5e7eb"],
+                    .dark [style*="border: 1px solid #d1d5db"],
+                    .dark [style*="border:1px solid #d1d5db"] { border-color: rgb(75 85 99) !important; }
+                    .dark [style*="border-bottom: 1px solid #e5e7eb"],
+                    .dark [style*="border-bottom:1px solid #e5e7eb"],
+                    .dark [style*="border-bottom: 1px solid #f3f4f6"],
+                    .dark [style*="border-bottom:1px solid #f3f4f6"],
+                    .dark [style*="border-top: 1px solid #e5e7eb"],
+                    .dark [style*="border-top:1px solid #e5e7eb"] { border-color: rgb(75 85 99) !important; }
+                    .dark [style*="color: #111827"] { color: rgb(243 244 246) !important; }
+                    .dark [style*="color: #374151"] { color: rgb(209 213 219) !important; }
+                    .dark [style*="color: #6b7280"],
+                    .dark [style*="color: #9ca3af"] { color: rgb(156 163 175) !important; }
+                    .dark table thead tr[style*="background: #f9fafb"] { background: rgb(55 65 81) !important; }
+                    .dark table thead th { color: rgb(209 213 219) !important; }
+                    .dark input[style*="border: 1px solid #d1d5db"],
+                    .dark input[type="date"] { background: rgb(55 65 81); color: rgb(243 244 246); border-color: rgb(75 85 99) !important; }
+                    .dark [style*="rgba(0,0,0,0.5)"]:not([class]),
+                    .dark [style*="rgba(0,0,0,0.2)"]:not([class]) { background: rgba(0,0,0,0.7) !important; }
+                </style>
 '
         );
 
