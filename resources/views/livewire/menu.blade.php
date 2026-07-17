@@ -31,7 +31,7 @@
             <div class="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 mt-4 sm:mt-5 text-xs text-gray-300">
                 <span>📍 Alameda Del Rio</span>
                 <span class="text-gray-500 hidden sm:inline">|</span>
-                <span>⏰ {{ \App\Models\NegocioSetting::getTodayHours()['apertura'] }} - {{ \App\Models\NegocioSetting::getTodayHours()['cierre'] }}</span>
+                <span>⏰ {{ date('g:i A', strtotime(\App\Models\NegocioSetting::getTodayHours()['apertura'])) }} - {{ date('g:i A', strtotime(\App\Models\NegocioSetting::getTodayHours()['cierre'])) }}</span>
                 <span class="text-gray-500 hidden sm:inline">|</span>
                 <span class="hidden sm:inline">📞 {{ $negocio->telefono ?? '(555) 1234-5678' }}</span>
                 <div class="flex items-center gap-1.5">
@@ -64,7 +64,7 @@
         @if(!$estaAbierto)
         <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 text-center">
             <p class="text-red-700 font-medium">⏰ Actualmente estamos cerrados</p>
-            <p class="text-gray-500 text-sm mt-1">Horarios: {{ \App\Models\NegocioSetting::getTodayHours()['apertura'] }} - {{ \App\Models\NegocioSetting::getTodayHours()['cierre'] }}</p>
+            <p class="text-gray-500 text-sm mt-1">Horarios: {{ date('g:i A', strtotime(\App\Models\NegocioSetting::getTodayHours()['apertura'])) }} - {{ date('g:i A', strtotime(\App\Models\NegocioSetting::getTodayHours()['cierre'])) }}</p>
         </div>
         @endif
 
@@ -330,7 +330,7 @@
             <p class="mt-1 text-xs sm:text-sm">Bienvenido a Diego's Pizza Alameda</p>
             <div class="flex flex-col sm:flex-row sm:justify-center gap-1.5 sm:gap-6 mt-4 text-xs">
                 <span>📍 Domicilio Solo en el Sector de Alameda Del Rio</span>
-                <span>⏰ {{ \App\Models\NegocioSetting::getTodayHours()['apertura'] }} - {{ \App\Models\NegocioSetting::getTodayHours()['cierre'] }}</span>
+                <span>⏰ {{ date('g:i A', strtotime(\App\Models\NegocioSetting::getTodayHours()['apertura'])) }} - {{ date('g:i A', strtotime(\App\Models\NegocioSetting::getTodayHours()['cierre'])) }}</span>
                 <span>📞 {{ $negocio->telefono ?? '(555) 1234-5678' }}</span>
             </div>
             <p class="mt-6 text-xs opacity-50">© {{ date('Y') }} {{ $negocio->nombre_negocio ?? "Diego's Pizza" }}. Todos los derechos reservados.</p>
