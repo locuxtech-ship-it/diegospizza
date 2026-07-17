@@ -147,7 +147,7 @@ class ManualOrder extends Page
         $precio = max($precioSabor1, $precioSabor2);
         $precioOriginal = $precio;
 
-        $descuento = DescuentoProducto::descuentoParaProducto($this->productoMitad);
+        $descuento = DescuentoProducto::descuentoParaProducto($this->productoMitad->id, $this->productoMitad->categoria_id);
         if ($descuento) {
             $precio = $descuento->calcularPrecio($precio);
         }
@@ -214,7 +214,7 @@ class ManualOrder extends Page
             $variantTamanio = $variant->tamanio;
         }
 
-        $descuento = DescuentoProducto::descuentoParaProducto($producto);
+        $descuento = DescuentoProducto::descuentoParaProducto($producto->id, $producto->categoria_id);
         if ($descuento) {
             $precio = $descuento->calcularPrecio($precio);
         }
