@@ -3,7 +3,7 @@
 namespace App\Filament\Auth;
 
 use Filament\Auth\Pages\EditProfile as BaseEditProfile;
-use Filament\Forms\Components\Grid;
+use Filament\Schemas\Components\Grid;
 use Filament\Forms\Components\Placeholder;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Section;
