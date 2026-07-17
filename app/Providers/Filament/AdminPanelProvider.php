@@ -12,6 +12,7 @@ use App\Filament\Auth\EditProfile;
 use App\Filament\Resources\CuponDescuentoResource;
 use App\Filament\Resources\DescuentoProductoResource;
 use App\Models\NegocioSetting;
+use Filament\Navigation\MenuItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -35,6 +36,11 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->passwordReset()
             ->profile(EditProfile::class)
+            ->userMenuItems([
+                MenuItem::make()
+                    ->label(fn () => auth()->user()->name . ' · ' . (auth()->user()->role === 'admin' ? 'Administrador' : 'Cajero'))
+                    ->icon('heroicon-o-user-circle'),
+            ])
             ->brandName("Diego's Pizza")
             ->brandLogo(fn (): string => NegocioSetting::first()?->logo
                 ? asset('storage/' . NegocioSetting::first()->logo)
