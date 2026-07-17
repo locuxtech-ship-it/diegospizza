@@ -3,6 +3,7 @@
 namespace App\Filament\Auth;
 
 use Filament\Auth\Pages\EditProfile as BaseEditProfile;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Schema;
 
 class EditProfile extends BaseEditProfile
@@ -57,19 +58,19 @@ class EditProfile extends BaseEditProfile
             ]);
     }
 
-    protected function getCurrentPasswordFormComponent()
+    protected function getCurrentPasswordFormComponent(): Component
     {
         return parent::getCurrentPasswordFormComponent()
             ->label('Contraseña actual');
     }
 
-    protected function getPasswordFormComponent()
+    protected function getPasswordFormComponent(): Component
     {
         return parent::getPasswordFormComponent()
             ->label('Nueva contraseña');
     }
 
-    protected function getPasswordConfirmationFormComponent()
+    protected function getPasswordConfirmationFormComponent(): Component
     {
         return parent::getPasswordConfirmationFormComponent()
             ->label('Confirmar nueva contraseña');
