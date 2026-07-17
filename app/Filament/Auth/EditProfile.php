@@ -3,7 +3,10 @@
 namespace App\Filament\Auth;
 
 use Filament\Auth\Pages\EditProfile as BaseEditProfile;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Placeholder;
 use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class EditProfile extends BaseEditProfile
@@ -21,27 +24,28 @@ class EditProfile extends BaseEditProfile
 
         return $schema
             ->components([
-                Section::make()
+                Section::make('Información del usuario')
+                    ->description('Datos de tu cuenta')
                     ->schema([
-                        \Filament\Forms\Components\Grid::make()
+                        Grid::make()
                             ->schema([
-                                \Filament\Forms\Components\Placeholder::make('avatar')
+                                Placeholder::make('avatar')
                                     ->label('')
                                     ->content(fn () => view('filament.components.user-avatar', ['user' => $user])),
                             ])
                             ->columns(1),
-                        \Filament\Forms\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                \Filament\Forms\Components\Placeholder::make('nombre')
+                                Placeholder::make('nombre')
                                     ->label('Nombre')
                                     ->content($user->name),
-                                \Filament\Forms\Components\Placeholder::make('email')
+                                Placeholder::make('email')
                                     ->label('Correo electrónico')
                                     ->content($user->email),
-                                \Filament\Forms\Components\Placeholder::make('rol')
+                                Placeholder::make('rol')
                                     ->label('Rol')
                                     ->content(fn () => view('filament.components.role-badge', ['role' => $user->role])),
-                                \Filament\Forms\Components\Placeholder::make('miembro_desde')
+                                Placeholder::make('miembro_desde')
                                     ->label('Miembro desde')
                                     ->content($user->created_at->isoFormat('D [de] MMMM [del] YYYY')),
                             ]),
