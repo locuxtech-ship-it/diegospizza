@@ -126,6 +126,12 @@ class AdminPanelProvider extends PanelProvider
                     .dark input[type="date"] { background: rgb(55 65 81); color: rgb(243 244 246); border-color: rgb(75 85 99) !important; }
                     .dark [style*="rgba(0,0,0,0.5)"]:not([class]),
                     .dark [style*="rgba(0,0,0,0.2)"]:not([class]) { background: rgba(0,0,0,0.7) !important; }
+                    .dark .bg-white { background: rgb(31 41 55) !important; }
+                    .dark .text-gray-800,
+                    .dark .text-gray-700,
+                    .dark .text-gray-600 { color: rgb(243 244 246) !important; }
+                    .dark .text-gray-500 { color: rgb(209 213 219) !important; }
+                    .dark .border { border-color: rgb(75 85 99) !important; }
                 </style>
 '
         );
