@@ -2,12 +2,8 @@
 
 namespace App\Filament\Auth;
 
-use App\Models\NegocioSetting;
 use Filament\Auth\Pages\EditProfile as BaseEditProfile;
 use Filament\Schemas\Schema;
-use Filament\Forms\Components\Section;
-use Filament\Support\Enums\Alignment;
-use Illuminate\Support\Facades\Hash;
 
 class EditProfile extends BaseEditProfile
 {
@@ -61,19 +57,19 @@ class EditProfile extends BaseEditProfile
             ]);
     }
 
-    protected function getCurrentPasswordFormComponent(): \Filament\Forms\Components\Component
+    protected function getCurrentPasswordFormComponent()
     {
         return parent::getCurrentPasswordFormComponent()
             ->label('Contraseña actual');
     }
 
-    protected function getPasswordFormComponent(): \Filament\Forms\Components\Component
+    protected function getPasswordFormComponent()
     {
         return parent::getPasswordFormComponent()
             ->label('Nueva contraseña');
     }
 
-    protected function getPasswordConfirmationFormComponent(): \Filament\Forms\Components\Component
+    protected function getPasswordConfirmationFormComponent()
     {
         return parent::getPasswordConfirmationFormComponent()
             ->label('Confirmar nueva contraseña');
