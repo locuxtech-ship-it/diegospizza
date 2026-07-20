@@ -2,7 +2,6 @@
 Description=Diego's Pizza - WAHA WhatsApp Session Restarter
 Requires=docker.service
 After=docker.service network-online.target
-BindsTo=diegospizza.target
 
 [Service]
 Type=oneshot
