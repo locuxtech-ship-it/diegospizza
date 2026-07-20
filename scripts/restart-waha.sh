@@ -9,9 +9,20 @@ API_KEY=$(grep -oP 'WAHA_API_KEY=\K.*' "$COMPOSE_DIR/.env" 2>/dev/null || echo "
 WAHA_URL="http://localhost:3000"
 SESSION="default"
 MAX_RETRIES=30
-RETRY_INTERVAL=2
 
 log() { echo "[$(date '+%H:%M:%S')] $1"; }
+
+waha_get() {
+    curl -s -H "X-Api-Key: $API_KEY" "$WAHA_URL$1"
+}
+
+waha_post() {
+    curl -s -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" -d "$2" "$WAHA_URL$1"
+}
+
+waha_delete() {
+    curl -s -X DELETE -H "X-Api-Key: $API_KEY" "$WAHA_URL$1"
+}
 
 log "Esperando a que el contenedor waha esté activo..."
 for i in $(seq 1 $MAX_RETRIES); do
@@ -40,34 +51,108 @@ for i in $(seq 1 $MAX_RETRIES); do
     sleep 1
 done
 
-SESSION_STATUS=$(curl -s -H "X-Api-Key: $API_KEY" "$WAHA_URL/api/sessions/$SESSION" 2>/dev/null)
-CURRENT_STATUS=$(echo "$SESSION_STATUS" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status','UNKNOWN'))" 2>/dev/null || echo "UNKNOWN")
+SESSION_DATA=$(waha_get "/api/sessions/$SESSION" 2>/dev/null)
+CURRENT_STATUS=$(echo "$SESSION_DATA" | python3 -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+    print(d.get('status', 'UNKNOWN'))
+except:
+    print('UNKNOWN')
+" 2>/dev/null || echo "NOT_FOUND")
 
 if [ "$CURRENT_STATUS" = "WORKING" ] || [ "$CURRENT_STATUS" = "CONNECTED" ]; then
-    log "Sesión '$SESSION' ya está activa ($CURRENT_STATUS)"
+    log "Sesion '$SESSION' ya esta activa ($CURRENT_STATUS)"
     exit 0
 fi
 
-log "Estado actual: $CURRENT_STATUS. Iniciando sesión '$SESSION'..."
+log "Estado: $CURRENT_STATUS. Recreando sesion '$SESSION'..."
 
-START_RESULT=$(curl -s -X POST -H "X-Api-Key: $API_KEY" "$WAHA_URL/api/sessions/$SESSION/start" 2>/dev/null)
-if echo "$START_RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); sys.exit(0 if d.get('status') in ('WORKING','CONNECTED') else 1)" 2>/dev/null; then
-    log "Sesión iniciada correctamente"
-    exit 0
-fi
-
-log "No se pudo iniciar. Recreando sesión..."
-curl -s -X DELETE -H "X-Api-Key: $API_KEY" "$WAHA_URL/api/sessions/$SESSION" > /dev/null 2>&1
+waha_delete "/api/sessions/$SESSION" > /dev/null 2>&1
 sleep 2
-CREATE_RESULT=$(curl -s -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" -d "{\"name\":\"$SESSION\"}" "$WAHA_URL/api/sessions" 2>/dev/null)
-sleep 2
-START_RESULT=$(curl -s -X POST -H "X-Api-Key: $API_KEY" "$WAHA_URL/api/sessions/$SESSION/start" 2>/dev/null)
 
-if echo "$START_RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); sys.exit(0 if d.get('status') in ('WORKING','CONNECTED') else 1)" 2>/dev/null; then
-    log "Sesión recreada e iniciada correctamente"
-    log "IMPORTANTE: Escanea el QR en /admin/chat-bot para conectar WhatsApp"
-else
-    log "ERROR: No se pudo iniciar la sesión después de recrearla"
-    log "Ve a /admin/chat-bot e inicia la sesión manualmente"
+CREATE_RESP=$(python3 -c "
+import urllib.request, json
+data = json.dumps({'name': '$SESSION'}).encode('utf-8')
+req = urllib.request.Request(
+    '$WAHA_URL/api/sessions',
+    data=data,
+    headers={
+        'X-Api-Key': '$API_KEY',
+        'Content-Type': 'application/json'
+    },
+    method='POST'
+)
+try:
+    resp = urllib.request.urlopen(req)
+    print(resp.read().decode())
+except urllib.error.HTTPError as e:
+    print(f'HTTP_ERROR:{e.code}:{e.read().decode()}')
+except Exception as e:
+    print(f'ERROR:{e}')
+" 2>&1)
+
+if echo "$CREATE_RESP" | grep -q 'HTTP_ERROR\|ERROR'; then
+    log "Error al crear sesion: $CREATE_RESP"
+    log "Intenta iniciar sesion manualmente desde /admin/chat-bot"
     exit 1
 fi
+log "Sesion creada"
+
+sleep 2
+
+START_RESP=$(python3 -c "
+import urllib.request, json
+data = json.dumps({}).encode('utf-8')
+req = urllib.request.Request(
+    '$WAHA_URL/api/sessions/$SESSION/start',
+    data=data,
+    headers={
+        'X-Api-Key': '$API_KEY',
+        'Content-Type': 'application/json'
+    },
+    method='POST'
+)
+try:
+    resp = urllib.request.urlopen(req)
+    print(resp.read().decode())
+except urllib.error.HTTPError as e:
+    body = e.read().decode()
+    print(f'HTTP_ERROR:{e.code}:{body}')
+    if 'session not found' in body.lower() or 'not found' in body.lower():
+        # reintentar crear + iniciar
+        import time
+        req2 = urllib.request.Request(
+            '$WAHA_URL/api/sessions',
+            data=json.dumps({'name': '$SESSION'}).encode('utf-8'),
+            headers={
+                'X-Api-Key': '$API_KEY',
+                'Content-Type': 'application/json'
+            },
+            method='POST'
+        )
+        urllib.request.urlopen(req2)
+        time.sleep(2)
+        req3 = urllib.request.Request(
+            '$WAHA_URL/api/sessions/$SESSION/start',
+            data=json.dumps({}).encode('utf-8'),
+            headers={
+                'X-Api-Key': '$API_KEY',
+                'Content-Type': 'application/json'
+            },
+            method='POST'
+        )
+        resp = urllib.request.urlopen(req3)
+        print(resp.read().decode())
+except Exception as e:
+    print(f'ERROR:{e}')
+" 2>&1)
+
+if echo "$START_RESP" | grep -q 'HTTP_ERROR\|ERROR'; then
+    log "Error al iniciar sesion: $START_RESP"
+    log "Ve a /admin/chat-bot e inicia la sesion manualmente"
+    exit 1
+fi
+
+log "Sesion '$SESSION' iniciada correctamente"
+log "IMPORTANTE: Escanea el QR en /admin/chat-bot para conectar WhatsApp"
