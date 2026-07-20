@@ -12,16 +12,13 @@ MAX_RETRIES=30
 
 log() { echo "[$(date '+%H:%M:%S')] $1"; }
 
-waha_get() {
-    curl -s -H "X-Api-Key: $API_KEY" "$WAHA_URL$1"
-}
-
-waha_post() {
-    curl -s -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" -d "$2" "$WAHA_URL$1"
-}
-
-waha_delete() {
-    curl -s -X DELETE -H "X-Api-Key: $API_KEY" "$WAHA_URL$1"
+call_api() {
+    local method="$1" path="$2" body="$3"
+    if [ -n "$body" ]; then
+        curl -s -X "$method" -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" -d "$body" "$WAHA_URL$path"
+    else
+        curl -s -X "$method" -H "X-Api-Key: $API_KEY" "$WAHA_URL$path"
+    fi
 }
 
 log "Esperando a que el contenedor waha esté activo..."
@@ -51,108 +48,65 @@ for i in $(seq 1 $MAX_RETRIES); do
     sleep 1
 done
 
-SESSION_DATA=$(waha_get "/api/sessions/$SESSION" 2>/dev/null)
-CURRENT_STATUS=$(echo "$SESSION_DATA" | python3 -c "
-import sys, json
-try:
-    d = json.load(sys.stdin)
-    print(d.get('status', 'UNKNOWN'))
-except:
-    print('UNKNOWN')
-" 2>/dev/null || echo "NOT_FOUND")
+# Obtener estado de la sesion (si existe)
+SESSION_DATA=$(call_api "GET" "/api/sessions/$SESSION" 2>/dev/null)
+CURRENT_STATUS=$(echo "$SESSION_DATA" | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4 || echo "NOT_FOUND")
+HTTP_CODE=$(echo "$SESSION_DATA" | head -1 | grep -c 'NotFound' >/dev/null 2>&1 && echo "404" || echo "200")
 
 if [ "$CURRENT_STATUS" = "WORKING" ] || [ "$CURRENT_STATUS" = "CONNECTED" ]; then
     log "Sesion '$SESSION' ya esta activa ($CURRENT_STATUS)"
     exit 0
 fi
 
-log "Estado: $CURRENT_STATUS. Recreando sesion '$SESSION'..."
+# Si la sesion existe pero no esta activa, intentar iniciar
+if [ "$CURRENT_STATUS" != "NOT_FOUND" ] && [ -n "$CURRENT_STATUS" ]; then
+    log "Sesion existe (estado: $CURRENT_STATUS). Iniciando..."
+    call_api "POST" "/api/sessions/$SESSION/start" '{}'
+    sleep 5
+    # Verificar si inicio
+    STATUS=$(call_api "GET" "/api/sessions/$SESSION" 2>/dev/null | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4)
+    if [ "$STATUS" = "WORKING" ] || [ "$STATUS" = "CONNECTED" ]; then
+        log "Sesion '$SESSION' iniciada correctamente"
+        exit 0
+    fi
+    log "No se pudo iniciar (estado: $STATUS). Reintentando con restart..."
+    call_api "POST" "/api/sessions/$SESSION/restart" '{}'
+    sleep 5
+    STATUS=$(call_api "GET" "/api/sessions/$SESSION" 2>/dev/null | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4)
+    if [ "$STATUS" = "WORKING" ] || [ "$STATUS" = "CONNECTED" ]; then
+        log "Sesion '$SESSION' reiniciada correctamente"
+        exit 0
+    fi
+    log "ERROR: No se pudo reiniciar la sesion (estado: $STATUS)"
+    log "Ve a /admin/chat-bot e inicia la sesion manualmente"
+    exit 1
+fi
 
-waha_delete "/api/sessions/$SESSION" > /dev/null 2>&1
-sleep 2
+# La sesion no existe, crearla
+log "Sesion no existe. Creando sesion '$SESSION'..."
+CREATE_RESP=$(call_api "POST" "/api/sessions" "{\"name\":\"$SESSION\"}" 2>/dev/null)
+HTTP_CODE=$(echo "$CREATE_RESP" | grep -c '"statusCode":40' >/dev/null 2>&1 && echo "400" || echo "200")
 
-CREATE_RESP=$(python3 -c "
-import urllib.request, json
-data = json.dumps({'name': '$SESSION'}).encode('utf-8')
-req = urllib.request.Request(
-    '$WAHA_URL/api/sessions',
-    data=data,
-    headers={
-        'X-Api-Key': '$API_KEY',
-        'Content-Type': 'application/json'
-    },
-    method='POST'
-)
-try:
-    resp = urllib.request.urlopen(req)
-    print(resp.read().decode())
-except urllib.error.HTTPError as e:
-    print(f'HTTP_ERROR:{e.code}:{e.read().decode()}')
-except Exception as e:
-    print(f'ERROR:{e}')
-" 2>&1)
-
-if echo "$CREATE_RESP" | grep -q 'HTTP_ERROR\|ERROR'; then
+if [ "$HTTP_CODE" = "400" ]; then
     log "Error al crear sesion: $CREATE_RESP"
-    log "Intenta iniciar sesion manualmente desde /admin/chat-bot"
+    log "Ve a /admin/chat-bot e inicia la sesion manualmente"
     exit 1
 fi
 log "Sesion creada"
 
 sleep 2
 
-START_RESP=$(python3 -c "
-import urllib.request, json
-data = json.dumps({}).encode('utf-8')
-req = urllib.request.Request(
-    '$WAHA_URL/api/sessions/$SESSION/start',
-    data=data,
-    headers={
-        'X-Api-Key': '$API_KEY',
-        'Content-Type': 'application/json'
-    },
-    method='POST'
-)
-try:
-    resp = urllib.request.urlopen(req)
-    print(resp.read().decode())
-except urllib.error.HTTPError as e:
-    body = e.read().decode()
-    print(f'HTTP_ERROR:{e.code}:{body}')
-    if 'session not found' in body.lower() or 'not found' in body.lower():
-        # reintentar crear + iniciar
-        import time
-        req2 = urllib.request.Request(
-            '$WAHA_URL/api/sessions',
-            data=json.dumps({'name': '$SESSION'}).encode('utf-8'),
-            headers={
-                'X-Api-Key': '$API_KEY',
-                'Content-Type': 'application/json'
-            },
-            method='POST'
-        )
-        urllib.request.urlopen(req2)
-        time.sleep(2)
-        req3 = urllib.request.Request(
-            '$WAHA_URL/api/sessions/$SESSION/start',
-            data=json.dumps({}).encode('utf-8'),
-            headers={
-                'X-Api-Key': '$API_KEY',
-                'Content-Type': 'application/json'
-            },
-            method='POST'
-        )
-        resp = urllib.request.urlopen(req3)
-        print(resp.read().decode())
-except Exception as e:
-    print(f'ERROR:{e}')
-" 2>&1)
+# Iniciar la sesion creada
+log "Iniciando sesion..."
+call_api "POST" "/api/sessions/$SESSION/start" '{}'
+sleep 5
 
-if echo "$START_RESP" | grep -q 'HTTP_ERROR\|ERROR'; then
-    log "Error al iniciar sesion: $START_RESP"
-    log "Ve a /admin/chat-bot e inicia la sesion manualmente"
-    exit 1
+STATUS=$(call_api "GET" "/api/sessions/$SESSION" 2>/dev/null | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4)
+if [ "$STATUS" = "WORKING" ] || [ "$STATUS" = "CONNECTED" ]; then
+    log "Sesion '$SESSION' creada e iniciada correctamente"
+    exit 0
 fi
 
-log "Sesion '$SESSION' iniciada correctamente"
-log "IMPORTANTE: Escanea el QR en /admin/chat-bot para conectar WhatsApp"
+log "ERROR: No se pudo iniciar la sesion (estado: $STATUS)"
+log "Ve a /admin/chat-bot e inicia la sesion manualmente"
+exit 1
