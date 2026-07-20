@@ -20,44 +20,45 @@ def api(method, path, body=None):
     )
     try:
         resp = urllib.request.urlopen(req)
-        return resp.status, json.loads(resp.read().decode())
+        raw = resp.read().decode()
+        try:
+            return resp.status, json.loads(raw) if raw else {}
+        except:
+            return resp.status, {'raw': raw[:200]}
     except urllib.error.HTTPError as e:
-        return e.code, json.loads(e.read().decode())
+        raw = e.read().decode()
+        try:
+            return e.code, json.loads(raw) if raw else {}
+        except:
+            return e.code, {'raw': raw[:200]}
     except Exception as e:
         return 0, {'error': str(e)}
 
 print(f'\n=== Testing WAHA API ===')
 print(f'Session name: {SESSION}')
 
-# List sessions first
-print(f'\n0. All sessions before...')
+# 1. Try creating session
+print(f'\n1. Creating session "default"...')
+status, data = api('POST', '/api/sessions', {'name': SESSION})
+print(f'   Status: {status}')
+print(f'   Response: {json.dumps(data, indent=2)[:500]}')
+time.sleep(2)
+
+# 2. List sessions after create
+print(f'\n2. All sessions after create...')
 status, data = api('GET', '/api/sessions')
 print(f'   Status: {status}')
 print(f'   Response: {json.dumps(data, indent=2)[:500]}')
 
-# Just try to start directly (WAHA Core should auto-create "default")
-print(f'\n1. Trying to start session directly (no create)...')
+# 3. Start
+print(f'\n3. Starting session...')
 status, data = api('POST', f'/api/sessions/{SESSION}/start', {})
 print(f'   Status: {status}')
 print(f'   Response: {json.dumps(data, indent=2)[:500]}')
-
 time.sleep(8)
 
-# Check status
-print(f'\n2. Status after start...')
-status, data = api('GET', f'/api/sessions/{SESSION}')
-print(f'   Status: {status}')
-print(f'   Response: {json.dumps(data, indent=2)[:500]}')
-
-# Try again with restart
-print(f'\n3. Trying restart...')
-status, data = api('POST', f'/api/sessions/{SESSION}/restart', {})
-print(f'   Status: {status}')
-print(f'   Response: {json.dumps(data, indent=2)[:500]}')
-
-time.sleep(8)
-
-print(f'\n4. Status after restart...')
+# 4. Status
+print(f'\n4. Status after start...')
 status, data = api('GET', f'/api/sessions/{SESSION}')
 print(f'   Status: {status}')
 print(f'   Response: {json.dumps(data, indent=2)[:500]}')
