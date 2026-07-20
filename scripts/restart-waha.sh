@@ -48,85 +48,36 @@ for i in $(seq 1 $MAX_RETRIES); do
     sleep 1
 done
 
-# Obtener estado de la sesion (si existe)
+# Obtener estado de la sesion
 SESSION_DATA=$(call_api "GET" "/api/sessions/$SESSION" 2>/dev/null)
 CURRENT_STATUS=$(echo "$SESSION_DATA" | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4 || echo "NOT_FOUND")
-HTTP_CODE=$(echo "$SESSION_DATA" | head -1 | grep -c 'NotFound' >/dev/null 2>&1 && echo "404" || echo "200")
+
+if [ "$CURRENT_STATUS" = "SCAN_QR_CODE" ]; then
+    log "Sesion '$SESSION' lista para escanear QR ($CURRENT_STATUS)"
+    exit 0
+fi
 
 if [ "$CURRENT_STATUS" = "WORKING" ] || [ "$CURRENT_STATUS" = "CONNECTED" ]; then
     log "Sesion '$SESSION' ya esta activa ($CURRENT_STATUS)"
     exit 0
 fi
 
-# Si la sesion existe pero no esta activa, intentar iniciar
-if [ "$CURRENT_STATUS" != "NOT_FOUND" ] && [ -n "$CURRENT_STATUS" ]; then
-    log "Sesion existe (estado: $CURRENT_STATUS). Iniciando..."
-    call_api "POST" "/api/sessions/$SESSION/start" '{}'
-    sleep 5
-    # Verificar si inicio
-    STATUS=$(call_api "GET" "/api/sessions/$SESSION" 2>/dev/null | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4)
-    if [ "$STATUS" = "WORKING" ] || [ "$STATUS" = "CONNECTED" ]; then
-        log "Sesion '$SESSION' iniciada correctamente"
-        exit 0
-    fi
-    log "No se pudo iniciar (estado: $STATUS). Reintentando con restart..."
-    call_api "POST" "/api/sessions/$SESSION/restart" '{}'
-    sleep 5
-    STATUS=$(call_api "GET" "/api/sessions/$SESSION" 2>/dev/null | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4)
-    if [ "$STATUS" = "WORKING" ] || [ "$STATUS" = "CONNECTED" ]; then
-        log "Sesion '$SESSION' reiniciada correctamente"
-        exit 0
-    fi
-    log "ERROR: No se pudo reiniciar la sesion (estado: $STATUS)"
-    log "Ve a /admin/chat-bot e inicia la sesion manualmente"
-    exit 1
-fi
-
-# La sesion no existe, crearla
-log "Sesion no existe. Creando sesion '$SESSION'..."
-CREATE_RESP=$(call_api "POST" "/api/sessions" "{\"name\":\"$SESSION\"}" 2>/dev/null)
-HTTP_CODE=$(echo "$CREATE_RESP" | grep -c '"statusCode":40' >/dev/null 2>&1 && echo "400" || echo "200")
-
-if [ "$HTTP_CODE" = "400" ]; then
-    log "Error al crear sesion: $CREATE_RESP"
-    log "Ve a /admin/chat-bot e inicia la sesion manualmente"
-    exit 1
-fi
-log "Sesion creada"
-
-for i in 1 2 3 4 5; do
-    sleep 2
-    EXISTS=$(call_api "GET" "/api/sessions/$SESSION" 2>/dev/null)
-    CODE=$(echo "$EXISTS" | grep -c 'NotFound' 2>/dev/null && echo "404" || echo "200")
-    if [ "$CODE" != "404" ]; then
-        log "Sesion confirmada en API"
-        break
-    fi
-    if [ "$i" -eq 5 ]; then
-        log "ERROR: La sesion no aparece en la API tras crearla. Reintentando..."
-        call_api "POST" "/api/sessions" "{\"name\":\"$SESSION\"}"
-        sleep 3
-    fi
-done
-
-# Iniciar la sesion creada
-log "Iniciando sesion..."
-START_RESP=$(call_api "POST" "/api/sessions/$SESSION/start" '{}' 2>/dev/null)
+log "Sesion existe (estado: $CURRENT_STATUS). Iniciando..."
+call_api "POST" "/api/sessions/$SESSION/start" '{}' > /dev/null 2>&1
 sleep 8
 
 STATUS=$(call_api "GET" "/api/sessions/$SESSION" 2>/dev/null | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4)
-if [ "$STATUS" = "WORKING" ] || [ "$STATUS" = "CONNECTED" ]; then
-    log "Sesion '$SESSION' creada e iniciada correctamente"
+if [ "$STATUS" = "SCAN_QR_CODE" ] || [ "$STATUS" = "WORKING" ] || [ "$STATUS" = "CONNECTED" ]; then
+    log "Sesion '$SESSION' iniciada correctamente ($STATUS)"
     exit 0
 fi
 
-# Ultimo intento: restart via API bypass
-log "Estado: $STATUS. Intentando restart..."
+log "Estado: $STATUS. Reintentando con restart..."
 call_api "POST" "/api/sessions/$SESSION/restart" '{}' > /dev/null 2>&1
 sleep 8
 STATUS=$(call_api "GET" "/api/sessions/$SESSION" 2>/dev/null | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4)
-if [ "$STATUS" = "WORKING" ] || [ "$STATUS" = "CONNECTED" ]; then
-    log "Sesion '$SESSION' reiniciada correctamente"
+if [ "$STATUS" = "SCAN_QR_CODE" ] || [ "$STATUS" = "WORKING" ] || [ "$STATUS" = "CONNECTED" ]; then
+    log "Sesion '$SESSION' reiniciada correctamente ($STATUS)"
     exit 0
 fi
 

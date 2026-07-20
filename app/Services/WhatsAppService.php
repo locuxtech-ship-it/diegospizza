@@ -93,18 +93,13 @@ class WhatsAppService
     public function startSession(): bool
     {
         try {
-            $start = $this->withAuth()->timeout(5)->post("{$this->baseUrl}/api/sessions/default/start");
+            $start = $this->withAuth()->timeout(10)->post("{$this->baseUrl}/api/sessions/default/start");
             if ($start->successful()) {
                 return true;
             }
-            $this->withAuth()->timeout(3)->delete("{$this->baseUrl}/api/sessions/default");
-            usleep(500000);
-            $sess = $this->withAuth()->timeout(5)->get("{$this->baseUrl}/api/sessions/default");
-            $create = $this->withAuth()->timeout(5)->asJson()->post("{$this->baseUrl}/api/sessions", ['name' => 'default']);
-            if ($create->successful()) {
-                usleep(500000);
-                $start = $this->withAuth()->timeout(5)->post("{$this->baseUrl}/api/sessions/default/start");
-                return $start->successful();
+            $restart = $this->withAuth()->timeout(10)->post("{$this->baseUrl}/api/sessions/default/restart");
+            if ($restart->successful()) {
+                return true;
             }
             return false;
         } catch (\Exception $e) {
