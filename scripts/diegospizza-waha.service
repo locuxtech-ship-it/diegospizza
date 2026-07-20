@@ -1,0 +1,18 @@
+[Unit]
+Description=Diego's Pizza - WAHA WhatsApp Session Restarter
+Requires=docker.service
+After=docker.service network-online.target
+BindsTo=diegospizza.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStartPre=/bin/sleep 15
+ExecStart=/home/oliver/diegospizza/scripts/restart-waha.sh
+User=oliver
+Group=oliver
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
