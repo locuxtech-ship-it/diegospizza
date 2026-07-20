@@ -8,7 +8,7 @@ import os
 
 API_KEY = os.environ.get('WAHA_API_KEY', 'diegospizza-waha-2026')
 WAHA_URL = 'http://localhost:3000'
-SESSION = 'test_session_' + str(int(time.time()))
+SESSION = 'default'
 
 def api(method, path, body=None):
     data = json.dumps(body).encode('utf-8') if body else None
