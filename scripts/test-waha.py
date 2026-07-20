@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test script for WAHA API - create, start and check session"""
+"""Test script for WAHA API - check session and fetch QR"""
 import json
 import urllib.request
 import time
@@ -9,6 +9,20 @@ import os
 API_KEY = os.environ.get('WAHA_API_KEY', 'diegospizza-waha-2026')
 WAHA_URL = 'http://localhost:3000'
 SESSION = 'default'
+
+def raw_api(method, path, body=None):
+    data = json.dumps(body).encode('utf-8') if body else None
+    req = urllib.request.Request(
+        f'{WAHA_URL}{path}',
+        data=data,
+        headers={'X-Api-Key': API_KEY},
+        method=method
+    )
+    try:
+        resp = urllib.request.urlopen(req)
+        return resp.status, resp.read(), resp.headers
+    except urllib.error.HTTPError as e:
+        return e.code, e.read(), e.headers
 
 def api(method, path, body=None):
     data = json.dumps(body).encode('utf-8') if body else None
@@ -37,28 +51,28 @@ def api(method, path, body=None):
 print(f'\n=== Testing WAHA API ===')
 print(f'Session name: {SESSION}')
 
-# 1. Try creating session
-print(f'\n1. Creating session "default"...')
-status, data = api('POST', '/api/sessions', {'name': SESSION})
-print(f'   Status: {status}')
-print(f'   Response: {json.dumps(data, indent=2)[:500]}')
-time.sleep(2)
-
-# 2. List sessions after create
-print(f'\n2. All sessions after create...')
-status, data = api('GET', '/api/sessions')
-print(f'   Status: {status}')
-print(f'   Response: {json.dumps(data, indent=2)[:500]}')
-
-# 3. Start
-print(f'\n3. Starting session...')
-status, data = api('POST', f'/api/sessions/{SESSION}/start', {})
-print(f'   Status: {status}')
-print(f'   Response: {json.dumps(data, indent=2)[:500]}')
-time.sleep(8)
-
-# 4. Status
-print(f'\n4. Status after start...')
+# Check session status
+print(f'\n1. Session status...')
 status, data = api('GET', f'/api/sessions/{SESSION}')
 print(f'   Status: {status}')
-print(f'   Response: {json.dumps(data, indent=2)[:500]}')
+if status == 200:
+    print(f'   Session: {data.get("name")}, Status: {data.get("status")}')
+
+# Try to fetch QR
+print(f'\n2. Fetching QR code...')
+status, raw, headers = raw_api('GET', f'/api/{SESSION}/auth/qr')
+print(f'   HTTP Status: {status}')
+print(f'   Content-Type: {headers.get("Content-Type")}')
+if status == 200:
+    ct = headers.get('Content-Type', '')
+    body = raw
+    if ct.startswith('image'):
+        print(f'   QR IMAGE: {len(body)} bytes, data:image/png;base64,...')
+    else:
+        try:
+            j = json.loads(body)
+            print(f'   QR data: {json.dumps(j, indent=2)[:300]}')
+        except:
+            print(f'   Raw: {body[:200]}')
+else:
+    print(f'   Error body: {raw.decode()[:200]}')
