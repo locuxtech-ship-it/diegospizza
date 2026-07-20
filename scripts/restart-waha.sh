@@ -67,8 +67,19 @@ call_api "POST" "/api/sessions/$SESSION/start" '{}' > /dev/null 2>&1
 sleep 8
 
 STATUS=$(call_api "GET" "/api/sessions/$SESSION" 2>/dev/null | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4)
-if [ "$STATUS" = "SCAN_QR_CODE" ] || [ "$STATUS" = "WORKING" ] || [ "$STATUS" = "CONNECTED" ]; then
-    log "Sesion '$SESSION' iniciada correctamente ($STATUS)"
+
+if [ "$STATUS" = "SCAN_QR_CODE" ]; then
+    log "Sesion '$SESSION' iniciada - QR generado. Escanea en /admin/chat-bot"
+    log "Verificando QR..."
+    QR_HTTP=$(curl -s -o /dev/null -w '%{http_code}' -H "X-Api-Key: $API_KEY" "$WAHA_URL/api/$SESSION/auth/qr" 2>/dev/null)
+    if [ "$QR_HTTP" = "200" ]; then
+        log "QR disponible y listo para escanear"
+    fi
+    exit 0
+fi
+
+if [ "$STATUS" = "WORKING" ] || [ "$STATUS" = "CONNECTED" ]; then
+    log "Sesion '$SESSION' ya esta conectada ($STATUS)"
     exit 0
 fi
 

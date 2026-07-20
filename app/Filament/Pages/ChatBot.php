@@ -60,6 +60,10 @@ class ChatBot extends Page
         $this->review_message = $chatbot['review_message'] ?? "Gracias por tu pedido {nombre}!\nDejanos tu reseña aqui: {link} 🍕";
 
         $this->checkStatus();
+
+        if ($this->status !== 'CONNECTED' && $this->status !== 'SCAN_QR_CODE') {
+            $this->showQR();
+        }
     }
 
     public function checkStatus(): void
