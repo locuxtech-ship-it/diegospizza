@@ -29,36 +29,35 @@ def api(method, path, body=None):
 print(f'\n=== Testing WAHA API ===')
 print(f'Session name: {SESSION}')
 
-# 1. Create session
-print(f'\n1. Creating session...')
-status, data = api('POST', '/api/sessions', {'name': SESSION})
+# List sessions first
+print(f'\n0. All sessions before...')
+status, data = api('GET', '/api/sessions')
 print(f'   Status: {status}')
-print(f'   Response: {json.dumps(data, indent=2)[:200]}')
+print(f'   Response: {json.dumps(data, indent=2)[:500]}')
 
-time.sleep(2)
-
-# 2. Check session
-print(f'\n2. Checking session...')
-status, data = api('GET', f'/api/sessions/{SESSION}')
-print(f'   Status: {status}')
-print(f'   Response: {json.dumps(data, indent=2)[:200]}')
-
-# 3. Start session
-print(f'\n3. Starting session...')
+# Just try to start directly (WAHA Core should auto-create "default")
+print(f'\n1. Trying to start session directly (no create)...')
 status, data = api('POST', f'/api/sessions/{SESSION}/start', {})
 print(f'   Status: {status}')
-print(f'   Response: {json.dumps(data, indent=2)[:200]}')
+print(f'   Response: {json.dumps(data, indent=2)[:500]}')
 
-time.sleep(5)
+time.sleep(8)
 
-# 4. Check status
-print(f'\n4. Status after start...')
+# Check status
+print(f'\n2. Status after start...')
 status, data = api('GET', f'/api/sessions/{SESSION}')
 print(f'   Status: {status}')
 print(f'   Response: {json.dumps(data, indent=2)[:500]}')
 
-# 5. List all sessions
-print(f'\n5. All sessions...')
-status, data = api('GET', '/api/sessions')
+# Try again with restart
+print(f'\n3. Trying restart...')
+status, data = api('POST', f'/api/sessions/{SESSION}/restart', {})
+print(f'   Status: {status}')
+print(f'   Response: {json.dumps(data, indent=2)[:500]}')
+
+time.sleep(8)
+
+print(f'\n4. Status after restart...')
+status, data = api('GET', f'/api/sessions/{SESSION}')
 print(f'   Status: {status}')
 print(f'   Response: {json.dumps(data, indent=2)[:500]}')
