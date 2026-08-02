@@ -4,12 +4,13 @@ namespace App\Livewire;
 
 use App\Models\Cliente;
 use App\Models\ClienteDireccion;
-use App\Models\CuponDescuento;
+use App\Models\DescuentoProducto;
 use App\Models\NegocioSetting;
 use App\Models\Pago;
 use App\Models\Pedido;
 use App\Models\PedidoProducto;
 use App\Models\Punto;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -333,41 +334,52 @@ class Checkout extends Component
             $direccionId = $dir->id;
         }
 
-        $pedido = Pedido::create([
-            'cliente_id' => $cliente->id,
-            'cliente_direccion_id' => $direccionId,
-            'subtotal' => $this->subtotal,
-            'descuento_puntos' => $this->descuentoPuntos,
-            'cupon_descuento_id' => $this->cuponAplicado?->id,
-            'descuento_cupon' => $this->descuentoCupon,
-            'con_descuento_producto' => $this->hayDescuentosProducto,
-            'total' => $this->total,
-            'origen' => 'web',
-            'estado' => 'pendiente_pago',
-            'metodo_pago' => $this->metodoPago,
-            'notas' => $this->notas,
-        ]);
+        try {
+            DB::beginTransaction();
 
-        foreach ($this->items as $item) {
-            PedidoProducto::create([
-                'pedido_id' => $pedido->id,
-                'producto_id' => $item['id'],
-                'variant_id' => $item['variant_id'] ?? null,
-                'variant_tamanio' => $item['variant_tamanio'] ?? null,
-                'mitades' => $item['mitades'] ?? null,
-                'cantidad' => $item['cantidad'],
-                'precio_unitario' => $item['precio'],
-                'subtotal' => $item['precio'] * $item['cantidad'],
+            $pedido = Pedido::create([
+                'cliente_id' => $cliente->id,
+                'cliente_direccion_id' => $direccionId,
+                'subtotal' => $this->subtotal,
+                'descuento_puntos' => $this->descuentoPuntos,
+                'cupon_descuento_id' => $this->cuponAplicado?->id,
+                'descuento_cupon' => $this->descuentoCupon,
+                'con_descuento_producto' => $this->hayDescuentosProducto,
+                'total' => $this->total,
+                'origen' => 'web',
+                'estado' => 'pendiente_pago',
+                'metodo_pago' => $this->metodoPago,
+                'notas' => $this->notas,
             ]);
+
+            foreach ($this->items as $item) {
+                PedidoProducto::create([
+                    'pedido_id' => $pedido->id,
+                    'producto_id' => $item['id'],
+                    'variant_id' => $item['variant_id'] ?? null,
+                    'variant_tamanio' => $item['variant_tamanio'] ?? null,
+                    'mitades' => $item['mitades'] ?? null,
+                    'cantidad' => $item['cantidad'],
+                    'precio_unitario' => $item['precio'],
+                    'subtotal' => $item['precio'] * $item['cantidad'],
+                ]);
+            }
+
+            Pago::create([
+                'pedido_id' => $pedido->id,
+                'monto' => $this->total,
+                'metodo' => $this->metodoPago,
+                'confirmado' => false,
+                'fecha_pago' => now(),
+            ]);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
         }
 
-        Pago::create([
-            'pedido_id' => $pedido->id,
-            'monto' => $this->total,
-            'metodo' => $this->metodoPago,
-            'confirmado' => false,
-            'fecha_pago' => now(),
-        ]);
+        $pedido->sendNotification('pendiente_pago');
 
         // Increment coupon usage
         if ($this->cuponAplicado) {

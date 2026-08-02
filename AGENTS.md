@@ -37,6 +37,12 @@ Build a complete web-based pizza delivery ordering system (Diego's Pizza) with L
 ### Blocked
 - (none)
 
+## Hotfixes deployed 2026-07-25
+- **EditPedido round() crash**: `round(..., 0, ',', '.')` — 4 argumentos copiados de `number_format()` a `round()` que solo acepta 3. Afectaba cambiarCantidad() y agregarProducto() en EditPedido. Arreglado en líneas 167, 238, 268, 326 de `EditPedido.php`.
+- **PDV puntos**: `$pedido->origen !== 'pdv'` agregado en `asignarPuntosGanados()` para que pedidos de ManualOrder no ganen puntos.
+- **Ticket sin productos**: Movido `sendNotification('pendiente_pago')` del hook `created` a `Checkout.php` y `ManualOrder.php` después de crear `PedidoProducto`, eliminando race condition.
+- **Backups**: `chmod +x backup.sh` + rclone reinstalado + backup a Google Drive funcional.
+
 ## Next Steps
 - **Productos agrupados por categoría en admin** — `ProductosTable.php`: agregado `->groups()` + `->defaultGroup('categoria.nombre')` para agrupar visualmente por categoría
 - **Cambiar método de pago en pedidos finalizados** — `EditPedido.php`: `readOnly` solo para cancelado, `productosReadOnly` separado para finalizado, pagos editables. Botón "Gestionar método de pago" en historial que redirige a EditPedido

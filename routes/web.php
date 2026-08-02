@@ -63,6 +63,7 @@ Route::get('/api/agent/pendientes', function () {
         ->where('estado', 'pendiente_pago')
         ->whereDate('created_at', today())
         ->where('id', '>', $afterId)
+        ->whereHas('productos')
         ->orderBy('created_at')
         ->get();
     $orders = [];
@@ -85,6 +86,7 @@ Route::get('/api/pedidos/pendientes', function () {
     $pedidos = App\Models\Pedido::with('cliente')
         ->where('estado', 'pendiente_pago')
         ->whereDate('created_at', today())
+        ->whereHas('productos')
         ->orderBy('created_at')
         ->get();
     return response()->json([

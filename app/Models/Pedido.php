@@ -65,16 +65,12 @@ class Pedido extends Model
             }
         });
 
-        static::created(function ($pedido) {
-            $pedido->sendNotification('pendiente_pago');
-        });
-
         static::saved(function ($pedido) {
             $original = $pedido->getOriginal('estado');
             if ($original !== null && $original !== $pedido->estado) {
                 $pedido->sendNotification($pedido->estado);
 
-                if ($pedido->estado === 'finalizado') {
+                if ($pedido->estado === 'finalizado' && $pedido->origen !== 'pdv') {
                     $pedido->asignarPuntosGanados();
                 } elseif ($original === 'finalizado') {
                     $pedido->revertirPuntosGanados();

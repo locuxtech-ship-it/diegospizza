@@ -15,6 +15,7 @@ use App\Models\Punto;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\DB;
 use UnitEnum;
 
 class ManualOrder extends Page
@@ -324,38 +325,49 @@ class ManualOrder extends Page
             $subtotal += $item['precio'] * $item['cantidad'];
         }
 
-        $pedido = Pedido::create([
-            'cliente_id' => $cliente->id,
-            'cliente_direccion_id' => $direccionId,
-            'subtotal' => $subtotal,
-            'descuento_puntos' => 0,
-            'total' => $subtotal,
-            'origen' => 'pdv',
-            'estado' => 'pendiente_pago',
-            'metodo_pago' => $this->metodoPago,
-            'notas' => $this->notas,
-        ]);
+        try {
+            DB::beginTransaction();
 
-        foreach ($this->carrito as $item) {
-            PedidoProducto::create([
-                'pedido_id' => $pedido->id,
-                'producto_id' => $item['producto_id'],
-                'variant_id' => $item['variant_id'] ?: null,
-                'variant_tamanio' => $item['variant_tamanio'] ?? null,
-                'mitades' => $item['mitades'] ?? null,
-                'cantidad' => $item['cantidad'],
-                'precio_unitario' => $item['precio'],
-                'subtotal' => $item['precio'] * $item['cantidad'],
+            $pedido = Pedido::create([
+                'cliente_id' => $cliente->id,
+                'cliente_direccion_id' => $direccionId,
+                'subtotal' => $subtotal,
+                'descuento_puntos' => 0,
+                'total' => $subtotal,
+                'origen' => 'pdv',
+                'estado' => 'pendiente_pago',
+                'metodo_pago' => $this->metodoPago,
+                'notas' => $this->notas,
             ]);
+
+            foreach ($this->carrito as $item) {
+                PedidoProducto::create([
+                    'pedido_id' => $pedido->id,
+                    'producto_id' => $item['producto_id'],
+                    'variant_id' => $item['variant_id'] ?: null,
+                    'variant_tamanio' => $item['variant_tamanio'] ?? null,
+                    'mitades' => $item['mitades'] ?? null,
+                    'cantidad' => $item['cantidad'],
+                    'precio_unitario' => $item['precio'],
+                    'subtotal' => $item['precio'] * $item['cantidad'],
+                ]);
+            }
+
+            Pago::create([
+                'pedido_id' => $pedido->id,
+                'monto' => $subtotal,
+                'metodo' => $this->metodoPago,
+                'confirmado' => false,
+                'fecha_pago' => now(),
+            ]);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
         }
 
-        Pago::create([
-            'pedido_id' => $pedido->id,
-            'monto' => $subtotal,
-            'metodo' => $this->metodoPago,
-            'confirmado' => false,
-            'fecha_pago' => now(),
-        ]);
+        $pedido->sendNotification('pendiente_pago');
 
         $this->limpiarCarrito();
         $this->pedidoCreado = true;
