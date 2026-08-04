@@ -18,6 +18,11 @@ docker compose up -d --force-recreate waha
 ```
 - Solo el primer arranque tras el fix pedirá re-escanear el QR (las credenciales se regeneran).
 
+### Fix servicio de auto-arranque (`diegospizza-waha.service`)
+- El script `scripts/restart-waha.sh` estaba trackeado sin bit de ejecución (`100644`), por lo que systemd fallaba al arrancar con `status=203/EXEC` en cada boot.
+- Corregido: el script ahora tiene bit de ejecución (`100755`). Verificado manualmente: exit 0 y detecta la sesión `WORKING`.
+- En el próximo encendido el servicio arrancará correctamente y reconectará la sesión sin pedir QR.
+
 ## [02-06-2026] — Fix Seguridad Finalizar Pedido (Admin + Cajero)
 
 ### Regla Única
