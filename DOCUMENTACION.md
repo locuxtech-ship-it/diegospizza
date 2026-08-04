@@ -246,6 +246,25 @@ pendiente_pago → pendiente → en_proceso → en_camino → finalizado
 - Se envía confirmación al número del negocio después de cada pedido web
 - Se construye mensaje con: items, variantes, sabores (Mitad y Mitad), total, método de pago, dirección y notas
 
+### Persistencia de sesión del bot (WAHA/GOWS)
+
+El bot de WhatsApp usa WAHA con motor **GOWS**. WAHA guarda las credenciales/cookies de sesión (las que permiten estar conectado sin re-escanear el QR) en la ruta **`/app/.sessions`** (con punto) dentro del contenedor, en `gows/`.
+
+- **Causa raíz del bug**: `docker-compose.yml` montaba el volumen `waha_sessions` en `/app/sessions` (sin punto). Esa ruta solo contiene metadatos de sesión, NO las credenciales GOWS. Por eso, tras apagar/reiniciar la máquina, la sesión quedaba vacía y **siempre volvía a pedir re-escanear el QR**.
+- **Fix aplicado**: el volumen ahora se monta en `/app/.sessions`:
+
+  ```yaml
+  waha:
+    image: devlikeapro/waha:latest
+    ...
+    volumes:
+      - waha_sessions:/app/.sessions
+  ```
+
+- El volumen nombrado `waha_sessions` persiste entre reinicios del contenedor y de la máquina. Con la ruta correcta, la sesión GOWS sobrevive al apagado y el servicio `diegospizza-waha.service` (systemd) solo la levanta al arrancar, **sin pedir QR**.
+- **IMPORTANTE**: si el volumen `waha_sessions` ya existía con datos montados en la ruta vieja (`/app/sessions`), el primer arranque tras el fix pedirá re-escanear el QR una sola vez (las credenciales se regeneran). Los reinicios posteriores ya no pedirán QR.
+- Para aplicar el cambio en el servidor: `docker compose up -d --force-recreate waha` (recrea el contenedor con el nuevo mount).
+
 ---
 
 ## Migraciones Importantes

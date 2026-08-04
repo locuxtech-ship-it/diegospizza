@@ -1,5 +1,23 @@
 # Changelog — Diego's Pizza
 
+## [04-08-2026] — Fix Persistencia Sesión Bot WhatsApp (WAHA/GOWS)
+
+### Causa raíz
+- El volumen `waha_sessions` estaba montado en `/app/sessions` (sin punto), pero GOWS guarda las credenciales de sesión en `/app/.sessions/gows/`.
+- Resultado: al apagar/reiniciar la máquina, la sesión quedaba vacía y el bot pedía re-escanear el QR siempre.
+
+### Fix
+- `docker-compose.yml`: el volumen `waha_sessions` ahora se monta en `/app/.sessions`.
+- Las credenciales GOWS persisten entre reinicios de la máquina; `restart-waha.sh` (systemd) levanta la sesión sin pedir QR.
+- Punto de restauración: tag `restore-point-pre-gows-fix`.
+
+### Despliegue
+```bash
+cd /home/oliver/diegospizza
+docker compose up -d --force-recreate waha
+```
+- Solo el primer arranque tras el fix pedirá re-escanear el QR (las credenciales se regeneran).
+
 ## [02-06-2026] — Fix Seguridad Finalizar Pedido (Admin + Cajero)
 
 ### Regla Única

@@ -79,7 +79,7 @@ services:
       - WAHA_API_KEY=${WAHA_API_KEY}
       - TZ=America/Bogota
     volumes:
-      - waha_sessions:/app/sessions
+      - waha_sessions:/app/.sessions
     networks:
       - diegospizza
 
