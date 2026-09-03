@@ -234,7 +234,7 @@
                 </div>
                 @if($restante > 0)
                 <div style="display: flex; justify-content: space-between; font-size: 13px; color: #dc2626; margin-top: 2px;">
-                    <span>⏳ Falta por pagar</span>
+                    <span>{{ $totalPagado > 0 ? '💰 Pago parcial — Falta' : '⏳ Falta por pagar' }}</span>
                     <span style="font-weight: 700;">${{ number_format($restante, 0, ',', '.') }}</span>
                 </div>
                 @endif

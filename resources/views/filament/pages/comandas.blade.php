@@ -370,7 +370,7 @@
                 @endif
                 <div style="display: flex; justify-content: space-between; font-size: 13px; color: #6b7280;">
                     <span>Estado</span>
-                    <span style="font-weight: 600; color: {{ $restante > 0 ? '#f59e0b' : '#16a34a' }};">{{ $restante > 0 ? 'Pendiente' : 'Pagado' }}</span>
+                    <span style="font-weight: 600; color: {{ $restante > 0 ? '#f59e0b' : '#16a34a' }};">{{ $restante > 0 ? ($totalPagado > 0 ? 'Pago parcial' : 'Pendiente') : 'Pagado' }}</span>
                 </div>
                 @if($restante > 0)
                 <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; color: #dc2626; border-top: 1px dashed #e5e7eb; padding-top: 6px; margin-top: 6px;">

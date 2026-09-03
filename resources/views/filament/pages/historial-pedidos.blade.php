@@ -233,7 +233,7 @@
                     @endforeach
                     @if($restanteD > 0)
                     <div style="text-align: center; margin-top: 8px;">
-                        <span style="font-size: 13px; color: #f59e0b; font-weight: 600;">⏳ Falta por pagar: ${{ number_format($restanteD, 0, ',', '.') }}</span>
+                        <span style="font-size: 13px; color: #f59e0b; font-weight: 600;">{{ $detalleTotalPagado > 0 ? '💰 Pago parcial — Falta' : '⏳ Falta por pagar' }}: ${{ number_format($restanteD, 0, ',', '.') }}</span>
                     </div>
                     @else
                     <div style="text-align: center; margin-top: 8px;">

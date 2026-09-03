@@ -122,8 +122,11 @@
                                     class="mt-3 w-full py-2.5 rounded-xl text-sm font-bold text-white transition-all duration-200 active:scale-95 shadow-sm flex-shrink-0"
                                     style="background-color: #FF8D08;"
                                     @if(!$estaAbierto) disabled @endif>
-                                    @if($estaAbierto) + Agregar @else Cerrado @endif
+                                    @if($estaAbierto) + Agregar @else ⏰ Cerrado @endif
                                 </button>
+                                @if(!$estaAbierto)
+                                    <p class="text-xs text-gray-400 text-center mt-1.5">Abre a las {{ \App\Models\NegocioSetting::getTodayHours()['apertura'] }}</p>
+                                @endif
                             </div>
                         </div>
                     @empty
