@@ -120,13 +120,10 @@
                                 @endif
                                 <button @if($hasVariants || $producto->es_personalizable) wire:click="seleccionarProducto({{ $producto->id }})" @else wire:click="$dispatch('productoAgregado', { productoId: {{ $producto->id }} })" @endif
                                     class="mt-3 w-full py-2.5 rounded-xl text-sm font-bold text-white transition-all duration-200 active:scale-95 shadow-sm flex-shrink-0"
-                                    style="background-color: #FF8D08;"
-                                    @if(!$estaAbierto) disabled @endif>
+                                    style="background-color: #FF8D08;{{ (!$estaAbierto && !$hasVariants && !$producto->es_personalizable) ? ' opacity: 50%;' : '' }}"
+                                    @if(!$estaAbierto && !$hasVariants && !$producto->es_personalizable) disabled @endif>
                                     @if($estaAbierto) + Agregar @else ⏰ Cerrado @endif
                                 </button>
-                                @if(!$estaAbierto)
-                                    <p class="text-xs text-gray-400 text-center mt-1.5">Abre a las {{ \App\Models\NegocioSetting::getTodayHours()['apertura'] }}</p>
-                                @endif
                             </div>
                         </div>
                     @empty
@@ -158,8 +155,11 @@
                     <h3 class="text-lg font-bold text-gray-900">{{ $selectedProduct->nombre }}</h3>
                     <p class="text-sm text-gray-400 mt-1">Selecciona 2 sabores</p>
                     <p class="text-xs text-gray-400 mt-1" style="color: #ea580c;">* Solo aplica para pizza de tamaño Mediana</p>
+                    @if(!$estaAbierto)
+                        <p class="text-xs mt-1 font-semibold" style="color: #dc2626;">⏰ Cerrado — abre a las {{ \App\Models\NegocioSetting::getTodayHours()['apertura'] }}</p>
+                    @endif
                 </div>
-                <div class="space-y-4">
+                <div class="space-y-4" style="{{ !$estaAbierto ? 'opacity: 0.55; pointer-events: none;' : '' }}">
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Primer sabor</label>
                         <select wire:model.live="mitad1" class="w-full border-2 border-gray-200 rounded-xl p-3 text-sm font-medium focus:border-orange-400 focus:outline-none" style="border-color: #FF8D08;">
@@ -208,8 +208,11 @@
                     <div class="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-3 text-3xl">🍕</div>
                     <h3 class="text-lg font-bold text-gray-900">{{ $selectedProduct->nombre }}</h3>
                     <p class="text-sm text-gray-400 mt-1">Selecciona un tamaño</p>
+                    @if(!$estaAbierto)
+                        <p class="text-xs mt-1 font-semibold" style="color: #dc2626;">⏰ Cerrado — abre a las {{ \App\Models\NegocioSetting::getTodayHours()['apertura'] }}</p>
+                    @endif
                 </div>
-                <div class="space-y-3">
+                <div class="space-y-3" style="{{ !$estaAbierto ? 'opacity: 0.55; pointer-events: none;' : '' }}">
                     @foreach($selectedProduct->variants as $variant)
                         <button wire:click="agregarConVariante({{ $selectedProduct->id }}, {{ $variant->id }})"
                             class="w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all duration-200 active:scale-[0.98]"
