@@ -109,8 +109,8 @@
                             {{ $pedido['metodo_pago'] }}
                         </span>
                         @endif
-                        <span style="font-size: 9px; padding: 1px 4px; border-radius: 4px; font-weight: 500; {{ $pagado ? 'background: #dcfce7; color: #16a34a;' : ($parcial ? 'background: #fef3c7; color: #d97706;' : 'background: #fef3c7; color: #d97706;') }}">
-                            {{ $pagado ? 'Pagado' : ($parcial ? '💰 P. Parcial' : 'Pend.') }}
+                        <span style="font-size: 9px; padding: 1px 4px; border-radius: 4px; font-weight: 500; {{ $pagado ? 'background: #dcfce7; color: #16a34a;' : ($parcial ? 'background: #dbeafe; color: #2563eb;' : 'background: #fef3c7; color: #d97706;') }}">
+                            {{ $pagado ? '✅ Pagado' : ($parcial ? '💰 P. Parcial' : '⏳ Pend.') }}
                         </span>
                     </div>
                 </div>
@@ -251,7 +251,7 @@
                                         <span style="font-weight: 700; font-size: 16px;">${{ number_format($pedido['total'], 0, ',', '.') }}</span>
                                         @php $pedidoPagoCompleto = $pedido['pago_completo'] ?? $this->pagoCompleto($pedido['id']); @endphp
                                         @php $pedidoPagoParcial = !$pedidoPagoCompleto && $this->pagoParcial($pedido['id']); @endphp
-                                        <span style="font-size: 11px; padding: 2px 6px; border-radius: 10px; font-weight: 500; {{ $pedidoPagoCompleto ? 'background: #dcfce7; color: #16a34a;' : 'background: #fef3c7; color: #d97706;' }}">
+                                        <span style="font-size: 11px; padding: 2px 6px; border-radius: 10px; font-weight: 500; {{ $pedidoPagoCompleto ? 'background: #dcfce7; color: #16a34a;' : ($pedidoPagoParcial ? 'background: #dbeafe; color: #2563eb;' : 'background: #fef3c7; color: #d97706;') }}">
                                             {{ $pedidoPagoCompleto ? '💳 Pagado' : ($pedidoPagoParcial ? '💰 P. Parcial' : '⏳ Pendiente') }}
                                         </span>
                                         <a href="#" onclick="event.stopPropagation(); printPedido({{ $pedido['id'] }}); return false;" style="display: inline-flex; align-items: center; gap: 3px; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 500; text-decoration: none; background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb;">
