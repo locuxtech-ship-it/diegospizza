@@ -226,6 +226,15 @@ class Comandas extends Page
         return $total > 0 && $totalPagado >= $total;
     }
 
+    public function pagoParcial(int $pedidoId): bool
+    {
+        $pedido = Pedido::find($pedidoId);
+        if (!$pedido) return false;
+        $totalPagado = (float) Pago::where('pedido_id', $pedidoId)->where('confirmado', true)->sum('monto');
+        $total = (float) $pedido->total;
+        return $total > 0 && $totalPagado > 0 && $totalPagado < $total;
+    }
+
     public function abrirModalPago(int $pedidoId): void
     {
         $pedido = Pedido::with('pagos', 'cliente')->find($pedidoId);

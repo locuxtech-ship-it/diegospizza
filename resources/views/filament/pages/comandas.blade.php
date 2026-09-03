@@ -61,9 +61,10 @@
                 <div style="padding: 8px; text-align: left;">Acción</div>
             </div>
             @forelse($todos as $pedido)
-            @php
+                @php
                 $productos = $this->getProductosPedido($pedido['id']);
                 $pagado = $this->pagoCompleto($pedido['id']);
+                $parcial = !$pagado && $this->pagoParcial($pedido['id']);
                 $dir = collect([$pedido['cliente']['conjunto'] ?? '', $pedido['cliente']['torre'] ?? '', $pedido['cliente']['apto'] ?? ''])->filter()->implode(', ');
                 $resumen = collect($productos)->map(fn($p) => $p['cantidad'] . 'x ' . (!empty($p['mitades']) ? 'Pizza Mediana Mitad y Mitad [' . collect($p['mitades'])->pluck('nombre')->implode('/') . ']' : $p['producto']['nombre'] . (!empty($p['variant_tamanio']) ? ' (' . $p['variant_tamanio'] . ')' : '')))->implode(', ');
                 $iconoEstado = match($pedido['estado']) { 'pendiente_pago' => '⏳', 'en_proceso' => '👨‍🍳', 'en_camino' => '🚗', 'entregado' => '📍', default => '' };
@@ -108,8 +109,8 @@
                             {{ $pedido['metodo_pago'] }}
                         </span>
                         @endif
-                        <span style="font-size: 9px; padding: 1px 4px; border-radius: 4px; font-weight: 500; {{ $pagado ? 'background: #dcfce7; color: #16a34a;' : 'background: #fef3c7; color: #d97706;' }}">
-                            {{ $pagado ? 'Pagado' : 'Pend.' }}
+                        <span style="font-size: 9px; padding: 1px 4px; border-radius: 4px; font-weight: 500; {{ $pagado ? 'background: #dcfce7; color: #16a34a;' : ($parcial ? 'background: #fef3c7; color: #d97706;' : 'background: #fef3c7; color: #d97706;') }}">
+                            {{ $pagado ? 'Pagado' : ($parcial ? '💰 P. Parcial' : 'Pend.') }}
                         </span>
                     </div>
                 </div>
@@ -249,8 +250,9 @@
                                     <div style="display: flex; align-items: center; gap: 4px;">
                                         <span style="font-weight: 700; font-size: 16px;">${{ number_format($pedido['total'], 0, ',', '.') }}</span>
                                         @php $pedidoPagoCompleto = $pedido['pago_completo'] ?? $this->pagoCompleto($pedido['id']); @endphp
+                                        @php $pedidoPagoParcial = !$pedidoPagoCompleto && $this->pagoParcial($pedido['id']); @endphp
                                         <span style="font-size: 11px; padding: 2px 6px; border-radius: 10px; font-weight: 500; {{ $pedidoPagoCompleto ? 'background: #dcfce7; color: #16a34a;' : 'background: #fef3c7; color: #d97706;' }}">
-                                            {{ $pedidoPagoCompleto ? '💳 Pagado' : '⏳ Pendiente' }}
+                                            {{ $pedidoPagoCompleto ? '💳 Pagado' : ($pedidoPagoParcial ? '💰 P. Parcial' : '⏳ Pendiente') }}
                                         </span>
                                         <a href="#" onclick="event.stopPropagation(); printPedido({{ $pedido['id'] }}); return false;" style="display: inline-flex; align-items: center; gap: 3px; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 500; text-decoration: none; background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb;">
                                             🖨️
