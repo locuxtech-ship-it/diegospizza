@@ -229,7 +229,13 @@ class Checkout extends Component
         $this->pedidoId = $pedido->numero_pedido;
 
         $this->whatsappUrl = $this->generarWhatsAppUrl($pedido, $cliente);
-        $this->whatsappComprobanteUrl = 'https://wa.me/573106444759?text=' . rawurlencode('Hola, vengo de la app de Diego\'s Pizza 🍕 Este es mi pedido #' . $pedido->numero_pedido . '. Me gustaría recibir información adicional sobre el estado de mi pedido. ¡Gracias!');
+        $telefonoTienda = '573106444759';
+        if ($this->metodoPago === 'transferencia') {
+            $mensaje = 'Hola, vengo de la app de Diego\'s Pizza 🍕 Este es mi pedido #' . $pedido->numero_pedido . '. Me gustaría recibir información sobre los medios de pago. ¡Gracias!';
+        } else {
+            $mensaje = 'Hola, vengo de la app de Diego\'s Pizza 🍕 Este es mi pedido #' . $pedido->numero_pedido . '. Me gustaría recibir información adicional sobre el estado de mi pedido. ¡Gracias!';
+        }
+        $this->whatsappComprobanteUrl = 'https://wa.me/' . $telefonoTienda . '?text=' . rawurlencode($mensaje);
     }
 
     private function generarWhatsAppUrl(Pedido $pedido, Cliente $cliente): string
