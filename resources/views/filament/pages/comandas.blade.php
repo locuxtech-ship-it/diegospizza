@@ -94,7 +94,11 @@
                 </div>
                 {{-- Total: monto + pago --}}
                 <div style="padding: 8px; text-align: center;">
-                    <div style="font-weight: 700; font-size: 14px; color: #111827;">${{ number_format($pedido['total'], 0, ',', '.') }}</div>
+                    @php $totalVista = (float)($pedido['total'] ?? 0) - (float)($pedido['descuento_manual'] ?? 0); @endphp
+                    <div style="font-weight: 700; font-size: 14px; color: #111827;">${{ number_format($totalVista, 0, ',', '.') }}</div>
+                    @if(($pedido['descuento_manual'] ?? 0) > 0)
+                    <div style="font-size: 10px; color: #dc2626;">-${{ number_format((float)$pedido['descuento_manual'], 0, ',', '.') }} desc.</div>
+                    @endif
                     <div style="margin-top: 2px;">
                         @if(!empty($pedido['metodo_pago']))
                         <span style="font-size: 9px; padding: 1px 4px; border-radius: 4px; font-weight: 500;
@@ -417,20 +421,15 @@
                 @endif
                 {{-- Descuento --}}
                 @can('applyDiscount', auth()->user())
-                <div style="margin-top: 8px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; background: #f9fafb;">
-                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                        <span style="font-size: 12px; font-weight: 600; color: #6b7280;">🏷️ Descuento:</span>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
-                            <input type="radio" wire:model.live="descuentoTipo" value="fijo"> en pesos
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
-                            <input type="radio" wire:model.live="descuentoTipo" value="porcentaje"> Porcentaje
-                        </label>
-                        <input type="number" step="1" wire:model.live="descuentoValor" min="0" placeholder="0" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px; width: 90px;">
-                    </div>
-                    <button type="button" wire:click="guardarDescuento" style="margin-top: 8px; width: 100%; background: #16a34a; color: white; border: none; border-radius: 8px; padding: 10px 12px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-                        💾 Guardar descuento
-                    </button>
+                <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <span style="font-size: 12px; font-weight: 600; color: #6b7280;">🏷️ Descuento:</span>
+                    <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
+                        <input type="radio" wire:model.live="descuentoTipo" value="fijo"> en pesos
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
+                        <input type="radio" wire:model.live="descuentoTipo" value="porcentaje"> Porcentaje
+                    </label>
+                    <input type="number" step="1" wire:model.live="descuentoValor" min="0" placeholder="0" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px; width: 90px;">
                 </div>
                 @endcan
             </div>
@@ -493,6 +492,15 @@
                         <input type="text" wire:model.live="clienteApto" placeholder="Apto" style="flex: 1; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px;">
                     </div>
                 </div>
+            </div>
+            @endif
+
+            {{-- Aplicar cambios --}}
+            @if(!in_array($pedidoEstado, ['finalizado', 'cancelado']))
+            <div style="margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 12px;">
+                <button type="button" wire:click="aplicarCambios" style="width: 100%; background: #2563eb; color: white; border: none; border-radius: 8px; padding: 12px 16px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                    ✅ Aplicar cambios (descuento + cliente)
+                </button>
             </div>
             @endif
         </div>

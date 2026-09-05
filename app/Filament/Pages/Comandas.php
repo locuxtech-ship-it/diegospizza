@@ -138,7 +138,7 @@ class Comandas extends Page
 
         foreach ($this->haLlegado as &$p) {
             $totalPagado = (float) Pago::where('pedido_id', $p['id'])->where('confirmado', true)->sum('monto');
-            $total = (float) ($p['total'] ?? 0);
+            $total = (float) ($p['total'] ?? 0) - (float) ($p['descuento_manual'] ?? 0);
             $p['pago_completo'] = $total > 0 && $totalPagado >= $total;
         }
         unset($p);
@@ -222,7 +222,7 @@ class Comandas extends Page
         $pedido = Pedido::find($pedidoId);
         if (!$pedido) return false;
         $totalPagado = (float) Pago::where('pedido_id', $pedidoId)->where('confirmado', true)->sum('monto');
-        $total = (float) $pedido->total;
+        $total = (float) $pedido->total - (float) ($pedido->descuento_manual ?? 0);
         return $total > 0 && $totalPagado >= $total;
     }
 
@@ -231,7 +231,7 @@ class Comandas extends Page
         $pedido = Pedido::find($pedidoId);
         if (!$pedido) return false;
         $totalPagado = (float) Pago::where('pedido_id', $pedidoId)->where('confirmado', true)->sum('monto');
-        $total = (float) $pedido->total;
+        $total = (float) $pedido->total - (float) ($pedido->descuento_manual ?? 0);
         return $total > 0 && $totalPagado > 0 && $totalPagado < $total;
     }
 
@@ -320,6 +320,41 @@ class Comandas extends Page
             ->title($this->descuentoAplicado > 0
                 ? "Descuento de $" . number_format($this->descuentoAplicado, 0, ',', '.') . " guardado"
                 : "Descuento eliminado")
+            ->success()
+            ->send();
+    }
+
+    public function aplicarCambios(): void
+    {
+        $this->actualizarDescuento();
+
+        if ($this->pedidoPagoId) {
+            Pedido::where('id', $this->pedidoPagoId)->update([
+                'descuento_manual' => $this->descuentoAplicado,
+                'descuento_manual_tipo' => $this->descuentoTipo,
+                'descuento_manual_valor' => $this->descuentoValor,
+            ]);
+        }
+
+        $pedido = Pedido::with('cliente')->find($this->pedidoPagoId);
+        if ($pedido && $pedido->cliente) {
+            $pedido->cliente->update([
+                'nombre' => $this->clienteNombre,
+                'telefono' => $this->clienteTelefono,
+                'conjunto' => $this->clienteConjunto,
+                'torre' => $this->clienteTorre,
+                'apto' => $this->clienteApto,
+            ]);
+        }
+
+        $this->cargarPagos();
+        $restante = $this->totalConDescuento - $this->totalPagado;
+        $this->pagoMonto = max(0, $restante);
+
+        Notification::make()
+            ->title($this->descuentoAplicado > 0
+                ? "Cambios guardados. Descuento de $" . number_format($this->descuentoAplicado, 0, ',', '.') . " aplicado"
+                : "Cambios guardados")
             ->success()
             ->send();
     }
