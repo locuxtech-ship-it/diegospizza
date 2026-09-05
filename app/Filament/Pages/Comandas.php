@@ -333,6 +333,7 @@ class Comandas extends Page
                 'descuento_manual' => $this->descuentoAplicado,
                 'descuento_manual_tipo' => $this->descuentoTipo,
                 'descuento_manual_valor' => $this->descuentoValor,
+                'metodo_pago' => $this->pagoMetodo,
             ]);
         }
 

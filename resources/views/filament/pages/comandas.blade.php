@@ -344,6 +344,22 @@
                 <p style="margin: 0; font-size: 13px; color: #6b7280;">{{ $clienteDireccion }}</p>
             </div>
 
+            {{-- Edit Client --}}
+            @if(!in_array($pedidoEstado, ['finalizado', 'cancelado']))
+            <div style="border-top: 1px solid #e5e7eb; padding-top: 12px; margin-bottom: 16px;">
+                <p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">✏️ Editar Cliente</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <input type="text" wire:model.live="clienteNombre" placeholder="Nombre" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px;">
+                    <input type="text" wire:model.live="clienteTelefono" placeholder="Teléfono" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px;">
+                    <input type="text" wire:model.live="clienteConjunto" placeholder="Conjunto" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px;">
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" wire:model.live="clienteTorre" placeholder="Torre" style="flex: 1; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px;">
+                        <input type="text" wire:model.live="clienteApto" placeholder="Apto" style="flex: 1; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px;">
+                    </div>
+                </div>
+            </div>
+            @endif
+
             {{-- Products ordered --}}
             <div style="margin-bottom: 16px;">
                 <p style="margin: 0 0 8px; font-size: 13px; font-weight: 700; color: #374151;">Productos: {{ count($productosPedido) }}</p>
@@ -398,7 +414,8 @@
                 ❌ Pedido cancelado
             </div>
             @elseif($restante > 0)
-            <div style="margin-bottom: 16px;">
+            <div style="margin-bottom: 16px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px;">
+                <p style="margin: 0 0 10px; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">💳 Registrar Pago</p>
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                     <select wire:model.live="pagoMetodo" style="border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 12px; font-size: 14px; background: white; flex: 1; min-width: 140px;">
                         @foreach(\App\Models\NegocioSetting::getActivePaymentMethods() as $valor => $info)
@@ -410,9 +427,6 @@
                         <input type="number" step="1" wire:model.live="pagoMonto" max="{{ $restante }}" placeholder="0" style="width: 100%; border: none; padding: 10px 12px; font-size: 14px; outline: none;">
                     </div>
                     <input type="text" wire:model.live="pagoReferencia" placeholder="Ref (opcional)" style="border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 12px; font-size: 13px; flex: 1; min-width: 120px;">
-                    <x-filament::button wire:click="registrarPago" color="success" style="height: 42px; white-space: nowrap;">
-                        💳 Registrar pago
-                    </x-filament::button>
                 </div>
                 @if($pagoError)
                 <div style="margin-top: 8px; padding: 10px 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #dc2626; font-size: 13px; font-weight: 500; text-align: center;">
@@ -421,17 +435,27 @@
                 @endif
                 {{-- Descuento --}}
                 @can('applyDiscount', auth()->user())
-                <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <span style="font-size: 12px; font-weight: 600; color: #6b7280;">🏷️ Descuento:</span>
-                    <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
-                        <input type="radio" wire:model.live="descuentoTipo" value="fijo"> en pesos
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
-                        <input type="radio" wire:model.live="descuentoTipo" value="porcentaje"> Porcentaje
-                    </label>
-                    <input type="number" step="1" wire:model.live="descuentoValor" min="0" placeholder="0" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px; width: 90px;">
+                <div style="margin-top: 12px; border-top: 1px dashed #e5e7eb; padding-top: 12px;">
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <span style="font-size: 12px; font-weight: 600; color: #6b7280;">🏷️ Descuento:</span>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
+                            <input type="radio" wire:model.live="descuentoTipo" value="fijo"> en pesos
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
+                            <input type="radio" wire:model.live="descuentoTipo" value="porcentaje"> Porcentaje
+                        </label>
+                        <input type="number" step="1" wire:model.live="descuentoValor" min="0" placeholder="0" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px; width: 90px;">
+                    </div>
+                    @if($descuentoAplicado > 0)
+                    <div style="margin-top: 6px; font-size: 12px; color: #dc2626; font-weight: 600;">Descuento aplicado: -${{ number_format($descuentoAplicado, 0, ',', '.') }} → Total: ${{ number_format($totalConDescuento, 0, ',', '.') }}</div>
+                    @endif
                 </div>
                 @endcan
+                <div style="margin-top: 12px;">
+                    <x-filament::button wire:click="registrarPago" color="success" style="width: 100%; height: 42px; white-space: nowrap;">
+                        💳 Registrar pago
+                    </x-filament::button>
+                </div>
             </div>
             @endif
 
@@ -479,27 +503,11 @@
             </div>
             @endif
 
-            {{-- Edit Client --}}
-            @if(!in_array($pedidoEstado, ['finalizado', 'cancelado']))
-            <div style="border-top: 1px solid #e5e7eb; padding-top: 12px;">
-                <p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">✏️ Editar Cliente</p>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                    <input type="text" wire:model.live="clienteNombre" placeholder="Nombre" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px;">
-                    <input type="text" wire:model.live="clienteTelefono" placeholder="Teléfono" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px;">
-                    <input type="text" wire:model.live="clienteConjunto" placeholder="Conjunto" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px;">
-                    <div style="display: flex; gap: 8px;">
-                        <input type="text" wire:model.live="clienteTorre" placeholder="Torre" style="flex: 1; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px;">
-                        <input type="text" wire:model.live="clienteApto" placeholder="Apto" style="flex: 1; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px;">
-                    </div>
-                </div>
-            </div>
-            @endif
-
             {{-- Aplicar cambios --}}
             @if(!in_array($pedidoEstado, ['finalizado', 'cancelado']))
             <div style="margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 12px;">
                 <button type="button" wire:click="aplicarCambios" style="width: 100%; background: #2563eb; color: white; border: none; border-radius: 8px; padding: 12px 16px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-                    ✅ Aplicar cambios (descuento + cliente)
+                    💾 Guardar cambios (pago + descuento + cliente)
                 </button>
             </div>
             @endif
