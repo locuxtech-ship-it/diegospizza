@@ -417,18 +417,20 @@
                 @endif
                 {{-- Descuento --}}
                 @can('applyDiscount', auth()->user())
-                <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <span style="font-size: 12px; font-weight: 600; color: #6b7280;">🏷️ Descuento:</span>
-                    <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
-                        <input type="radio" wire:model.live="descuentoTipo" value="fijo"> en pesos
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
-                        <input type="radio" wire:model.live="descuentoTipo" value="porcentaje"> Porcentaje
-                    </label>
-                    <input type="number" step="1" wire:model="descuentoValor" min="0" placeholder="0" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px; width: 80px;">
-                    <x-filament::button wire:click="guardarDescuento" color="success" size="sm">
+                <div style="margin-top: 8px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; background: #f9fafb;">
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <span style="font-size: 12px; font-weight: 600; color: #6b7280;">🏷️ Descuento:</span>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
+                            <input type="radio" wire:model.live="descuentoTipo" value="fijo"> en pesos
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
+                            <input type="radio" wire:model.live="descuentoTipo" value="porcentaje"> Porcentaje
+                        </label>
+                        <input type="number" step="1" wire:model.live="descuentoValor" min="0" placeholder="0" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px; width: 90px;">
+                    </div>
+                    <button type="button" wire:click="guardarDescuento" style="margin-top: 8px; width: 100%; background: #16a34a; color: white; border: none; border-radius: 8px; padding: 10px 12px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
                         💾 Guardar descuento
-                    </x-filament::button>
+                    </button>
                 </div>
                 @endcan
             </div>
