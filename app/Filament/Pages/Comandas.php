@@ -249,12 +249,11 @@ class Comandas extends Page
         $this->pedidoSubtotal = (float) $pedido->subtotal;
         $this->totalPedido = (float) $pedido->total;
         $this->pagoMetodo = $pedido->metodo_pago ?? 'efectivo';
-        $this->pagoMonto = 0;
         $this->pagoReferencia = '';
-        $this->descuentoTipo = 'fijo';
-        $this->descuentoValor = 0;
-        $this->descuentoAplicado = 0;
-        $this->totalConDescuento = (float) $pedido->total;
+        $this->descuentoTipo = $pedido->descuento_manual_tipo ?? 'fijo';
+        $this->descuentoValor = (float) ($pedido->descuento_manual_valor ?? 0);
+        $this->descuentoAplicado = (float) ($pedido->descuento_manual ?? 0);
+        $this->totalConDescuento = max(0, $this->totalPedido - $this->descuentoAplicado);
         $this->clienteNombre = $pedido->cliente?->nombre ?? '';
         $this->clienteTelefono = $pedido->cliente?->telefono ?? '';
         $this->clienteConjunto = $pedido->cliente?->conjunto ?? '';
@@ -267,6 +266,8 @@ class Comandas extends Page
             ->get()
             ->toArray();
         $this->cargarPagos();
+        $restante = $this->totalConDescuento - $this->totalPagado;
+        $this->pagoMonto = max(0, $restante);
         $this->modalPago = true;
     }
 
@@ -291,6 +292,36 @@ class Comandas extends Page
     public function aplicarDescuento(): void
     {
         $this->actualizarDescuento();
+    }
+
+    public function guardarDescuento(): void
+    {
+        $this->actualizarDescuento();
+
+        if ($this->pedidoPagoId && $this->descuentoAplicado > 0) {
+            Pedido::where('id', $this->pedidoPagoId)->update([
+                'descuento_manual' => $this->descuentoAplicado,
+                'descuento_manual_tipo' => $this->descuentoTipo,
+                'descuento_manual_valor' => $this->descuentoValor,
+            ]);
+        } elseif ($this->pedidoPagoId) {
+            Pedido::where('id', $this->pedidoPagoId)->update([
+                'descuento_manual' => 0,
+                'descuento_manual_tipo' => null,
+                'descuento_manual_valor' => 0,
+            ]);
+        }
+
+        $this->cargarPagos();
+        $restante = $this->totalConDescuento - $this->totalPagado;
+        $this->pagoMonto = max(0, $restante);
+
+        Notification::make()
+            ->title($this->descuentoAplicado > 0
+                ? "Descuento de $" . number_format($this->descuentoAplicado, 0, ',', '.') . " guardado"
+                : "Descuento eliminado")
+            ->success()
+            ->send();
     }
 
     private function actualizarDescuento(): void
