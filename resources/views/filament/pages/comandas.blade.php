@@ -451,8 +451,8 @@
                     @endif
                 </div>
                 @endcan
-                <div style="margin-top: 12px;">
-                    <x-filament::button wire:click="registrarPago" color="success" style="width: 100%; height: 42px; white-space: nowrap;">
+                <div style="margin-top: 12px; display: flex; justify-content: flex-end;">
+                    <x-filament::button wire:click="registrarPago" color="success" style="height: 38px; white-space: nowrap; padding: 0 16px;">
                         💳 Registrar pago
                     </x-filament::button>
                 </div>
