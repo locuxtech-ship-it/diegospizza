@@ -74,7 +74,7 @@
                     <button wire:click="vaciarCarrito" class="w-full text-center text-xs text-gray-400 hover:text-red-500 transition py-1">
                         Vaciar carrito
                     </button>
-                    <a href="{{ route('checkout') }}" wire:navigate
+                    <a href="{{ route('checkout') }}"
                         class="block w-full text-center text-white py-3 rounded-xl font-bold transition-all duration-200 active:scale-[0.98] shadow-sm"
                         style="background-color: #FF8D08;">
                         Ir a pagar · ${{ number_format($total, 0, ',', '.') }}
