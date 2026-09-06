@@ -109,7 +109,7 @@ class Pedido extends Model
         if ($estado === 'finalizado' && ($chatbot['review_enabled'] ?? false)) {
             $reviewMsg = $chatbot['review_message'] ?? '';
             if (!empty($reviewMsg)) {
-                $link = route('review.form', ['numero' => $this->numero_pedido]);
+                $link = route('review.form', ['pedido' => $this->id]);
                 $reviewMsg = str_replace(
                     ['{numero}', '{nombre}', '{link}'],
                     [$this->numero_pedido, $cliente->nombre, $link],

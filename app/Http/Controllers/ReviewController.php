@@ -8,22 +8,18 @@ use Illuminate\Http\Request;
 
 class ReviewController extends Controller
 {
-    public function showForm(string $numero)
+    public function showForm(string $pedido)
     {
-        $pedido = Pedido::where('numero_pedido', (int) $numero)
-            ->whereIn('estado', ['entregado', 'finalizado'])
-            ->firstOrFail();
+        $pedido = $this->resolvePedido($pedido);
 
         $review = Review::where('pedido_id', $pedido->id)->first();
 
         return view('public.review-form', compact('pedido', 'review'));
     }
 
-    public function store(Request $request, string $numero)
+    public function store(Request $request, string $pedido)
     {
-        $pedido = Pedido::where('numero_pedido', (int) $numero)
-            ->whereIn('estado', ['entregado', 'finalizado'])
-            ->firstOrFail();
+        $pedido = $this->resolvePedido($pedido);
 
         $existing = Review::where('pedido_id', $pedido->id)->first();
         if ($existing) {
@@ -47,5 +43,27 @@ class ReviewController extends Controller
         ]);
 
         return back()->with('success', 'Gracias por tu reseña! 🍕');
+    }
+
+    private function resolvePedido(string $pedido): Pedido
+    {
+        // Nuevos enlaces usan el ID único del pedido
+        $pedidoModel = Pedido::where('id', (int) $pedido)
+            ->whereIn('estado', ['entregado', 'finalizado'])
+            ->first();
+
+        // Fallback: enlaces antiguos usaban numero_pedido (puede colisionar por día)
+        if (!$pedidoModel) {
+            $pedidoModel = Pedido::where('numero_pedido', (int) $pedido)
+                ->whereIn('estado', ['entregado', 'finalizado'])
+                ->orderBy('created_at', 'desc')
+                ->first();
+        }
+
+        if (!$pedidoModel) {
+            abort(404);
+        }
+
+        return $pedidoModel;
     }
 }

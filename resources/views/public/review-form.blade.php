@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deja tu reseña - Diego's Pizza</title>
+    <title>Deja tu reseña - Facilo</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -100,7 +100,7 @@
 </head>
 <body>
     <div class="card">
-        <div class="logo">Diego's Pizza</div>
+        <div class="logo">Facilo</div>
         <div class="subtitle">¿Cómo fue tu experiencia?</div>
 
         @if(session('success'))
@@ -124,7 +124,7 @@
                 Pedido #{{ $pedido->numero_pedido }} — {{ $pedido->cliente?->nombre ?? 'Cliente' }}
             </div>
 
-            <form method="POST" action="{{ url('/review/' . $pedido->numero_pedido) }}" id="reviewForm">
+            <form method="POST" action="{{ url('/review/' . $pedido->id) }}" id="reviewForm">
                 @csrf
                 <div class="stars">
                     @for($i = 5; $i >= 1; $i--)

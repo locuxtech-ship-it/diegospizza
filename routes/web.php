@@ -2,13 +2,26 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\StoreRegistrationController;
+use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\WhatsAppController;
 use App\Livewire\Checkout;
 use App\Livewire\Menu;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', Menu::class)->name('menu');
+Route::get('/', function () {
+    $plans = \App\Models\Plan::where('activo', true)->orderBy('orden')->get();
+    return view('landing', compact('plans'));
+})->name('landing');
+
+Route::get('/crear-tienda', [StoreRegistrationController::class, 'show'])->name('store.register');
+Route::get('/crear-tienda/{planSlug}', [StoreRegistrationController::class, 'show'])->name('store.register.plan');
+Route::post('/crear-tienda', [StoreRegistrationController::class, 'store'])->name('store.register.store');
+Route::get('/onboarding/{uuid}', [OnboardingController::class, 'show'])->name('store.onboarding');
+Route::match(['get', 'post', 'put'], '/onboarding/{uuid}', [OnboardingController::class, 'update'])->name('store.onboarding.update');
+
+Route::get('/tienda', Menu::class)->name('menu');
 Route::get('/checkout', Checkout::class)->name('checkout');
 
 Route::post('/admin/configuracion', [AdminController::class, 'saveConfig'])->name('admin.configuracion.save');
@@ -49,8 +62,8 @@ Route::post('/api/agent/guardar-ultimo-id', function () {
 Route::match(['GET', 'POST'], '/api/whatsapp/webhook', [WhatsAppController::class, 'webhook'])->name('whatsapp.webhook');
 Route::post('/api/whatsapp/waha-webhook', [WhatsAppController::class, 'wahaWebhook'])->name('whatsapp.waha-webhook');
 
-Route::get('/review/{numero}', [ReviewController::class, 'showForm'])->name('review.form');
-Route::post('/review/{numero}', [ReviewController::class, 'store'])->name('review.store');
+Route::get('/review/{pedido}', [ReviewController::class, 'showForm'])->name('review.form');
+Route::post('/review/{pedido}', [ReviewController::class, 'store'])->name('review.store');
 
 Route::get('/api/agent/pendientes', function () {
     $key = request('key');
