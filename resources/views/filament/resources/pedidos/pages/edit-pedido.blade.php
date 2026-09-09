@@ -219,9 +219,16 @@
                     <span>${{ number_format($subtotalActual, 0, ',', '.') }}</span>
                 </div>
                 @if($descuentoAplicado > 0)
-                <div style="display: flex; justify-content: space-between; font-size: 13px; color: #dc2626;">
-                    <span>Descuento</span>
-                    <span>-${{ number_format($descuentoAplicado, 0, ',', '.') }}</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #dc2626; padding: 8px 12px; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; margin: 8px 0;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-weight: 700;">-${{ number_format($descuentoAplicado, 0, ',', '.') }}</span>
+                        <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: #fee2e2; color: #dc2626; font-weight: 600;">
+                            {{ $descuentoTipo === 'porcentaje' ? '%' : '$' }} {{ $descuentoTipo }}
+                        </span>
+                    </div>
+                    @if(!$readOnly)
+                    <button wire:click="quitarDescuento" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px; padding: 0 4px;" title="Quitar descuento">×</button>
+                    @endif
                 </div>
                 @endif
                 <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; color: #111827; border-top: 1px solid #e5e7eb; padding-top: 8px; margin-top: 8px;">

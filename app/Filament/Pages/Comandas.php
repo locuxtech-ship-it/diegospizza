@@ -382,6 +382,8 @@ class Comandas extends Page
             ->title('Descuento eliminado')
             ->success()
             ->send();
+
+        $this->dispatch('pedidoActualizado');
     }
 
     private function actualizarDescuento(): void

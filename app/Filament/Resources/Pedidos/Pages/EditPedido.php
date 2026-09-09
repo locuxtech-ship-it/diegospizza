@@ -83,6 +83,20 @@ class EditPedido extends EditRecord
         $this->totalConDescuento = $this->totalPedido;
         $this->cargarPagos();
         $this->cargarCliente();
+        $this->cargarDescuentoExistente();
+    }
+
+    private function cargarDescuentoExistente(): void
+    {
+        $record = $this->getRecord();
+        $descuentoManual = (float) ($record->descuento_manual ?? 0);
+
+        if ($descuentoManual > 0) {
+            $this->descuentoTipo = $record->descuento_manual_tipo ?? 'fijo';
+            $this->descuentoValor = (float) ($record->descuento_manual_valor ?? 0);
+            $this->descuentoAplicado = $descuentoManual;
+            $this->totalConDescuento = max(0, $this->totalPedido - $descuentoManual);
+        }
     }
 
     protected function getHeaderActions(): array
@@ -618,6 +632,27 @@ class EditPedido extends EditRecord
             $this->descuentoAplicado = $val;
         }
         $this->totalConDescuento = max(0, $this->totalPedido - $this->descuentoAplicado);
+    }
+
+    public function quitarDescuento(): void
+    {
+        $this->descuentoTipo = 'fijo';
+        $this->descuentoValor = 0;
+        $this->descuentoAplicado = 0;
+        $this->totalConDescuento = $this->totalPedido;
+
+        $this->getRecord()->update([
+            'descuento_manual' => 0,
+            'descuento_manual_tipo' => null,
+            'descuento_manual_valor' => 0,
+        ]);
+
+        Notification::make()
+            ->title('Descuento eliminado')
+            ->success()
+            ->send();
+
+        $this->dispatch('pedidoActualizado');
     }
 
     public function updatedNuevoProductoId($value): void
