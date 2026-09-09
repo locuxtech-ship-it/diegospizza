@@ -1,5 +1,38 @@
 # Changelog — Diego's Pizza
 
+## [05-06-2026] — Descuentos Reflejados en Toda la App + Mejoras Modal Pago
+
+### Resumen
+Se garantizó que los descuentos aplicados se reflejen correctamente en **todas las vistas** de la app: lista del historial, modal de detalle, estadísticas, PDV (comandas), tablero de pedidos y editar pedido. También se mejoró el flujo del modal de pago.
+
+### Cambios en Modal de Pago (PDV — Comandas)
+- **Botón "Guardar" compacto**: ya no ocupa todo el ancho del modal, está centrado con tamaño normal
+- **Botón × para quitar descuento**: cuando hay un descuento aplicado, aparece una fila estilo "pago" con fondo rojo mostrando el monto, tipo y botón × para eliminarlo
+- **Cierre automático**: al hacer clic en "Guardar", el modal se cierra automáticamente y se actualiza la lista del PDV
+- **Evento `pedidoActualizado`**: se dispara al quitar descuento para refrescar la lista
+
+### Cambios en Editar Pedido (`EditPedido.php`)
+- **`cargarDescuentoExistente()`**: al abrir "Editar Pedido" ahora carga el descuento existente desde la BD (antes siempre mostraba 0)
+- **Botón × para quitar descuento**: igual que en el PDV, muestra el descuento aplicado con opción de eliminarlo
+- **`quitarDescuento()`**: método que resetea el descuento y actualiza la BD
+
+### Cambios en Historial de Pedidos (`HistorialPedidos.php`)
+- **Modal de detalle**: ahora calcula `Total = total_original - descuento_puntos - descuento_manual`
+- **Estadísticas** (Total Ventas, Efectivo, Tarjeta, Transferencia): ahora suman el valor real de cada pedido después de descuentos
+- **Lista de pedidos**: la columna TOTAL muestra el valor real con descuentos aplicados
+
+### Cambios en PDV Comandas (`comandas.blade.php`)
+- **Lista y Kanban**: muestran el total real restando `descuento_puntos` y `descuento_manual`
+
+### Cambios en Tablero de Pedidos (`pedidos-board.blade.php`)
+- **Las 3 columnas** (Recibidos, Preparación, En Camino): muestran el total real con descuentos
+
+### Puntos de Restauración
+- `restore-point-pre-quitar-descuento`
+- `restore-point-pre-cerrar-modal-guardar`
+
+---
+
 ## [02-06-2026] — Fix Seguridad Finalizar Pedido (Admin + Cajero)
 
 ### Regla Única
