@@ -359,6 +359,31 @@ class Comandas extends Page
             ->send();
     }
 
+    public function quitarDescuento(): void
+    {
+        $this->descuentoTipo = 'fijo';
+        $this->descuentoValor = 0;
+        $this->descuentoAplicado = 0;
+        $this->totalConDescuento = $this->totalPedido;
+
+        if ($this->pedidoPagoId) {
+            Pedido::where('id', $this->pedidoPagoId)->update([
+                'descuento_manual' => 0,
+                'descuento_manual_tipo' => null,
+                'descuento_manual_valor' => 0,
+            ]);
+        }
+
+        $this->cargarPagos();
+        $restante = $this->totalConDescuento - $this->totalPagado;
+        $this->pagoMonto = max(0, $restante);
+
+        Notification::make()
+            ->title('Descuento eliminado')
+            ->success()
+            ->send();
+    }
+
     private function actualizarDescuento(): void
     {
         $val = (float) ($this->descuentoValor ?: 0);

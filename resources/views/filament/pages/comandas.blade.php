@@ -421,15 +421,28 @@
                 @endif
                 {{-- Descuento --}}
                 @can('applyDiscount', auth()->user())
-                <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <span style="font-size: 12px; font-weight: 600; color: #6b7280;">🏷️ Descuento:</span>
-                    <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
-                        <input type="radio" wire:model.live="descuentoTipo" value="fijo"> en pesos
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
-                        <input type="radio" wire:model.live="descuentoTipo" value="porcentaje"> Porcentaje
-                    </label>
-                    <input type="number" step="1" wire:model.live="descuentoValor" min="0" placeholder="0" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px; width: 90px;">
+                <div style="margin-top: 8px;">
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <span style="font-size: 12px; font-weight: 600; color: #6b7280;">️ Descuento:</span>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
+                            <input type="radio" wire:model.live="descuentoTipo" value="fijo"> en pesos
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;">
+                            <input type="radio" wire:model.live="descuentoTipo" value="porcentaje"> Porcentaje
+                        </label>
+                        <input type="number" step="1" wire:model.live="descuentoValor" min="0" placeholder="0" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px; width: 90px;">
+                    </div>
+                    @if($descuentoAplicado > 0)
+                    <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border: 1px solid #fca5a5; border-radius: 8px; background: #fef2f2;">
+                        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;">
+                            <span style="font-weight: 700; color: #dc2626;">-${{ number_format($descuentoAplicado, 0, ',', '.') }}</span>
+                            <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; font-weight: 600; background: #fee2e2; color: #dc2626;">
+                                {{ $descuentoTipo === 'porcentaje' ? '%' : '$' }} {{ $descuentoTipo }}
+                            </span>
+                        </div>
+                        <button wire:click="quitarDescuento" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px; padding: 0 4px;" title="Quitar descuento">×</button>
+                    </div>
+                    @endif
                 </div>
                 @endcan
             </div>
