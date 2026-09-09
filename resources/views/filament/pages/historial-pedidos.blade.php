@@ -85,7 +85,13 @@
                                 </div>
                                 <p style="margin: 2px 0 0 0; font-size: 12px; color: #9ca3af;">{{ $pedido['cliente']['telefono'] ?? '' }}</p>
                             </td>
-                            <td style="padding: 12px 16px; text-align: right; font-weight: 700;">${{ number_format($pedido['total'], 0, ',', '.') }}</td>
+                            <td style="padding: 12px 16px; text-align: right; font-weight: 700;">
+                                @php
+                                    $descuento = (float) ($pedido['descuento_puntos'] ?? 0) + (float) ($pedido['descuento_manual'] ?? 0);
+                                    $totalReal = max(0, (float) $pedido['total'] - $descuento);
+                                @endphp
+                                ${{ number_format($totalReal, 0, ',', '.') }}
+                            </td>
                             <td style="padding: 12px 16px; text-align: center;">
                                 <span style="font-size: 11px; padding: 2px 6px; border-radius: 6px; font-weight: 600; {{ ($pedido['origen'] ?? 'pdv') === 'web' ? 'background: #dbeafe; color: #2563eb;' : 'background: #fef3c7; color: #d97706;' }}">
                                     {{ strtoupper($pedido['origen'] ?? 'PDV') }}
