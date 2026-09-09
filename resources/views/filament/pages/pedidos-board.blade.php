@@ -29,7 +29,8 @@
                                 <span class="text-xs font-bold text-gray-400">#{{ $pedido['numero_pedido'] }}</span>
                                 <p class="text-sm font-bold text-gray-800 mt-0.5">{{ $pedido['cliente']['nombre'] ?? '—' }}</p>
                             </div>
-                            <span class="text-xs font-bold text-red-600">${{ number_format($pedido['total'], 0, ',', '.') }}</span>
+                            @php $totalReal = max(0, (float) $pedido['total'] - (float) ($pedido['descuento_puntos'] ?? 0) - (float) ($pedido['descuento_manual'] ?? 0)); @endphp
+                            <span class="text-xs font-bold text-red-600">${{ number_format($totalReal, 0, ',', '.') }}</span>
                         </div>
                         <p class="text-xs text-gray-500">📱 {{ $pedido['cliente']['telefono'] ?? '—' }}</p>
                         <p class="text-xs text-gray-500 mt-0.5">📍 {{ Str::limit(collect([$pedido['cliente']['conjunto'] ?? '', $pedido['cliente']['torre'] ?? '', $pedido['cliente']['apto'] ?? ''])->filter()->implode(', ') ?: '—', 50) }}</p>
@@ -64,7 +65,8 @@
                                 <span class="text-xs font-bold text-gray-400">#{{ $pedido['numero_pedido'] }}</span>
                                 <p class="text-sm font-bold text-gray-800 mt-0.5">{{ $pedido['cliente']['nombre'] ?? '—' }}</p>
                             </div>
-                            <span class="text-xs font-bold text-red-600">${{ number_format($pedido['total'], 0, ',', '.') }}</span>
+                            @php $totalReal = max(0, (float) $pedido['total'] - (float) ($pedido['descuento_puntos'] ?? 0) - (float) ($pedido['descuento_manual'] ?? 0)); @endphp
+                            <span class="text-xs font-bold text-red-600">${{ number_format($totalReal, 0, ',', '.') }}</span>
                         </div>
                         <p class="text-xs text-gray-500">📱 {{ $pedido['cliente']['telefono'] ?? '—' }}</p>
                         <p class="text-xs text-gray-500 mt-0.5">📍 {{ Str::limit(collect([$pedido['cliente']['conjunto'] ?? '', $pedido['cliente']['torre'] ?? '', $pedido['cliente']['apto'] ?? ''])->filter()->implode(', ') ?: '—', 50) }}</p>
@@ -99,7 +101,8 @@
                                 <span class="text-xs font-bold text-gray-400">#{{ $pedido['numero_pedido'] }}</span>
                                 <p class="text-sm font-bold text-gray-800 mt-0.5">{{ $pedido['cliente']['nombre'] ?? '—' }}</p>
                             </div>
-                            <span class="text-xs font-bold text-red-600">${{ number_format($pedido['total'], 0, ',', '.') }}</span>
+                            @php $totalReal = max(0, (float) $pedido['total'] - (float) ($pedido['descuento_puntos'] ?? 0) - (float) ($pedido['descuento_manual'] ?? 0)); @endphp
+                            <span class="text-xs font-bold text-red-600">${{ number_format($totalReal, 0, ',', '.') }}</span>
                         </div>
                         <p class="text-xs text-gray-500">📱 {{ $pedido['cliente']['telefono'] ?? '—' }}</p>
                         <p class="text-xs text-gray-500 mt-0.5">📍 {{ Str::limit(collect([$pedido['cliente']['conjunto'] ?? '', $pedido['cliente']['torre'] ?? '', $pedido['cliente']['apto'] ?? ''])->filter()->implode(', ') ?: '—', 50) }}</p>

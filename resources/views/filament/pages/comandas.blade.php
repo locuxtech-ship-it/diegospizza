@@ -253,7 +253,8 @@
 
                                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
                                     <div style="display: flex; align-items: center; gap: 4px;">
-                                        <span style="font-weight: 700; font-size: 16px;">${{ number_format($pedido['total'], 0, ',', '.') }}</span>
+                                        @php $totalReal = max(0, (float) $pedido['total'] - (float) ($pedido['descuento_puntos'] ?? 0) - (float) ($pedido['descuento_manual'] ?? 0)); @endphp
+                                        <span style="font-weight: 700; font-size: 16px;">${{ number_format($totalReal, 0, ',', '.') }}</span>
                                         @php $pedidoPagoCompleto = $pedido['pago_completo'] ?? $this->pagoCompleto($pedido['id']); @endphp
                                         @php $pedidoPagoParcial = !$pedidoPagoCompleto && $this->pagoParcial($pedido['id']); @endphp
                                         <span style="font-size: 11px; padding: 2px 6px; border-radius: 10px; font-weight: 500; {{ $pedidoPagoCompleto ? 'background: #dcfce7; color: #16a34a;' : ($pedidoPagoParcial ? 'background: #dbeafe; color: #2563eb;' : 'background: #fef3c7; color: #d97706;') }}">
