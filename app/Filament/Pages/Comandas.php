@@ -357,6 +357,9 @@ class Comandas extends Page
                 : "Cambios guardados")
             ->success()
             ->send();
+
+        $this->modalPago = false;
+        $this->cargarPedidos();
     }
 
     public function quitarDescuento(): void
