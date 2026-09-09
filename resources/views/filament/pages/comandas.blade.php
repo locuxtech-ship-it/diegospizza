@@ -495,11 +495,11 @@
             </div>
             @endif
 
-            {{-- Aplicar cambios --}}
+            {{-- Guardar --}}
             @if(!in_array($pedidoEstado, ['finalizado', 'cancelado']))
-            <div style="margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 12px;">
-                <button type="button" wire:click="aplicarCambios" style="width: 100%; background: #2563eb; color: white; border: none; border-radius: 8px; padding: 12px 16px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-                    ✅ Aplicar cambios (descuento + cliente)
+            <div style="margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 12px; text-align: center;">
+                <button type="button" wire:click="aplicarCambios" style="background: #2563eb; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                    💾 Guardar
                 </button>
             </div>
             @endif
