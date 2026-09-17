@@ -54,8 +54,8 @@ class ClientesTable
             ->filters([
                 //
             ])
-            ->recordActions([
-                ViewAction::make(),
+            ->actions([
+                ViewAction::make()->label('Ver')->icon('heroicon-o-eye'),
                 EditAction::make(),
             ])
             ->toolbarActions([
