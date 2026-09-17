@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\Clientes\Pages;
 
 use App\Filament\Resources\Clientes\ClienteResource;
-use Filament\Infolists\Components\Section;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Infolists\Infolist;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\TextEntry;
+use Filament\Schemas\Schema;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewCliente extends ViewRecord
@@ -14,9 +14,9 @@ class ViewCliente extends ViewRecord
 
     protected static ?string $title = 'Detalle del Cliente';
 
-    public function infolist(Infolist $infolist): Infolist
+    public function infolist(Schema $schema): Schema
     {
-        return $infolist
+        return $schema
             ->schema([
                 Section::make('Datos del Cliente')
                     ->icon('heroicon-o-user')
@@ -26,17 +26,17 @@ class ViewCliente extends ViewRecord
                             ->weight('bold')
                             ->size(TextEntry\TextEntrySize::Large),
                         TextEntry::make('telefono')
-                            ->label('Teléfono')
+                            ->label('Telefono')
                             ->icon('heroicon-o-phone'),
                         TextEntry::make('email')
                             ->label('Email')
                             ->icon('heroicon-o-envelope'),
                         TextEntry::make('clasificacion_label')
-                            ->label('Clasificación')
+                            ->label('Clasificacion')
                             ->badge(),
                     ])->columns(2),
 
-                Section::make('Dirección')
+                Section::make('Direccion')
                     ->icon('heroicon-o-map-pin')
                     ->schema([
                         TextEntry::make('conjunto')
@@ -46,7 +46,7 @@ class ViewCliente extends ViewRecord
                         TextEntry::make('apto')
                             ->label('Apto'),
                         TextEntry::make('direccion_completa')
-                            ->label('Dirección Completa')
+                            ->label('Direccion Completa')
                             ->columnSpanFull(),
                     ])->columns(3),
 
