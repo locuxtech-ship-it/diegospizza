@@ -5,10 +5,14 @@ namespace App\Filament\Resources\Clientes;
 use App\Filament\Resources\Clientes\Pages\CreateCliente;
 use App\Filament\Resources\Clientes\Pages\EditCliente;
 use App\Filament\Resources\Clientes\Pages\ListClientes;
+use App\Filament\Resources\Clientes\Pages\ViewCliente;
+use App\Filament\Resources\Clientes\RelationManagers\PedidosRelationManager;
+use App\Filament\Resources\Clientes\RelationManagers\PuntosRelationManager;
 use App\Filament\Resources\Clientes\Schemas\ClienteForm;
 use App\Filament\Resources\Clientes\Tables\ClientesTable;
 use App\Models\Cliente;
 use BackedEnum;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -67,7 +71,8 @@ class ClienteResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            PedidosRelationManager::class,
+            PuntosRelationManager::class,
         ];
     }
 
@@ -77,6 +82,7 @@ class ClienteResource extends Resource
             'index' => ListClientes::route('/'),
             'create' => CreateCliente::route('/create'),
             'edit' => EditCliente::route('/{record}/edit'),
+            'view' => ViewCliente::route('/{record}'),
         ];
     }
 }
