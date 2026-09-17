@@ -94,10 +94,11 @@
                 </div>
                 {{-- Total: monto + pago --}}
                 <div style="padding: 8px; text-align: center;">
-                    @php $totalVista = (float)($pedido['total'] ?? 0) - (float)($pedido['descuento_manual'] ?? 0); @endphp
+                    @php $totalVista = max(0, (float)($pedido['total'] ?? 0) - (float)($pedido['descuento_puntos'] ?? 0) - (float)($pedido['descuento_manual'] ?? 0)); @endphp
+                    @php $descuentoTotal = (float)($pedido['descuento_puntos'] ?? 0) + (float)($pedido['descuento_manual'] ?? 0); @endphp
                     <div style="font-weight: 700; font-size: 14px; color: #111827;">${{ number_format($totalVista, 0, ',', '.') }}</div>
-                    @if(($pedido['descuento_manual'] ?? 0) > 0)
-                    <div style="font-size: 10px; color: #dc2626;">-${{ number_format((float)$pedido['descuento_manual'], 0, ',', '.') }} desc.</div>
+                    @if($descuentoTotal > 0)
+                    <div style="font-size: 10px; color: #dc2626;">-${{ number_format($descuentoTotal, 0, ',', '.') }} desc.</div>
                     @endif
                     <div style="margin-top: 2px;">
                         @if(!empty($pedido['metodo_pago']))
@@ -371,9 +372,15 @@
                     <span>Subtotal Productos ({{ count($productosPedido) }})</span>
                     <span>${{ number_format($pedidoSubtotal, 0, ',', '.') }}</span>
                 </div>
+                @if($descuentoPuntos > 0)
+                <div style="display: flex; justify-content: space-between; font-size: 13px; color: #dc2626;">
+                    <span>Descuento (puntos)</span>
+                    <span>-${{ number_format($descuentoPuntos, 0, ',', '.') }}</span>
+                </div>
+                @endif
                 @if($descuentoAplicado > 0)
                 <div style="display: flex; justify-content: space-between; font-size: 13px; color: #dc2626;">
-                    <span>Descuento</span>
+                    <span>Descuento (manual)</span>
                     <span>-${{ number_format($descuentoAplicado, 0, ',', '.') }}</span>
                 </div>
                 @endif

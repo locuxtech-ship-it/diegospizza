@@ -76,6 +76,7 @@ class Comandas extends Page
     public $descuentoTipo = 'fijo';
     public $descuentoValor = 0;
     public $descuentoAplicado = 0;
+    public $descuentoPuntos = 0;
     public $totalConDescuento = 0;
     public $pagoError = '';
 
@@ -138,7 +139,7 @@ class Comandas extends Page
 
         foreach ($this->haLlegado as &$p) {
             $totalPagado = (float) Pago::where('pedido_id', $p['id'])->where('confirmado', true)->sum('monto');
-            $total = (float) ($p['total'] ?? 0) - (float) ($p['descuento_manual'] ?? 0);
+            $total = (float) ($p['total'] ?? 0) - (float) ($p['descuento_puntos'] ?? 0) - (float) ($p['descuento_manual'] ?? 0);
             $p['pago_completo'] = $total > 0 && $totalPagado >= $total;
         }
         unset($p);
@@ -222,7 +223,7 @@ class Comandas extends Page
         $pedido = Pedido::find($pedidoId);
         if (!$pedido) return false;
         $totalPagado = (float) Pago::where('pedido_id', $pedidoId)->where('confirmado', true)->sum('monto');
-        $total = (float) $pedido->total - (float) ($pedido->descuento_manual ?? 0);
+        $total = (float) $pedido->total - (float) ($pedido->descuento_puntos ?? 0) - (float) ($pedido->descuento_manual ?? 0);
         return $total > 0 && $totalPagado >= $total;
     }
 
@@ -231,7 +232,7 @@ class Comandas extends Page
         $pedido = Pedido::find($pedidoId);
         if (!$pedido) return false;
         $totalPagado = (float) Pago::where('pedido_id', $pedidoId)->where('confirmado', true)->sum('monto');
-        $total = (float) $pedido->total - (float) ($pedido->descuento_manual ?? 0);
+        $total = (float) $pedido->total - (float) ($pedido->descuento_puntos ?? 0) - (float) ($pedido->descuento_manual ?? 0);
         return $total > 0 && $totalPagado > 0 && $totalPagado < $total;
     }
 
@@ -253,7 +254,8 @@ class Comandas extends Page
         $this->descuentoTipo = $pedido->descuento_manual_tipo ?? 'fijo';
         $this->descuentoValor = (float) ($pedido->descuento_manual_valor ?? 0);
         $this->descuentoAplicado = (float) ($pedido->descuento_manual ?? 0);
-        $this->totalConDescuento = max(0, $this->totalPedido - $this->descuentoAplicado);
+        $this->descuentoPuntos = (float) ($pedido->descuento_puntos ?? 0);
+        $this->totalConDescuento = max(0, $this->totalPedido - $this->descuentoPuntos - $this->descuentoAplicado);
         $this->clienteNombre = $pedido->cliente?->nombre ?? '';
         $this->clienteTelefono = $pedido->cliente?->telefono ?? '';
         $this->clienteConjunto = $pedido->cliente?->conjunto ?? '';
@@ -367,7 +369,7 @@ class Comandas extends Page
         $this->descuentoTipo = 'fijo';
         $this->descuentoValor = 0;
         $this->descuentoAplicado = 0;
-        $this->totalConDescuento = $this->totalPedido;
+        $this->totalConDescuento = max(0, $this->totalPedido - $this->descuentoPuntos);
 
         if ($this->pedidoPagoId) {
             Pedido::where('id', $this->pedidoPagoId)->update([
@@ -399,7 +401,7 @@ class Comandas extends Page
             $val = min($this->totalPedido, max(0, $val));
             $this->descuentoAplicado = $val;
         }
-        $this->totalConDescuento = max(0, $this->totalPedido - $this->descuentoAplicado);
+        $this->totalConDescuento = max(0, $this->totalPedido - $this->descuentoPuntos - $this->descuentoAplicado);
     }
 
     public function guardarCliente(): void
@@ -442,7 +444,7 @@ class Comandas extends Page
         if (!$pedido) return;
 
         $totalPagado = (float) Pago::where('pedido_id', $pedido->id)->where('confirmado', true)->sum('monto');
-        $total = (float) $pedido->total;
+        $total = (float) $pedido->total - (float) ($pedido->descuento_puntos ?? 0) - (float) ($pedido->descuento_manual ?? 0);
 
         if ($total <= 0 || $totalPagado < $total) {
             Notification::make()
