@@ -10,7 +10,7 @@ class ViewCliente extends Page
 {
     protected static string $resource = ClienteResource::class;
 
-    protected static string $view = 'filament.resources.clientes.pages.view-cliente';
+    protected string $view = 'filament.resources.clientes.pages.view-cliente';
 
     public ?Cliente $cliente = null;
 
