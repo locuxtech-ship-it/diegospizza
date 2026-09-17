@@ -1,5 +1,33 @@
 # Changelog — Diego's Pizza
 
+## [16-09-2026] — Vista de Cliente con Sección Historial y Puntos
+
+### Resumen
+Se restauró la sección de **detalle de cliente** en admin, que había sido eliminada por un fix anterior. La página muestra datos personales, dirección, estadísticas de fidelidad y el historial completo de pedidos y puntos. Se documentó el proceso completo de fixes de Filament v5.
+
+### Cambios
+
+- **Botón "Ver" en tabla de clientes** (`ClientesTable.php`): acción `ViewAction` con icono 👁 y etiqueta "Ver" en la columna de acciones
+- **Nueva página ViewCliente** (`ViewCliente.php`): extiende `Filament\Resources\Pages\Page`, carga datos del cliente, estadísticas y relaciones en `mount()`
+- **Blade propio** (`view-cliente.blade.php`): diseño manual con inline styles, sin depender de infolists de Filament
+  - Sección datos: nombre, teléfono, email, clasificación (badge coloreado)
+  - Sección dirección: conjunto, torre, apto, dirección completa
+  - Estadísticas: total pedidos, monto total, puntos ganados, puntos canjeados
+  - Historial de pedidos: tabla con #, fecha, estado (badge), total real (con descuentos), método pago, origen
+  - Historial de puntos: tabla con fecha, puntos (+/-), concepto, pedido asociado
+
+### Fixes Técnicos Filament v5
+- `infolist()` espera `Filament\Schemas\Schema` (no `Filament\Infolists\Infolist`) — corregido 2 veces
+- `$view` en `Filament\Resources\Pages\Page` es **non-static** — declararlo como `static` causa fatal error
+- ViewRecord con infolists nativos causaba errores de compatibilidad → se optó por página Livewire con blade propio
+
+### Puntos de Restauración
+- `v1.7` — ClienteView con secciones completas
+- `v1.6` — Pre-revisión sección clientes
+- `v1.5` — Pre-detalle-whatsapp
+
+---
+
 ## [05-06-2026] — Descuentos Reflejados en Toda la App + Mejoras Modal Pago
 
 ### Resumen

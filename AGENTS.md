@@ -30,6 +30,9 @@ Build a complete web-based pizza delivery ordering system (Diego's Pizza) with L
 - Filament admin at `/admin`: Punto de Venta, Ventas, Menu, Configuración groups
 - PDV: Kanban (Pendiente Pago, En Preparación, En Camino, Ha Llegado) + List view, JS notifications with fetch polling (sound+toast+flash+system+vibration), iframe-based auto-print, timer MM:SS (freezes at 60:00), newest-first sort. Timer color (>30min amarillo)
 - Payment modal redesigned in Comandas and EditPedido: header, client info, products, totals, payment form, discount (admin-only), payment history, "✅ Pago completo" / "⏳ Falta por pagar"
+- Descuentos visibles en todas las vistas: historial, comandas, kanban, tablero, editar pedido
+- Modal de pago: cierre automático al guardar, botón × para quitar descuento, muestra descuentos por separado (puntos + manual)
+- **Vista de Cliente** (`/admin/clientes/{id}/ver`): página custom con blade propio mostrando datos, dirección, estadísticas de fidelidad, historial de pedidos con totales reales y historial de puntos
 
 ### In Progress
 - **PDV notification/auto-print not working on printer PC**: Detection logic rewritten — always process new IDs. Sound changed from AudioContext (blocked by autoplay) to `<audio>` WAV data URI (no user gesture needed). Print uses ticket page's own `window.print()` at 1s (no double-print). Pending: test on printer PC Edge browser.
@@ -118,6 +121,10 @@ Build a complete web-based pizza delivery ordering system (Diego's Pizza) with L
 - Cierre de Caja tables: `cierres_caja` (fecha, user_id, total_efectivo, total_transferencias, total_tarjeta, total_ventas, total_gastos, efectivo_esperado, efectivo_real, diferencia, observaciones, estado) and `gastos_cierre` (cierre_id, descripcion, monto). Print route: `GET /admin/ticket/cierre/{cierre}` → `TicketController@cierre` → view `ticket-cierre.blade.php` (auto-print + auto-close).
 
 ## Relevant Files
+- `app/Filament/Resources/Clientes/Tables/ClientesTable.php`: `actions()` with `ViewAction::make()->label('Ver')->icon('heroicon-o-eye')`
+- `app/Filament/Resources/Clientes/Pages/ViewCliente.php`: página custom que carga cliente, pedidos, puntos en `mount()`; extiende `Filament\Resources\Pages\Page`
+- `app/Filament/Resources/Clientes/ClienteResource.php`: `getPages()` incluye `'view' => ViewCliente::route('/{record}')`
+- `resources/views/filament/resources/clientes/pages/view-cliente.blade.php`: blade propio con datos, dirección, stats, historial pedidos, historial puntos
 - `app/Filament/Pages/Comandas.php`: `cargarPedidos()` sets `pdvNuevosPedidosJson` + `pago_completo` flag per pedido, `finalizarPedido()` verifies estado=entregado + payment, `finalizarDesdeModal()` now checks `pagoCompleto()`, `cambiarEstado()` no payment check, `editarPedido()` opens modal
 - `resources/views/filament/pages/comandas.blade.php`: `<span id="pdv-notif-data">{{ $pdvNuevosPedidosJson }}</span>`, JS every 2s, Kanban "✅ Finalizar" only if `$pedido['pago_completo']`, list view buttons with `wire:click.stop`, WhatsApp SVG button in both views
 - `app/Filament/Pages/HistorialPedidos.php`: `editarPedido()` always calls `abrirDetalle()` (read-only modal), no redirect to Comandas
