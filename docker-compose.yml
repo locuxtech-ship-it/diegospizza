@@ -81,7 +81,7 @@ services:
       - WAHA_API_KEY=${WAHA_API_KEY}
       - TZ=America/Bogota
     volumes:
-      - waha_sessions:/app/sessions
+      - waha_sessions:/app/.sessions
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:3000/api/sessions -H 'X-API-KEY: ${WAHA_API_KEY}' || exit 1"]
       interval: 30s
