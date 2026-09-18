@@ -82,6 +82,12 @@ services:
       - TZ=America/Bogota
     volumes:
       - waha_sessions:/app/sessions
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:3000/api/sessions -H 'X-API-KEY: ${WAHA_API_KEY}' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
     networks:
       - diegospizza
 
