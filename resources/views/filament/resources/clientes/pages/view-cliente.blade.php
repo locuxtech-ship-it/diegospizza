@@ -79,7 +79,7 @@
                 <tbody>
                     @foreach($pedidos as $p)
                     @php
-                        $totalReal = (float)$p['total'] - (float)($p['descuento_puntos'] ?? 0) - (float)($p['descuento_manual'] ?? 0);
+                        $totalReal = (float)$p['total'];
                         $estadoColors = [
                             'pendiente_pago' => ['#fef3c7', '#92400e', '⏳ Pend. Pago'],
                             'en_proceso' => ['#ffedd5', '#9a3412', '👨‍🍳 Preparación'],

@@ -88,7 +88,7 @@
                             <td style="padding: 12px 16px; text-align: right; font-weight: 700;">
                                 @php
                                     $descuento = (float) ($pedido['descuento_puntos'] ?? 0) + (float) ($pedido['descuento_manual'] ?? 0);
-                                    $totalReal = max(0, (float) $pedido['total'] - $descuento);
+                                    $totalReal = max(0, (float) $pedido['total']);
                                 @endphp
                                 ${{ number_format($totalReal, 0, ',', '.') }}
                             </td>

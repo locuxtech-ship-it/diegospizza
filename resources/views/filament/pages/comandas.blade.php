@@ -94,7 +94,7 @@
                 </div>
                 {{-- Total: monto + pago --}}
                 <div style="padding: 8px; text-align: center;">
-                    @php $totalVista = max(0, (float)($pedido['total'] ?? 0) - (float)($pedido['descuento_puntos'] ?? 0) - (float)($pedido['descuento_manual'] ?? 0)); @endphp
+                    @php $totalVista = max(0, (float)($pedido['total'] ?? 0)); @endphp
                     @php $descuentoTotal = (float)($pedido['descuento_puntos'] ?? 0) + (float)($pedido['descuento_manual'] ?? 0); @endphp
                     <div style="font-weight: 700; font-size: 14px; color: #111827;">${{ number_format($totalVista, 0, ',', '.') }}</div>
                     @if($descuentoTotal > 0)
@@ -254,7 +254,7 @@
 
                                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
                                     <div style="display: flex; align-items: center; gap: 4px;">
-                                        @php $totalReal = max(0, (float) $pedido['total'] - (float) ($pedido['descuento_puntos'] ?? 0) - (float) ($pedido['descuento_manual'] ?? 0)); @endphp
+                                        @php $totalReal = max(0, (float) $pedido['total']); @endphp
                                         <span style="font-weight: 700; font-size: 16px;">${{ number_format($totalReal, 0, ',', '.') }}</span>
                                         @php $pedidoPagoCompleto = $pedido['pago_completo'] ?? $this->pagoCompleto($pedido['id']); @endphp
                                         @php $pedidoPagoParcial = !$pedidoPagoCompleto && $this->pagoParcial($pedido['id']); @endphp

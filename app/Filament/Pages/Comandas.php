@@ -139,7 +139,7 @@ class Comandas extends Page
 
         foreach ($this->haLlegado as &$p) {
             $totalPagado = (float) Pago::where('pedido_id', $p['id'])->where('confirmado', true)->sum('monto');
-            $total = (float) ($p['total'] ?? 0) - (float) ($p['descuento_puntos'] ?? 0) - (float) ($p['descuento_manual'] ?? 0);
+            $total = (float) ($p['total'] ?? 0);
             $p['pago_completo'] = $total > 0 && $totalPagado >= $total;
         }
         unset($p);
@@ -223,7 +223,7 @@ class Comandas extends Page
         $pedido = Pedido::find($pedidoId);
         if (!$pedido) return false;
         $totalPagado = (float) Pago::where('pedido_id', $pedidoId)->where('confirmado', true)->sum('monto');
-        $total = (float) $pedido->total - (float) ($pedido->descuento_puntos ?? 0) - (float) ($pedido->descuento_manual ?? 0);
+        $total = (float) $pedido->total;
         return $total > 0 && $totalPagado >= $total;
     }
 
@@ -232,7 +232,7 @@ class Comandas extends Page
         $pedido = Pedido::find($pedidoId);
         if (!$pedido) return false;
         $totalPagado = (float) Pago::where('pedido_id', $pedidoId)->where('confirmado', true)->sum('monto');
-        $total = (float) $pedido->total - (float) ($pedido->descuento_puntos ?? 0) - (float) ($pedido->descuento_manual ?? 0);
+        $total = (float) $pedido->total;
         return $total > 0 && $totalPagado > 0 && $totalPagado < $total;
     }
 
@@ -248,7 +248,7 @@ class Comandas extends Page
         $this->pedidoFecha = $pedido->created_at->setTimezone('America/Bogota')->format('d/m/y H:i');
         $this->pedidoMetodoPago = $pedido->metodo_pago;
         $this->pedidoSubtotal = (float) $pedido->subtotal;
-        $this->totalPedido = (float) $pedido->total;
+        $this->totalPedido = (float) $pedido->subtotal;
         $this->pagoMetodo = $pedido->metodo_pago ?? 'efectivo';
         $this->pagoReferencia = '';
         $this->descuentoTipo = $pedido->descuento_manual_tipo ?? 'fijo';
@@ -444,7 +444,7 @@ class Comandas extends Page
         if (!$pedido) return;
 
         $totalPagado = (float) Pago::where('pedido_id', $pedido->id)->where('confirmado', true)->sum('monto');
-        $total = (float) $pedido->total - (float) ($pedido->descuento_puntos ?? 0) - (float) ($pedido->descuento_manual ?? 0);
+        $total = (float) $pedido->total;
 
         if ($total <= 0 || $totalPagado < $total) {
             Notification::make()

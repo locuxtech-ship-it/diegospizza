@@ -29,7 +29,7 @@
                                 <span class="text-xs font-bold text-gray-400">#{{ $pedido['numero_pedido'] }}</span>
                                 <p class="text-sm font-bold text-gray-800 mt-0.5">{{ $pedido['cliente']['nombre'] ?? '—' }}</p>
                             </div>
-                            @php $totalReal = max(0, (float) $pedido['total'] - (float) ($pedido['descuento_puntos'] ?? 0) - (float) ($pedido['descuento_manual'] ?? 0)); @endphp
+                            @php $totalReal = max(0, (float) $pedido['total']); @endphp
                             <span class="text-xs font-bold text-red-600">${{ number_format($totalReal, 0, ',', '.') }}</span>
                         </div>
                         <p class="text-xs text-gray-500">📱 {{ $pedido['cliente']['telefono'] ?? '—' }}</p>
@@ -65,7 +65,7 @@
                                 <span class="text-xs font-bold text-gray-400">#{{ $pedido['numero_pedido'] }}</span>
                                 <p class="text-sm font-bold text-gray-800 mt-0.5">{{ $pedido['cliente']['nombre'] ?? '—' }}</p>
                             </div>
-                            @php $totalReal = max(0, (float) $pedido['total'] - (float) ($pedido['descuento_puntos'] ?? 0) - (float) ($pedido['descuento_manual'] ?? 0)); @endphp
+                            @php $totalReal = max(0, (float) $pedido['total']); @endphp
                             <span class="text-xs font-bold text-red-600">${{ number_format($totalReal, 0, ',', '.') }}</span>
                         </div>
                         <p class="text-xs text-gray-500">📱 {{ $pedido['cliente']['telefono'] ?? '—' }}</p>
@@ -101,7 +101,7 @@
                                 <span class="text-xs font-bold text-gray-400">#{{ $pedido['numero_pedido'] }}</span>
                                 <p class="text-sm font-bold text-gray-800 mt-0.5">{{ $pedido['cliente']['nombre'] ?? '—' }}</p>
                             </div>
-                            @php $totalReal = max(0, (float) $pedido['total'] - (float) ($pedido['descuento_puntos'] ?? 0) - (float) ($pedido['descuento_manual'] ?? 0)); @endphp
+                            @php $totalReal = max(0, (float) $pedido['total']); @endphp
                             <span class="text-xs font-bold text-red-600">${{ number_format($totalReal, 0, ',', '.') }}</span>
                         </div>
                         <p class="text-xs text-gray-500">📱 {{ $pedido['cliente']['telefono'] ?? '—' }}</p>

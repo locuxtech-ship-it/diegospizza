@@ -58,9 +58,8 @@ class HistorialPedidos extends Page
             ->where('confirmado', true)->get()->toArray();
         $this->detalleTotalPagado = (float) array_sum(array_column($this->detallePagos, 'monto'));
         
-        // Calcular total real restando descuentos
-        $descuentoTotal = (float) ($pedido->descuento_puntos ?? 0) + (float) ($pedido->descuento_manual ?? 0);
-        $this->detalleTotal = max(0, (float) $pedido->total - $descuentoTotal);
+        // total ya incluye descuentos
+        $this->detalleTotal = max(0, (float) $pedido->total);
         
         $this->modalDetalle = true;
     }
@@ -121,27 +120,15 @@ class HistorialPedidos extends Page
 
         $sinCancelados = $pedidos->reject(fn($p) => $p->estado === 'cancelado');
         
-        // Calcular total de ventas considerando descuentos
-        $this->totalVentas = (float) $sinCancelados->sum(function($pedido) {
-            $descuento = (float) ($pedido->descuento_puntos ?? 0) + (float) ($pedido->descuento_manual ?? 0);
-            return max(0, (float) $pedido->total - $descuento);
-        });
+        // total ya incluye descuentos
+        $this->totalVentas = (float) $sinCancelados->sum(fn($pedido) => max(0, (float) $pedido->total));
         
         $this->totalPedidos = $sinCancelados->count();
 
         if ($this->isAdmin) {
-            $this->totalEfectivo = (float) (clone $sinCancelados)->where('metodo_pago', 'efectivo')->sum(function($pedido) {
-                $descuento = (float) ($pedido->descuento_puntos ?? 0) + (float) ($pedido->descuento_manual ?? 0);
-                return max(0, (float) $pedido->total - $descuento);
-            });
-            $this->totalTarjeta = (float) (clone $sinCancelados)->where('metodo_pago', 'tarjeta')->sum(function($pedido) {
-                $descuento = (float) ($pedido->descuento_puntos ?? 0) + (float) ($pedido->descuento_manual ?? 0);
-                return max(0, (float) $pedido->total - $descuento);
-            });
-            $this->totalTransferencia = (float) (clone $sinCancelados)->where('metodo_pago', 'transferencia')->sum(function($pedido) {
-                $descuento = (float) ($pedido->descuento_puntos ?? 0) + (float) ($pedido->descuento_manual ?? 0);
-                return max(0, (float) $pedido->total - $descuento);
-            });
+            $this->totalEfectivo = (float) (clone $sinCancelados)->where('metodo_pago', 'efectivo')->sum(fn($p) => (float) $p->total);
+            $this->totalTarjeta = (float) (clone $sinCancelados)->where('metodo_pago', 'tarjeta')->sum(fn($p) => (float) $p->total);
+            $this->totalTransferencia = (float) (clone $sinCancelados)->where('metodo_pago', 'transferencia')->sum(fn($p) => (float) $p->total);
         }
     }
 
