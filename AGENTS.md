@@ -99,6 +99,7 @@ Build a complete web-based pizza delivery ordering system (Diego's Pizza) with L
 - First deploy: create `.env` on server from `.env.example` with real passwords and `APP_URL`, then `docker compose up -d`
 
 ## Critical Context
+- **`total` en BD = `subtotal - descuento_puntos - descuento_manual`** — El total YA incluye descuentos. Las vistas deben leer `pedido->total` directo, NUNCA restar descuentos de nuevo. Si se aplica descuento manual desde el modal, hay que actualizar `total` en BD.
 - DB: SQLite `database/database.sqlite` (dev) → MySQL (prod)
 - WhatsApp: +57 3106444759 (hardcoded in Checkout.php)
 - Order estados: `pendiente_pago → en_proceso → en_camino → entregado(ha_llegado) → finalizado / cancelado`

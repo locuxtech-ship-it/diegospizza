@@ -1,6 +1,32 @@
 # Changelog — Diego's Pizza
 
-## [16-09-2026] — Vista de Cliente con Sección Historial y Puntos
+## [20-09-2026] — Fix Descuento Doble + WhatsApp Sesión + WAHA Persistencia
+
+### Problema
+El campo `total` en BD ya incluye descuentos (`subtotal - descuento_puntos - descuento_manual`), pero las vistas lo estaban restando doble, mostrando valores incorrectos en PDV, historial, kanban, estadísticas y modal de pago.
+
+### Cambios - Fix Descuento Doble (v1.9)
+- **Comandas.php**: `totalPedido` ahora usa `pedido->subtotal` (base sin descuentos) en vez de `pedido->total`
+- **Comandas.php**: `pagoCompleto()`, `pagoParcial()`, `finalizarDesdeModal()` usan `pedido->total` directo
+- **Comandas.php**: `guardarDescuento()` ahora actualiza `total` en BD al aplicar/quitar descuento manual
+- **Comandas.php**: `quitarDescuento()` ahora actualiza `total` en BD
+- **HistorialPedidos.php**: `detalleTotal` y stats usan `pedido->total` directo
+- **Blades** (comandas, kanban, historial, vista cliente): todos usan `pedido->total` directo sin recalcular
+- **Pedido #5**: corregido manualmente en BD (total ajustado a 35400)
+
+### Cambios - WAHA WhatsApp (v1.7-v1.8)
+- **Volumen corregido**: mount de `/app/sessions` a `/app/.sessions` (con punto) para persistir sesiones
+- **Watchdog cron**: script cada 2 minutos auto-inicia sesión si se cae
+- **Healthcheck**: docker-compose con healthcheck para WAHA
+- **API correcta**: `POST /api/sessions/start` (deprecated upsert+start) en vez de crear + iniciar por separado
+
+### Puntos de Restauración
+- `v1.9.1` — Fix guardarDescuento actualiza total en BD
+- `v1.9` — Fix descuento doble en todas las vistas
+- `v1.8` — Pre-fix descuento doble
+- `v1.7` — Vista de cliente
+
+---
 
 ### Resumen
 Se restauró la sección de **detalle de cliente** en admin, que había sido eliminada por un fix anterior. La página muestra datos personales, dirección, estadísticas de fidelidad y el historial completo de pedidos y puntos. Se documentó el proceso completo de fixes de Filament v5.
