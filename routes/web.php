@@ -49,8 +49,8 @@ Route::post('/api/agent/guardar-ultimo-id', function () {
 Route::match(['GET', 'POST'], '/api/whatsapp/webhook', [WhatsAppController::class, 'webhook'])->name('whatsapp.webhook');
 Route::post('/api/whatsapp/waha-webhook', [WhatsAppController::class, 'wahaWebhook'])->name('whatsapp.waha-webhook');
 
-Route::get('/review/{numero}', [ReviewController::class, 'showForm'])->name('review.form');
-Route::post('/review/{numero}', [ReviewController::class, 'store'])->name('review.store');
+Route::get('/review/{pedido}', [ReviewController::class, 'showForm'])->name('review.form');
+Route::post('/review/{pedido}', [ReviewController::class, 'store'])->name('review.store');
 
 Route::get('/api/agent/pendientes', function () {
     $key = request('key');

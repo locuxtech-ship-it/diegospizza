@@ -8,24 +8,24 @@ use Illuminate\Http\Request;
 
 class ReviewController extends Controller
 {
-    public function showForm(string $numero)
+    public function showForm(string $pedido)
     {
-        $pedido = Pedido::where('numero_pedido', (int) $numero)
+        $pedidoModel = Pedido::where('id', $pedido)
             ->whereIn('estado', ['entregado', 'finalizado'])
             ->firstOrFail();
 
-        $review = Review::where('pedido_id', $pedido->id)->first();
+        $review = Review::where('pedido_id', $pedidoModel->id)->first();
 
-        return view('public.review-form', compact('pedido', 'review'));
+        return view('public.review-form', ['pedido' => $pedidoModel, 'review' => $review]);
     }
 
-    public function store(Request $request, string $numero)
+    public function store(Request $request, string $pedido)
     {
-        $pedido = Pedido::where('numero_pedido', (int) $numero)
+        $pedidoModel = Pedido::where('id', $pedido)
             ->whereIn('estado', ['entregado', 'finalizado'])
             ->firstOrFail();
 
-        $existing = Review::where('pedido_id', $pedido->id)->first();
+        $existing = Review::where('pedido_id', $pedidoModel->id)->first();
         if ($existing) {
             return back()->with('error', 'Ya dejaste una reseña para este pedido.');
         }
@@ -35,10 +35,10 @@ class ReviewController extends Controller
             'comentario' => 'nullable|string|max:1000',
         ]);
 
-        $cliente = $pedido->cliente;
+        $cliente = $pedidoModel->cliente;
 
         Review::create([
-            'pedido_id' => $pedido->id,
+            'pedido_id' => $pedidoModel->id,
             'cliente_id' => $cliente?->id,
             'nombre' => $cliente?->nombre ?? 'Cliente',
             'telefono' => $cliente?->telefono,
