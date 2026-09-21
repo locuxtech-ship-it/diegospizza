@@ -327,11 +327,15 @@ class Comandas extends Page
         $this->actualizarDescuento();
 
         if ($this->pedidoPagoId) {
-            Pedido::where('id', $this->pedidoPagoId)->update([
-                'descuento_manual' => $this->descuentoAplicado,
-                'descuento_manual_tipo' => $this->descuentoTipo,
-                'descuento_manual_valor' => $this->descuentoValor,
-            ]);
+            $pedido = Pedido::find($this->pedidoPagoId);
+            if ($pedido) {
+                $pedido->update([
+                    'descuento_manual' => $this->descuentoAplicado,
+                    'descuento_manual_tipo' => $this->descuentoTipo,
+                    'descuento_manual_valor' => $this->descuentoValor,
+                    'total' => max(0, (float) $pedido->subtotal - (float) $pedido->descuento_puntos - $this->descuentoAplicado),
+                ]);
+            }
         }
 
         $pedido = Pedido::with('cliente')->find($this->pedidoPagoId);
@@ -479,6 +483,7 @@ class Comandas extends Page
                 'descuento_manual' => $this->descuentoAplicado,
                 'descuento_manual_tipo' => $this->descuentoTipo,
                 'descuento_manual_valor' => $this->descuentoValor,
+                'total' => max(0, (float) $pedido->subtotal - (float) $pedido->descuento_puntos - $this->descuentoAplicado),
             ]);
         }
 
