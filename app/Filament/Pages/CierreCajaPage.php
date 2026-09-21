@@ -34,6 +34,7 @@ class CierreCajaPage extends Page
     public ?float $efectivoReal = null;
     public string $observaciones = '';
     public bool $esAdmin = false;
+    public array $historial = [];
 
     // Totals calculated from DB
     public float $totalEfectivo = 0;
@@ -87,6 +88,13 @@ class CierreCajaPage extends Page
         }
 
         $this->efectivoEsperado = $this->totalEfectivo - $this->totalGastos;
+
+        $this->historial = CierreCaja::with('user')
+            ->where('fecha', '!=', $hoy)
+            ->orderBy('fecha', 'desc')
+            ->limit(30)
+            ->get()
+            ->toArray();
     }
 
     private function calcularTotalesVentas(): void
