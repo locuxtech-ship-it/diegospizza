@@ -6,6 +6,7 @@ use App\Models\Pedido;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use UnitEnum;
 
@@ -38,9 +39,103 @@ class Reportes extends Page
     public array $tamaniosMasVendidos = [];
     public array $mitadesMasVendidas = [];
 
+    public float $semanaActual = 0;
+    public int $pedidosSemanaActual = 0;
+    public float $semanaAnterior = 0;
+    public int $pedidosSemanaAnterior = 0;
+    public float $diferenciaSemanal = 0;
+    public float $porcentajeSemanal = 0;
+
+    public float $mesActual = 0;
+    public int $pedidosMesActual = 0;
+    public float $mesAnterior = 0;
+    public int $pedidosMesAnterior = 0;
+    public float $diferenciaMensual = 0;
+    public float $porcentajeMensual = 0;
+
+    public float $acumuladoAnual = 0;
+    public int $pedidosAcumuladoAnual = 0;
+    public float $promedioMensualAnual = 0;
+    public int $mesesConDatos = 0;
+
     public function mount(): void
     {
         $this->aplicarPeriodo('hoy');
+    }
+
+    public function initComparativa(): void
+    {
+        $hoy = now();
+
+        $lunesSemanaActual = $hoy->copy()->startOfWeek();
+        $domingoSemanaActual = $hoy->copy()->endOfWeek();
+        $lunesSemanaAnterior = $lunesSemanaActual->copy()->subWeek();
+        $domingoSemanaAnterior = $domingoSemanaActual->copy()->subWeek();
+
+        $this->semanaActual = (float) Pedido::whereNotIn('estado', ['cancelado'])
+            ->whereDate('created_at', '>=', $lunesSemanaActual)
+            ->whereDate('created_at', '<=', $domingoSemanaActual)
+            ->sum('total');
+        $this->pedidosSemanaActual = Pedido::whereNotIn('estado', ['cancelado'])
+            ->whereDate('created_at', '>=', $lunesSemanaActual)
+            ->whereDate('created_at', '<=', $domingoSemanaActual)
+            ->count();
+
+        $this->semanaAnterior = (float) Pedido::whereNotIn('estado', ['cancelado'])
+            ->whereDate('created_at', '>=', $lunesSemanaAnterior)
+            ->whereDate('created_at', '<=', $domingoSemanaAnterior)
+            ->sum('total');
+        $this->pedidosSemanaAnterior = Pedido::whereNotIn('estado', ['cancelado'])
+            ->whereDate('created_at', '>=', $lunesSemanaAnterior)
+            ->whereDate('created_at', '<=', $domingoSemanaAnterior)
+            ->count();
+
+        $this->diferenciaSemanal = $this->semanaActual - $this->semanaAnterior;
+        $this->porcentajeSemanal = $this->semanaAnterior > 0
+            ? (($this->semanaActual - $this->semanaAnterior) / $this->semanaAnterior) * 100
+            : 0;
+
+        $inicioMesActual = $hoy->copy()->startOfMonth();
+        $inicioMesAnterior = $inicioMesActual->copy()->subMonth();
+        $finMesAnterior = $inicioMesActual->copy()->subDay();
+
+        $this->mesActual = (float) Pedido::whereNotIn('estado', ['cancelado'])
+            ->whereDate('created_at', '>=', $inicioMesActual)
+            ->sum('total');
+        $this->pedidosMesActual = Pedido::whereNotIn('estado', ['cancelado'])
+            ->whereDate('created_at', '>=', $inicioMesActual)
+            ->count();
+
+        $this->mesAnterior = (float) Pedido::whereNotIn('estado', ['cancelado'])
+            ->whereDate('created_at', '>=', $inicioMesAnterior)
+            ->whereDate('created_at', '<=', $finMesAnterior)
+            ->sum('total');
+        $this->pedidosMesAnterior = Pedido::whereNotIn('estado', ['cancelado'])
+            ->whereDate('created_at', '>=', $inicioMesAnterior)
+            ->whereDate('created_at', '<=', $finMesAnterior)
+            ->count();
+
+        $this->diferenciaMensual = $this->mesActual - $this->mesAnterior;
+        $this->porcentajeMensual = $this->mesAnterior > 0
+            ? (($this->mesActual - $this->mesAnterior) / $this->mesAnterior) * 100
+            : 0;
+
+        $inicioAnio = $hoy->copy()->startOfYear();
+        $this->acumuladoAnual = (float) Pedido::whereNotIn('estado', ['cancelado'])
+            ->whereDate('created_at', '>=', $inicioAnio)
+            ->sum('total');
+        $this->pedidosAcumuladoAnual = Pedido::whereNotIn('estado', ['cancelado'])
+            ->whereDate('created_at', '>=', $inicioAnio)
+            ->count();
+
+        $this->mesesConDatos = (int) Pedido::whereNotIn('estado', ['cancelado'])
+            ->whereDate('created_at', '>=', $inicioAnio)
+            ->selectRaw('COUNT(DISTINCT DATE_FORMAT(created_at, "%Y-%m")) as meses')
+            ->value('meses') ?? 1;
+
+        $this->promedioMensualAnual = $this->mesesConDatos > 0
+            ? $this->acumuladoAnual / $this->mesesConDatos
+            : 0;
     }
 
     public function aplicarPeriodo(string $periodo): void
@@ -60,6 +155,7 @@ class Reportes extends Page
         }
 
         $this->filtrar();
+        $this->initComparativa();
     }
 
     public function filtrar(): void
@@ -84,6 +180,74 @@ class Reportes extends Page
         $this->cargarSaboresMasVendidos($query);
         $this->cargarTamaniosMasVendidos($query);
         $this->cargarMitadesMasVendidas($query);
+    }
+
+    public function exportarCSV(): Response
+    {
+        $query = Pedido::whereNotIn('estado', ['cancelado']);
+
+        if ($this->fechaInicio) {
+            $query->whereDate('pedidos.created_at', '>=', $this->fechaInicio);
+        }
+        if ($this->fechaFin) {
+            $query->whereDate('pedidos.created_at', '<=', $this->fechaFin);
+        }
+
+        $pedidos = $query->with('cliente')
+            ->select('id', 'numero_pedido', 'created_at', 'subtotal', 'descuento_puntos', 'descuento_manual', 'total', 'origen', 'estado')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $filename = 'reporte_ventas_' . ($this->fechaInicio ?? 'inicio') . '_al_' . ($this->fechaFin ?? 'fin') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($pedidos) {
+            $file = fopen('php://output', 'w');
+
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            fputcsv($file, ['Pedido', 'Fecha', 'Hora', 'Cliente', 'Subtotal', 'Dcto Puntos', 'Dcto Manual', 'Total', 'Origen', 'Estado'], ';');
+
+            foreach ($pedidos as $p) {
+                fputcsv($file, [
+                    $p->numero_pedido,
+                    $p->created_at->format('d/m/Y'),
+                    $p->created_at->format('H:i'),
+                    $p->cliente->nombre ?? 'N/A',
+                    number_format($p->subtotal, 0, ',', '.'),
+                    number_format($p->descuento_puntos, 0, ',', '.'),
+                    number_format($p->descuento_manual, 0, ',', '.'),
+                    number_format($p->total, 0, ',', '.'),
+                    $p->origen,
+                    $p->estado,
+                ], ';');
+            }
+
+            fputcsv($file, [], ';');
+            fputcsv($file, [], ';');
+            fputcsv($file, ['RESUMEN'], ';');
+            fputcsv($file, ['Total Ventas', '$' . number_format($this->totalVentas, 0, ',', '.')], ';');
+            fputcsv($file, ['Total Pedidos', $this->totalPedidos], ';');
+            fputcsv($file, ['Promedio por Pedido', '$' . number_format($this->promedioPedido, 0, ',', '.')], ';');
+            fputcsv($file, [], ';');
+            fputcsv($file, ['COMPARATIVA'], ';');
+            fputcsv($file, ['Semana Actual', '$' . number_format($this->semanaActual, 0, ',', '.')], ';');
+            fputcsv($file, ['Semana Anterior', '$' . number_format($this->semanaAnterior, 0, ',', '.')], ';');
+            fputcsv($file, ['Variacion Semanal', ($this->porcentajeSemanal >= 0 ? '+' : '') . number_format($this->porcentajeSemanal, 1) . '%'], ';');
+            fputcsv($file, ['Mes Actual', '$' . number_format($this->mesActual, 0, ',', '.')], ';');
+            fputcsv($file, ['Mes Anterior', '$' . number_format($this->mesAnterior, 0, ',', '.')], ';');
+            fputcsv($file, ['Variacion Mensual', ($this->porcentajeMensual >= 0 ? '+' : '') . number_format($this->porcentajeMensual, 1) . '%'], ';');
+            fputcsv($file, ['Acumulado Anual', '$' . number_format($this->acumuladoAnual, 0, ',', '.')], ';');
+            fputcsv($file, ['Promedio Mensual', '$' . number_format($this->promedioMensualAnual, 0, ',', '.')], ';');
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     private function cargarDiaMasVendido($baseQuery): void
