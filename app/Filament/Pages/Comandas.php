@@ -300,17 +300,13 @@ class Comandas extends Page
     {
         $this->actualizarDescuento();
 
-        if ($this->pedidoPagoId && $this->descuentoAplicado > 0) {
+        if ($this->pedidoPagoId) {
+            $nuevoTotal = max(0, $this->totalPedido - $this->descuentoPuntos - $this->descuentoAplicado);
             Pedido::where('id', $this->pedidoPagoId)->update([
                 'descuento_manual' => $this->descuentoAplicado,
-                'descuento_manual_tipo' => $this->descuentoTipo,
-                'descuento_manual_valor' => $this->descuentoValor,
-            ]);
-        } elseif ($this->pedidoPagoId) {
-            Pedido::where('id', $this->pedidoPagoId)->update([
-                'descuento_manual' => 0,
-                'descuento_manual_tipo' => null,
-                'descuento_manual_valor' => 0,
+                'descuento_manual_tipo' => $this->descuentoAplicado > 0 ? $this->descuentoTipo : null,
+                'descuento_manual_valor' => $this->descuentoAplicado > 0 ? $this->descuentoValor : 0,
+                'total' => $nuevoTotal,
             ]);
         }
 
@@ -372,10 +368,12 @@ class Comandas extends Page
         $this->totalConDescuento = max(0, $this->totalPedido - $this->descuentoPuntos);
 
         if ($this->pedidoPagoId) {
+            $nuevoTotal = max(0, $this->totalPedido - $this->descuentoPuntos);
             Pedido::where('id', $this->pedidoPagoId)->update([
                 'descuento_manual' => 0,
                 'descuento_manual_tipo' => null,
                 'descuento_manual_valor' => 0,
+                'total' => $nuevoTotal,
             ]);
         }
 
