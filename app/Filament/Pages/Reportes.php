@@ -67,27 +67,27 @@ class Reportes extends Page
     {
         $hoy = now();
 
-        $lunesSemanaActual = $hoy->copy()->startOfWeek();
-        $domingoSemanaActual = $hoy->copy()->endOfWeek();
-        $lunesSemanaAnterior = $lunesSemanaActual->copy()->subWeek();
-        $domingoSemanaAnterior = $domingoSemanaActual->copy()->subWeek();
+        $martesSemanaActual = $hoy->copy()->startOfWeek()->addDay();
+        $lunesSiguiente = $martesSemanaActual->copy()->addDays(6);
+        $martesSemanaAnterior = $martesSemanaActual->copy()->subWeek();
+        $lunesAnterior = $martesSemanaAnterior->copy()->addDays(6);
 
         $this->semanaActual = (float) Pedido::whereNotIn('estado', ['cancelado'])
-            ->whereDate('created_at', '>=', $lunesSemanaActual)
-            ->whereDate('created_at', '<=', $domingoSemanaActual)
+            ->whereDate('created_at', '>=', $martesSemanaActual)
+            ->whereDate('created_at', '<=', $lunesSiguiente)
             ->sum('total');
         $this->pedidosSemanaActual = Pedido::whereNotIn('estado', ['cancelado'])
-            ->whereDate('created_at', '>=', $lunesSemanaActual)
-            ->whereDate('created_at', '<=', $domingoSemanaActual)
+            ->whereDate('created_at', '>=', $martesSemanaActual)
+            ->whereDate('created_at', '<=', $lunesSiguiente)
             ->count();
 
         $this->semanaAnterior = (float) Pedido::whereNotIn('estado', ['cancelado'])
-            ->whereDate('created_at', '>=', $lunesSemanaAnterior)
-            ->whereDate('created_at', '<=', $domingoSemanaAnterior)
+            ->whereDate('created_at', '>=', $martesSemanaAnterior)
+            ->whereDate('created_at', '<=', $lunesAnterior)
             ->sum('total');
         $this->pedidosSemanaAnterior = Pedido::whereNotIn('estado', ['cancelado'])
-            ->whereDate('created_at', '>=', $lunesSemanaAnterior)
-            ->whereDate('created_at', '<=', $domingoSemanaAnterior)
+            ->whereDate('created_at', '>=', $martesSemanaAnterior)
+            ->whereDate('created_at', '<=', $lunesAnterior)
             ->count();
 
         $this->diferenciaSemanal = $this->semanaActual - $this->semanaAnterior;
