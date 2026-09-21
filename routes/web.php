@@ -2,13 +2,26 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\StoreRegistrationController;
+use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\WhatsAppController;
 use App\Livewire\Checkout;
 use App\Livewire\Menu;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', Menu::class)->name('menu');
+Route::get('/', function () {
+    $plans = \App\Models\Plan::where('activo', true)->orderBy('orden')->get();
+    return view('landing', compact('plans'));
+})->name('landing');
+
+Route::get('/crear-tienda', [StoreRegistrationController::class, 'show'])->name('store.register');
+Route::get('/crear-tienda/{planSlug}', [StoreRegistrationController::class, 'show'])->name('store.register.plan');
+Route::post('/crear-tienda', [StoreRegistrationController::class, 'store'])->name('store.register.store');
+Route::get('/onboarding/{uuid}', [OnboardingController::class, 'show'])->name('store.onboarding');
+Route::match(['get', 'post', 'put'], '/onboarding/{uuid}', [OnboardingController::class, 'update'])->name('store.onboarding.update');
+
+Route::get('/tienda', Menu::class)->name('menu');
 Route::get('/checkout', Checkout::class)->name('checkout');
 
 Route::post('/admin/configuracion', [AdminController::class, 'saveConfig'])->name('admin.configuracion.save');

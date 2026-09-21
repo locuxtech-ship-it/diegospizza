@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
+  <rect width="60" height="60" rx="12" fill="#F1590C"/>
+  <polygon points="50,60 60,60 60,50" fill="#FFFFFF" opacity="0.18"/>
+  <g transform="skewX(-8)">
+    <rect x="14" y="10" width="8" height="40" fill="#FFFFFF"/>
+    <rect x="14" y="10" width="36" height="8" fill="#FFFFFF"/>
+    <rect x="14" y="26" width="25" height="7.5" fill="#FFFFFF"/>
+  </g>
+  <circle cx="54" cy="54" r="2.5" fill="#FFFFFF"/>
+  <text x="72" y="40" font-family="Nunito, Arial, sans-serif" font-size="28" font-weight="800" fill="#1a1a1a">Facilo</text>
+</svg>
