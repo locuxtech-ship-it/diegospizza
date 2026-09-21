@@ -1,9 +1,21 @@
 # Changelog — Diego's Pizza
 
-## [20-09-2026] — Fix Descuento Doble + WhatsApp Sesión + WAHA Persistencia
+## [20-09-2026] — Fix Reseñas + Fix Descuento Doble + Reporte Comparativo + WAHA Persistencia
 
 ### Problema
 El campo `total` en BD ya incluye descuentos (`subtotal - descuento_puntos - descuento_manual`), pero las vistas lo estaban restando doble, mostrando valores incorrectos en PDV, historial, kanban, estadísticas y modal de pago.
+
+### Cambios - Fix Reseñas (v2.2)
+- **Ruta corregida**: `/review/{numero}` → `/review/{pedido}` (usa ID único del pedido)
+- **ReviewController**: busca por `id` en vez de `numero_pedido` (que se resetea diariamente)
+- **Pedido.php**: genera link WhatsApp con `$this->id` en vez de `$this->numero_pedido`
+- **Causa raíz**: `numero_pedido` no es único — el #1 ha aparecido 83 veces. Al buscar `/review/17`, el sistema encontraba el pedido más viejo, no el del cliente
+
+### Cambios - Reporte Comparativo (v2.1)
+- **Comparativa semanal**: Esta semana vs semana anterior (martes-lunes) con porcentaje y flecha ↑↓
+- **Comparativa mensual**: Este mes vs mes anterior con porcentaje y flecha ↑↓
+- **Acumulado anual**: Total desde enero + promedio mensual + total pedidos + meses con datos
+- **Exportar CSV**: Botón verde con todos los pedidos del período + resumen
 
 ### Cambios - Fix Descuento Doble (v1.9)
 - **Comandas.php**: `totalPedido` ahora usa `pedido->subtotal` (base sin descuentos) en vez de `pedido->total`
