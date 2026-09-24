@@ -1,5 +1,28 @@
 # Changelog — Diego's Pizza
 
+## [23-09-2026] — Fix: no se podían agregar productos a pedidos en preparación (v2.4)
+
+### Problema
+Al intentar sumar cantidad (+) o agregar un producto ya existente en un pedido "en preparación", salía **"error al cargar la página"**.
+
+### Causa raíz
+`round()` en PHP acepta máximo 3 argumentos (valor, precisión, modo). El código pasaba 4: `round($x, 0, ',', '.')`. PHP lanzaba `ArgumentCountError: round() expects at most 3 arguments, 4 given` en cada clic de cantidad o agregar producto.
+
+### Cambios
+- **EditPedido.php** — 4 ocurrencias corregidas (`round($x, 0)`):
+  - `agregarProducto()` línea 180 — sumar producto duplicado
+  - `cambiarCantidad()` línea 251 — botones +/− de cantidad
+  - `recalcularSubtotalForm()` línea 281 — descuento porcentaje
+  - línea 339 — descuento porcentaje en save
+
+### Verificación
+- `php -l` OK; contenedor Docker reconstruido con imagen nueva (`6aa69ef`); sitio 200; logs sin errores
+
+### Puntos de Restauración
+- `v2.4` — fix aplicado y desplegado
+- `v2.4-pre-fix-round` — estado previo
+- `v2.4-deployed` — tag post-deploy
+
 ## [20-09-2026] — Fix Reseñas + Fix Descuento Doble + Reporte Comparativo + WAHA Persistencia
 
 ### Problema
