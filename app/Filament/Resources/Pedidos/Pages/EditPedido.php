@@ -177,7 +177,7 @@ class EditPedido extends EditRecord
         foreach ($this->productosPedido as &$item) {
             if ($item['producto_id'] == $producto->id && ($item['variant_id'] ?? null) == $variantId) {
                 $item['cantidad'] = (int) ($item['cantidad'] ?? 1) + 1;
-                $item['subtotal'] = round($item['cantidad'] * (float) $item['precio_unitario'], 0, ',', '.');
+                $item['subtotal'] = round($item['cantidad'] * (float) $item['precio_unitario'], 0);
                 $this->nuevoProductoId = null;
                 $this->nuevoVariantId = null;
                 $this->recalcularSubtotalForm();
@@ -248,7 +248,7 @@ class EditPedido extends EditRecord
             array_splice($this->productosPedido, $index, 1);
         } else {
             $this->productosPedido[$index]['cantidad'] = $nueva;
-            $this->productosPedido[$index]['subtotal'] = round($nueva * (float) $this->productosPedido[$index]['precio_unitario'], 0, ',', '.');
+            $this->productosPedido[$index]['subtotal'] = round($nueva * (float) $this->productosPedido[$index]['precio_unitario'], 0);
         }
 
         $this->recalcularSubtotalForm();
@@ -278,7 +278,7 @@ class EditPedido extends EditRecord
             $valor = (float) ($this->data['descuento_manual_valor'] ?? 0);
 
             if ($tipo === 'porcentaje') {
-                $descuentoManual = round($subtotal * $valor / 100, 0, ',', '.');
+                $descuentoManual = round($subtotal * $valor / 100, 0);
             } elseif ($tipo === 'monto') {
                 $descuentoManual = $valor;
             } else {
@@ -336,7 +336,7 @@ class EditPedido extends EditRecord
         $valor = (float) ($data['descuento_manual_valor'] ?? 0);
 
         if ($tipo === 'porcentaje') {
-            $data['descuento_manual'] = round($subtotal * $valor / 100, 0, ',', '.');
+            $data['descuento_manual'] = round($subtotal * $valor / 100, 0);
         } elseif ($tipo === 'monto') {
             $data['descuento_manual'] = $valor;
         } else {
