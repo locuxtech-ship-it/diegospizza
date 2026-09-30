@@ -1,5 +1,36 @@
 # Changelog — Diego's Pizza
 
+## [30-09-2026] — Fix: chatbot desconectado y QR no cargaba + auto-actualización WAHA
+
+### Problema
+El chatbot se desconectó y al generar un nuevo QR no cargaba. En los logs: `Client outdated (405) connect failure` — WhatsApp rechazaba la conexión porque la imagen de WAHA era del 26-may-2026.
+
+### Causa raíz
+WhatsApp actualiza su protocolo periódicamente y rechaza clientes viejos (error 405 "client outdated"). La imagen `devlikeapro/waha:latest` no se había actualizado en 4 meses → el QR **nunca se genera** porque WhatsApp rechaza antes del intercambio.
+
+### Cambios
+- **Imagen actualizada**: `63263ba82ef6` (26-may) → `25a2d6f5d249` (22-sep-2026), contenedor recreado
+- **`waha-autoupdate.sh`** (nuevo): cron semanal domingos 4AM — compara hash de la imagen, si cambió hace `docker compose up -d --force-recreate waha`
+- **`waha-recover.sh`** (nuevo): recupera sesión FAILED/STOPPED/borrada (stop + start limpio)
+- **`waha-watchdog.sh`** (mejorado): ahora llama a `waha-recover.sh` — el viejo hacía `POST /sessions/start` que devolvía 422 "already started" con sesiones FAILED, nunca se recuperaban
+
+### Automatización (no requiere intervención manual)
+| Cron | Frecuencia | Qué hace |
+|---|---|---|
+| `waha-watchdog.sh` | cada 2 min | Recupera sesión caída (FAILED/STOPPED) |
+| `waha-autoupdate.sh` | domingos 4AM | Actualiza imagen WAHA si hay nueva versión |
+
+### Notas de diagnóstico
+- **Endpoint QR correcto**: `GET /api/default/auth/qr?format=image` (NO `/api/sessions/default/auth/qr` — devuelve 404)
+- **Slowness percibida**: cuando WAHA está caído, cada `sendText` cuelga ~10s → el sitio se siente lento. Con WAHA sano, no ocurre. El servidor en sí estaba sano (CPU 2%, RAM libre)
+- **Pull de imagen lento**: pueden atascarse pulls concurrentes de Docker; matar y reintentar con un solo pull
+- **WAHA_API_KEY**: `diegospizza-waha-2026` (env en docker-compose)
+- **Sesión QR expira** (~2-3 min): si expira, watchdog la reinicia sola
+
+### Puntos de Restauración
+- `v2.4` — fix round() EditPedido
+- Imagen anterior WAHA: `63263ba82ef6` (se puede volver con `docker compose up -d --force-recreate waha` tras editar tag)
+
 ## [23-09-2026] — Fix: no se podían agregar productos a pedidos en preparación (v2.4)
 
 ### Problema
