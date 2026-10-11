@@ -1,5 +1,16 @@
 # Changelog — Diego's Pizza
 
+## [10-10-2026] — Feature: cambiar método de pago desde modal sin registrar pago
+
+### Cambios
+- **`guardarMetodoPago()`** (nuevo en Comandas.php): actualiza `pedido->metodo_pago` sin crear un registro de pago. Solo disponible cuando no hay pagos confirmados en el pedido
+- **Botón 💾** en el modal de pago: aparece al lado del select de método cuando el método seleccionado difiere del actual y no hay pagos registrados
+- El cierre automático del modal al hacer click en "💾 Guardar" (`aplicarCambios`) ya existía desde septiembre (commit `8c8c59d`) — no se modificó
+
+### Puntos de Restauración
+- Tag: `pre-fix-metodo-pago-modal` (commit `869fb7b`)
+- Deploy: commit `decd009`, contenedor imagen `c8d5a63`
+
 ## [30-09-2026] — Fix: chatbot desconectado y QR no cargaba + auto-actualización WAHA
 
 ### Problema
