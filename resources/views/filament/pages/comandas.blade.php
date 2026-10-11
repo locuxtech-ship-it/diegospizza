@@ -408,11 +408,16 @@
             @elseif($restante > 0)
             <div style="margin-bottom: 16px;">
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <select wire:model.live="pagoMetodo" style="border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 12px; font-size: 14px; background: white; flex: 1; min-width: 140px;">
-                        @foreach(\App\Models\NegocioSetting::getActivePaymentMethods() as $valor => $info)
-                            <option value="{{ $valor }}">{{ $info['label'] }}</option>
-                        @endforeach
-                    </select>
+                    <div style="display: flex; align-items: center; gap: 4px; flex: 1; min-width: 160px;">
+                        <select wire:model.live="pagoMetodo" style="border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 12px; font-size: 14px; background: white; flex: 1; min-width: 130px;">
+                            @foreach(\App\Models\NegocioSetting::getActivePaymentMethods() as $valor => $info)
+                                <option value="{{ $valor }}">{{ $info['label'] }}</option>
+                            @endforeach
+                        </select>
+                        @if($totalPagado == 0 && $pagoMetodo !== $pedidoMetodoPago)
+                        <button wire:click="guardarMetodoPago" title="Guardar método de pago" style="background: #2563eb; color: white; border: none; border-radius: 8px; padding: 10px 10px; font-size: 14px; cursor: pointer; white-space: nowrap;">💾</button>
+                        @endif
+                    </div>
                     <div style="display: flex; align-items: center; border: 1px solid #d1d5db; border-radius: 8px; overflow: hidden; flex: 1; min-width: 120px;">
                         <span style="background: #f3f4f6; padding: 10px 10px; font-size: 14px; color: #6b7280; border-right: 1px solid #d1d5db;">$</span>
                         <input type="number" step="1" wire:model.live="pagoMonto" max="{{ $restante }}" placeholder="0" style="width: 100%; border: none; padding: 10px 12px; font-size: 14px; outline: none;">

@@ -467,6 +467,37 @@ class Comandas extends Page
         $this->cargarPedidos();
     }
 
+    public function guardarMetodoPago(): void
+    {
+        if (!$this->pedidoPagoId) return;
+
+        $this->validate([
+            'pagoMetodo' => 'required|in:' . implode(',', array_keys(NegocioSetting::getActivePaymentMethods())),
+        ]);
+
+        $totalPagado = (float) Pago::where('pedido_id', $this->pedidoPagoId)->where('confirmado', true)->sum('monto');
+        if ($totalPagado > 0) {
+            Notification::make()
+                ->title('No se puede cambiar el método: ya hay pagos registrados en este pedido')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        Pedido::where('id', $this->pedidoPagoId)->update([
+            'metodo_pago' => $this->pagoMetodo,
+        ]);
+
+        $this->pedidoMetodoPago = $this->pagoMetodo;
+
+        Notification::make()
+            ->title('Método de pago actualizado a: ' . ucfirst($this->pagoMetodo))
+            ->success()
+            ->send();
+
+        $this->dispatch('pedidoActualizado');
+    }
+
     public function registrarPago(): void
     {
         $this->validate([
