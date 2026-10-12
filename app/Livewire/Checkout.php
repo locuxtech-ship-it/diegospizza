@@ -8,6 +8,7 @@ use App\Models\Pago;
 use App\Models\Pedido;
 use App\Models\PedidoProducto;
 use App\Models\Punto;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -167,37 +168,41 @@ class Checkout extends Component
             'notas' => $this->notas ?: $cliente->notas,
         ]);
 
-        $pedido = Pedido::create([
-            'cliente_id' => $cliente->id,
-            'subtotal' => $this->subtotal,
-            'descuento_puntos' => $this->descuentoPuntos,
-            'total' => $this->total,
-            'origen' => 'web',
-            'estado' => 'pendiente_pago',
-            'metodo_pago' => $this->metodoPago,
-            'notas' => $this->notas,
-        ]);
-
-        foreach ($this->items as $item) {
-            PedidoProducto::create([
-                'pedido_id' => $pedido->id,
-                'producto_id' => $item['id'],
-                'variant_id' => $item['variant_id'] ?? null,
-                'variant_tamanio' => $item['variant_tamanio'] ?? null,
-                'mitades' => $item['mitades'] ?? null,
-                'cantidad' => $item['cantidad'],
-                'precio_unitario' => $item['precio'],
-                'subtotal' => $item['precio'] * $item['cantidad'],
+        $pedido = DB::transaction(function () use ($cliente) {
+            $pedido = Pedido::create([
+                'cliente_id' => $cliente->id,
+                'subtotal' => $this->subtotal,
+                'descuento_puntos' => $this->descuentoPuntos,
+                'total' => $this->total,
+                'origen' => 'web',
+                'estado' => 'pendiente_pago',
+                'metodo_pago' => $this->metodoPago,
+                'notas' => $this->notas,
             ]);
-        }
 
-        Pago::create([
-            'pedido_id' => $pedido->id,
-            'monto' => $this->total,
-            'metodo' => $this->metodoPago,
-            'confirmado' => false,
-            'fecha_pago' => now(),
-        ]);
+            foreach ($this->items as $item) {
+                PedidoProducto::create([
+                    'pedido_id' => $pedido->id,
+                    'producto_id' => $item['id'],
+                    'variant_id' => $item['variant_id'] ?? null,
+                    'variant_tamanio' => $item['variant_tamanio'] ?? null,
+                    'mitades' => $item['mitades'] ?? null,
+                    'cantidad' => $item['cantidad'],
+                    'precio_unitario' => $item['precio'],
+                    'subtotal' => $item['precio'] * $item['cantidad'],
+                ]);
+            }
+
+            Pago::create([
+                'pedido_id' => $pedido->id,
+                'monto' => $this->total,
+                'metodo' => $this->metodoPago,
+                'confirmado' => false,
+                'fecha_pago' => now(),
+            ]);
+
+            return $pedido;
+        });
 
         if (!($this->descuentoPuntos > 0 && $this->recompensaAplicada)) {
             $settings = NegocioSetting::getSettings();

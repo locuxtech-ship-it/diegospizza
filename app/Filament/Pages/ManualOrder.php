@@ -12,6 +12,7 @@ use App\Models\Producto;
 use App\Models\ProductoVariant;
 use App\Models\Punto;
 use BackedEnum;
+use Illuminate\Support\Facades\DB;
 use Filament\Pages\Page;
 use Filament\Notifications\Notification;
 use UnitEnum;
@@ -248,37 +249,41 @@ class ManualOrder extends Page
             $subtotal += $item['precio'] * $item['cantidad'];
         }
 
-        $pedido = Pedido::create([
-            'cliente_id' => $cliente->id,
-            'subtotal' => $subtotal,
-            'descuento_puntos' => 0,
-            'total' => $subtotal,
-            'origen' => 'pdv',
-            'estado' => 'pendiente_pago',
-            'metodo_pago' => $this->metodoPago,
-            'notas' => $this->notas,
-        ]);
-
-        foreach ($this->carrito as $item) {
-            PedidoProducto::create([
-                'pedido_id' => $pedido->id,
-                'producto_id' => $item['producto_id'],
-                'variant_id' => $item['variant_id'] ?: null,
-                'variant_tamanio' => $item['variant_tamanio'] ?? null,
-                'mitades' => $item['mitades'] ?? null,
-                'cantidad' => $item['cantidad'],
-                'precio_unitario' => $item['precio'],
-                'subtotal' => $item['precio'] * $item['cantidad'],
+        $pedido = DB::transaction(function () use ($cliente, $subtotal) {
+            $pedido = Pedido::create([
+                'cliente_id' => $cliente->id,
+                'subtotal' => $subtotal,
+                'descuento_puntos' => 0,
+                'total' => $subtotal,
+                'origen' => 'pdv',
+                'estado' => 'pendiente_pago',
+                'metodo_pago' => $this->metodoPago,
+                'notas' => $this->notas,
             ]);
-        }
 
-        Pago::create([
-            'pedido_id' => $pedido->id,
-            'monto' => $subtotal,
-            'metodo' => $this->metodoPago,
-            'confirmado' => false,
-            'fecha_pago' => now(),
-        ]);
+            foreach ($this->carrito as $item) {
+                PedidoProducto::create([
+                    'pedido_id' => $pedido->id,
+                    'producto_id' => $item['producto_id'],
+                    'variant_id' => $item['variant_id'] ?: null,
+                    'variant_tamanio' => $item['variant_tamanio'] ?? null,
+                    'mitades' => $item['mitades'] ?? null,
+                    'cantidad' => $item['cantidad'],
+                    'precio_unitario' => $item['precio'],
+                    'subtotal' => $item['precio'] * $item['cantidad'],
+                ]);
+            }
+
+            Pago::create([
+                'pedido_id' => $pedido->id,
+                'monto' => $subtotal,
+                'metodo' => $this->metodoPago,
+                'confirmado' => false,
+                'fecha_pago' => now(),
+            ]);
+
+            return $pedido;
+        });
 
         $settings = NegocioSetting::getSettings();
         $montoPor = (float) ($settings->puntos_ganancia_monto ?? 100);
