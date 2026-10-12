@@ -1,5 +1,21 @@
 # Changelog — Diego's Pizza
 
+## [12-10-2026] — Fix: WhatsApp mostraba "Generando QR" aunque la sesión estaba activa
+
+### Problema
+El chatbot mostraba "Generando código QR, esperá unos segundos..." indefinidamente aunque la sesión de WhatsApp estaba funcionando (mensajes entraban y salían normalmente).
+
+### Causa raíz
+WAHA se queda "stuck" en status `STARTING` aunque internamente ya está autenticado y conectado (`engine.connected: true`, `me` con datos). La app solo reconocía `WORKING`/`CONNECTED` como "conectado", así que `STARTING` se mostraba como desconectado.
+
+### Cambios
+- **`WhatsAppService::getStatus()`**: `STARTING` con `me` autenticado ahora se trata como `CONNECTED` — la sesión funciona aunque WAHA no haya actualizado su status
+- **`waha-recover.sh`** (mejorado): detecta `STARTING` stuck — si el engine reporta `connected: true`, envía un sendText dummy para forzar la transición a `WORKING`. Si no funciona en 3 ciclos (~6 min), hace restart completo de la sesión
+
+### Puntos de Restauración
+- Tag: `pre-fix-waha-status` (commit `59d2f4b`)
+- Deploy: commit `6433f06`
+
 ## [11-10-2026] — Fix: tickets impresos sin productos + doble impresión
 
 ### Problema
