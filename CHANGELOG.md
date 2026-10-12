@@ -1,5 +1,20 @@
 # Changelog — Diego's Pizza
 
+## [12-10-2026] — Fix: reporte semanal mostraba $0 los lunes
+
+### Problema
+Los lunes, la comparativa semanal mostraba "Esta semana: $0" y todas las ventas aparecían como "Semana anterior".
+
+### Causa raíz
+`startOfWeek()` devuelve lunes. El código hacía `->addDay()` para llegar al martes, pero los lunes eso daba el martes DEL DÍA SIGUIENTE — la "semana actual" quedaba en el futuro y las ventas del día (y de toda la semana) se contaban como "semana anterior".
+
+### Cambios
+- **`Reportes.php`**: cálculo corregido con `((dayOfWeek + 5) % 7)` para encontrar el martes más reciente ≤ hoy, sin importar el día de la semana. Funciona correctamente lunes a domingo.
+
+### Puntos de Restauración
+- Tag: `pre-fix-reporte-semanal` (commit `4037f56`)
+- Deploy: commit `19277b6`
+
 ## [12-10-2026] — Fix: WhatsApp mostraba "Generando QR" aunque la sesión estaba activa
 
 ### Problema
