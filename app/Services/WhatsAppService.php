@@ -50,6 +50,8 @@ class WhatsAppService
                 $raw = $data['status'] ?? 'DISCONNECTED';
                 if (in_array($raw, ['WORKING', 'CONNECTED'])) {
                     $data['status'] = 'CONNECTED';
+                } elseif ($raw === 'STARTING' && !empty($data['me']['id'])) {
+                    $data['status'] = 'CONNECTED';
                 }
                 $me = $data['me'] ?? [];
                 $data['pushName'] = $me['pushName'] ?? $me['name'] ?? '';
