@@ -67,7 +67,8 @@ class Reportes extends Page
     {
         $hoy = now();
 
-        $martesSemanaActual = $hoy->copy()->startOfWeek()->addDay();
+        $daysSinceTuesday = ((int) $hoy->dayOfWeek + 5) % 7;
+        $martesSemanaActual = $hoy->copy()->subDays($daysSinceTuesday);
         $lunesSiguiente = $martesSemanaActual->copy()->addDays(6);
         $martesSemanaAnterior = $martesSemanaActual->copy()->subWeek();
         $lunesAnterior = $martesSemanaAnterior->copy()->addDays(6);
