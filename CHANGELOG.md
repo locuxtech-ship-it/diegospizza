@@ -1,5 +1,22 @@
 # Changelog — Diego's Pizza
 
+## [11-10-2026] — Fix: tickets impresos sin productos + doble impresión
+
+### Problema
+Tickets impresos ocasionalmente sin productos (o con pocos). La BD estaba limpia — todos los pedidos tenían sus productos. También había doble diálogo de impresión (mismo pedido 2-3x en logs de nginx).
+
+### Causa raíz
+1. **Race condition**: `Checkout.php` y `ManualOrder.php` hacían `Pedido::create()` primero (visible al polling de 5s), luego el loop de `PedidoProducto::create()`, sin `DB::transaction`. El poll podía dispararse en la brecha → ticket impreso con 0 productos. La BD después quedaba correcta.
+2. **Doble auto-print**: `ticket.blade.php` tenía `window.onload` + 1s → `window.print()`, Y `comandas.blade.php` tenía `iframe.onload` + 500ms → `iframe.contentWindow.print()`. Ambos disparaban → diálogo duplicado.
+
+### Cambios
+- **`DB::transaction`** en `Checkout.php` y `ManualOrder.php`: `Pedido::create()` + `PedidoProducto::create()` + `Pago::create()` ahora son atómicos. El pedido no es visible hasta que la transacción confirma con todos los productos
+- **`ticket.blade.php`**: auto-print solo cuando NO está en iframe (`window.self === window.top`). El iframe de PDV maneja su propia impresión; las reimpresiones manuales (`window.open`) siguen auto-imprimiendo
+
+### Puntos de Restauración
+- Tag: `pre-fix-ticket-race` (commit `e4f82d5`)
+- Deploy: commit `564fdc7`
+
 ## [10-10-2026] — Feature: cambiar método de pago desde modal sin registrar pago
 
 ### Cambios
