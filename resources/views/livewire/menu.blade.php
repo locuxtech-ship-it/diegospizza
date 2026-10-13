@@ -21,7 +21,7 @@
 
                 <div class="flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-1.5 sm:gap-4 text-xs sm:text-sm text-gray-300">
                     <span>📍 Domicilio Solo en el Sector de Alameda Del Rio</span>
-                    <span>⏰ {{ \App\Models\NegocioSetting::getTodayHours()['apertura'] }} - {{ \App\Models\NegocioSetting::getTodayHours()['cierre'] }}</span>
+                    <span>⏰ {{ \App\Models\NegocioSetting::formatHora(\App\Models\NegocioSetting::getTodayHours()['apertura']) }} - {{ \App\Models\NegocioSetting::formatHora(\App\Models\NegocioSetting::getTodayHours()['cierre']) }}</span>
                     <span>📞 {{ $negocio->telefono ?? '(555) 1234-5678' }}</span>
                     <div class="flex items-center gap-2">
                         <a href="https://wa.me/573106444759?text=Hola%2C%20quisiera%20m%C3%A1s%20informaci%C3%B3n%20sobre%20sus%20productos" target="_blank" rel="noopener" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-sm transition-all duration-200 border border-white/20 hover:border-white/40" title="Escríbenos por WhatsApp">
@@ -51,9 +51,10 @@
     {{-- Content --}}
     <div class="max-w-4xl mx-auto px-4 py-6">
         @if(!$estaAbierto)
+        @php $proximo = \App\Models\NegocioSetting::getNextOpening(); @endphp
         <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 text-center">
-            <p class="text-red-700 font-medium">⏰ Actualmente estamos cerrados</p>
-            <p class="text-gray-500 text-sm mt-1">Horarios: {{ \App\Models\NegocioSetting::getTodayHours()['apertura'] }} - {{ \App\Models\NegocioSetting::getTodayHours()['cierre'] }}</p>
+            <p class="text-red-700 font-medium">⏰ Cerrado — Abre {{ $proximo['cuando'] }} a las {{ \App\Models\NegocioSetting::formatHora($proximo['hora']) }}</p>
+            <p class="text-gray-500 text-sm mt-1">Horarios: {{ \App\Models\NegocioSetting::formatHora(\App\Models\NegocioSetting::getTodayHours()['apertura']) }} - {{ \App\Models\NegocioSetting::formatHora(\App\Models\NegocioSetting::getTodayHours()['cierre']) }}</p>
         </div>
         @endif
 

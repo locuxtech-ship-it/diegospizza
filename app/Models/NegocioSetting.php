@@ -121,4 +121,50 @@ class NegocioSetting extends Model
 
         return $horaActual->gte($apertura) && $horaActual->lt($cierre);
     }
+
+    public static function formatHora(string $hora): string
+    {
+        $parts = explode(':', $hora);
+        $h = (int) $parts[0];
+        $m = $parts[1] ?? '00';
+        $period = $h >= 12 ? 'PM' : 'AM';
+        $h12 = $h % 12 ?: 12;
+        return "{$h12}:{$m} {$period}";
+    }
+
+    public static function getNextOpening(): array
+    {
+        $settings = self::getSettings();
+        $diasLaborales = $settings->dias_laborales ?? ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        $dayName = ucfirst(now()->locale('es')->dayName);
+
+        if (in_array($dayName, $diasLaborales)) {
+            $hoy = self::getTodayHours();
+            $apertura = \Carbon\Carbon::parse($hoy['apertura']);
+            $cierre = \Carbon\Carbon::parse($hoy['cierre']);
+            $horaActual = now();
+
+            if ($cierre >= $apertura && $horaActual->lt($apertura)) {
+                return ['cuando' => 'hoy', 'hora' => $hoy['apertura']];
+            }
+            if ($cierre < $apertura && $horaActual->gte($apertura) && $horaActual->lt($cierre)) {
+                return ['cuando' => 'hoy', 'hora' => $hoy['apertura']];
+            }
+        }
+
+        $horarios = $settings->horarios_por_dia ?? [];
+        for ($i = 1; $i <= 7; $i++) {
+            $future = now()->copy()->addDays($i);
+            $futureDay = ucfirst($future->locale('es')->dayName);
+            if (in_array($futureDay, $diasLaborales)) {
+                $hora = $horarios[$futureDay]['apertura'] ?? $settings->horario_apertura ?? '11:00';
+                return [
+                    'cuando' => $i === 1 ? 'mañana' : $futureDay,
+                    'hora' => $hora,
+                ];
+            }
+        }
+
+        return ['cuando' => 'mañana', 'hora' => $settings->horario_apertura ?? '11:00'];
+    }
 }

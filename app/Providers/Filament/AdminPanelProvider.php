@@ -97,10 +97,12 @@ class AdminPanelProvider extends PanelProvider
                 $color = $abierto ? '#16a34a' : '#dc2626';
                 $icono = $abierto ? '🟢' : '🔴';
                 $texto = $abierto ? 'Abierto' : 'Cerrado';
+                $aperturaFmt = \App\Models\NegocioSetting::formatHora($hoy['apertura']);
+                $cierreFmt = \App\Models\NegocioSetting::formatHora($hoy['cierre']);
                 return '<div style="text-align:center;padding:4px 0;">
                 <span style="display:inline-flex;align-items:center;gap:8px;background:' . $color . ';color:white;padding:4px 16px;border-radius:9999px;font-size:13px;font-weight:600;flex-wrap:wrap;justify-content:center;">
                     <span>' . $icono . ' Menú Digital: ' . $texto . '</span>
-                    <span style="opacity:0.85;">— ' . $dia . ' ' . $hoy['apertura'] . ' a ' . $hoy['cierre'] . '</span>
+                    <span style="opacity:0.85;">— ' . $dia . ' ' . $aperturaFmt . ' a ' . $cierreFmt . '</span>
                 </span>
             </div>';
             }
