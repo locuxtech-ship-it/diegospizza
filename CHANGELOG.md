@@ -1,5 +1,17 @@
 # Changelog — Diego's Pizza
 
+## [12-10-2026] — Feature: horario en AM/PM + mensaje de próxima apertura
+
+### Cambios
+- **`NegocioSetting::formatHora()`** (nuevo): convierte `HH:MM` a formato AM/PM (`11:00 AM`, `11:00 PM`)
+- **`NegocioSetting::getNextOpening()`** (nuevo): calcula cuándo abre la tienda — "hoy" si es día laboral antes de apertura, o el próximo día laboral ("mañana" o nombre del día)
+- **Globo admin**: muestra horario en AM/PM — "🟢 Menú Digital: Abierto — Lunes 11:00 AM a 11:00 PM"
+- **Menú cliente**: horarios en AM/PM + mensaje mejorado cuando está cerrado: "⏰ Cerrado — Abre hoy a las 11:00 AM" o "⏰ Cerrado — Abre mañana a las 11:00 AM"
+
+### Puntos de Restauración
+- Tag: `pre-fix-horario-display` (commit `45b478b`)
+- Deploy: commit `2840969`
+
 ## [12-10-2026] — Fix: reporte semanal mostraba $0 los lunes
 
 ### Problema
