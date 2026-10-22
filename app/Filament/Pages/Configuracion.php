@@ -44,6 +44,10 @@ class Configuracion extends Page
     public $ticket_fuente = 'courier';
     public $logo;
     public $logoPreview = '';
+    public $banner;
+    public $bannerPreview = '';
+    public $banner_tipo = 'defecto';
+    public $banner_color = '#111827';
     public $mensaje = '';
     public $metodos_pago_activos = [];
     public $horarios_por_dia = [];
@@ -86,6 +90,9 @@ class Configuracion extends Page
         $this->metodos_pago_activos = $negocio->metodos_pago_activos ?? ['efectivo', 'tarjeta', 'transferencia'];
         $this->horarios_por_dia = $negocio->horarios_por_dia ?? [];
         $this->logoPreview = $negocio->logo ? Storage::disk('public')->url($negocio->logo) : '';
+        $this->banner_tipo = $negocio->banner_tipo ?? 'defecto';
+        $this->banner_color = $negocio->banner_color ?? '#111827';
+        $this->bannerPreview = $negocio->banner ? Storage::disk('public')->url($negocio->banner) : '';
     }
 
     public function toggleMetodoPago(string $metodo): void
@@ -132,6 +139,8 @@ class Configuracion extends Page
             'ticket_fuente' => $this->ticket_fuente,
             'metodos_pago_activos' => $this->metodos_pago_activos,
             'horarios_por_dia' => $this->horarios_por_dia,
+            'banner_tipo' => $this->banner_tipo,
+            'banner_color' => $this->banner_color,
         ];
 
         if ($this->logo) {
@@ -139,6 +148,13 @@ class Configuracion extends Page
                 Storage::disk('public')->delete($negocio->logo);
             }
             $data['logo'] = $this->logo->store('negocio', 'public');
+        }
+
+        if ($this->banner) {
+            if ($negocio->banner) {
+                Storage::disk('public')->delete($negocio->banner);
+            }
+            $data['banner'] = $this->banner->store('negocio', 'public');
         }
 
         $negocio->update($data);

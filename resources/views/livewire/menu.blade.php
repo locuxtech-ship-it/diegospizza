@@ -1,8 +1,21 @@
+@php
+    $bannerTipo = $negocio->banner_tipo ?? 'defecto';
+    $bannerColor = $negocio->banner_color ?? '#111827';
+    $bannerUrl = $negocio->banner ? asset('storage/' . $negocio->banner) : null;
+    $overlay = 'linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.5) 70%, rgba(0,0,0,0.4) 100%)';
+    if ($bannerTipo === 'color') {
+        $bannerStyle = 'background: ' . $overlay . ', ' . $bannerColor . '; background-size: cover;';
+    } elseif ($bannerTipo === 'imagen' && $bannerUrl) {
+        $bannerStyle = 'background-image: ' . $overlay . ', url(\'' . $bannerUrl . '\'); background-size: cover; background-position: center;';
+    } else {
+        $bannerStyle = 'background-image: ' . $overlay . ', url(\'/storage/images/llanera.jpeg\'); background-size: cover; background-position: center;';
+    }
+@endphp
 <div class="min-h-screen bg-white text-gray-900 font-sans" style="font-family: 'Poppins', sans-serif;">
     {{-- Hero / Header --}}
-    <div class="relative text-white overflow-hidden bg-gray-900" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.5) 70%, rgba(0,0,0,0.4) 100%), url('/storage/images/llanera.jpeg'); background-size: cover; background-position: center;">
-        <div class="max-w-4xl mx-auto px-4 py-8 sm:py-12">
-            <div class="flex flex-col items-center text-center gap-4">
+    <div class="relative text-white overflow-hidden bg-gray-900" style="{{ $bannerStyle }}">
+        <div class="max-w-4xl mx-auto px-4 py-5 sm:py-7">
+            <div class="flex flex-col items-center text-center gap-3">
                 <div class="flex items-center gap-3">
                     @if($negocio->logo)
                         <img src="{{ asset('storage/' . $negocio->logo) }}" alt="{{ $negocio->nombre_negocio }}" class="h-12 sm:h-16 rounded-xl shadow-lg border-2 border-white/20 flex-shrink-0">

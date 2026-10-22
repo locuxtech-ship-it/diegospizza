@@ -45,6 +45,40 @@
                         </div>
                         @error('logo') <span style="color: #ef4444; font-size: 12px;">{{ $message }}</span> @enderror
                     </div>
+
+                    {{-- Banner del Menú --}}
+                    <div style="border-top: 1px solid #e5e7eb; padding-top: 16px;">
+                        <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">🖼️ Banner del Menú Digital</label>
+                        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                            <button type="button" wire:click="$set('banner_tipo', 'defecto')" style="padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 2px solid {{ $banner_tipo === 'defecto' ? '#2563eb' : '#e5e7eb' }}; background: {{ $banner_tipo === 'defecto' ? '#eff6ff' : '#f9fafb' }}; color: #374151; cursor: pointer;">
+                                🖼️ Imagen por defecto
+                            </button>
+                            <button type="button" wire:click="$set('banner_tipo', 'imagen')" style="padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 2px solid {{ $banner_tipo === 'imagen' ? '#2563eb' : '#e5e7eb' }}; background: {{ $banner_tipo === 'imagen' ? '#eff6ff' : '#f9fafb' }}; color: #374151; cursor: pointer;">
+                                📷 Subir imagen
+                            </button>
+                            <button type="button" wire:click="$set('banner_tipo', 'color')" style="padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 2px solid {{ $banner_tipo === 'color' ? '#2563eb' : '#e5e7eb' }}; background: {{ $banner_tipo === 'color' ? '#eff6ff' : '#f9fafb' }}; color: #374151; cursor: pointer;">
+                                🎨 Color sólido
+                            </button>
+                        </div>
+
+                        @if($banner_tipo === 'imagen')
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <input type="file" wire:model="banner" accept="image/*" style="font-size: 14px;">
+                                @if($bannerPreview)
+                                    <img src="{{ $bannerPreview }}" alt="Banner" style="height: 48px; width: 120px; border-radius: 8px; object-fit: cover; border: 2px solid #e5e7eb;">
+                                @endif
+                            </div>
+                            <p style="margin: 6px 0 0; font-size: 12px; color: #9ca3af;">Si ya subiste una imagen antes, se usará. Sube una nueva para reemplazarla.</p>
+                            @error('banner') <span style="color: #ef4444; font-size: 12px;">{{ $message }}</span> @enderror
+                        @elseif($banner_tipo === 'color')
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <input type="color" wire:model.live="banner_color" style="width: 50px; height: 40px; border: 1px solid #d1d5db; border-radius: 8px; cursor: pointer; padding: 2px;">
+                                <span style="font-size: 13px; color: #6b7280;">Color del fondo del banner</span>
+                            </div>
+                        @else
+                            <p style="margin: 0; font-size: 12px; color: #9ca3af;">Se usará la imagen por defecto del sistema.</p>
+                        @endif
+                    </div>
                 </div>
             </div>
 

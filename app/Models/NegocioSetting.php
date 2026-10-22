@@ -10,6 +10,8 @@ class NegocioSetting extends Model
         'nombre_negocio',
         'logo',
         'banner',
+        'banner_tipo',
+        'banner_color',
         'telefono',
         'direccion',
         'horario_apertura',
