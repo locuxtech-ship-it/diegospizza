@@ -1,5 +1,17 @@
 # Changelog — Diego's Pizza
 
+## [13-10-2026] — Feature: banner del menú personalizable + hero reducido
+
+### Cambios
+- **Migración**: columnas `banner_tipo` (defecto/imagen/color) y `banner_color` en `negocio_settings`
+- **Configuración**: 3 botones para elegir tipo de banner — por defecto (foto actual), imagen personalizada (upload), o color sólido (selector de color)
+- **Menú del cliente**: renderiza el banner según tipo seleccionado con overlay de legibilidad
+- **Hero reducido**: padding `py-5 sm:py-7` (antes `py-8 sm:py-12`), gaps reducidos — el banner ocupa menos pantalla
+
+### Puntos de Restauración
+- Tag: `pre-fix-banner-custom` (commit `45492ff`)
+- Deploy: commit `89cc5d7`, migración batch 16
+
 ## [12-10-2026] — Feature: horario en AM/PM + mensaje de próxima apertura
 
 ### Cambios
