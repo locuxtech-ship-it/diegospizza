@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ReporteExportController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\WhatsAppController;
@@ -93,8 +94,9 @@ Route::get('/api/pedidos/pendientes', function () {
     ]);
 });
 
-Route::get('/admin/clientes/exportar', function () {
-    $user = auth()->user();
+Route::get('/admin/reportes/exportar', [ReporteExportController::class, 'exportar'])->name('admin.reportes.exportar');
+
+Route::get('/admin/clientes/exportar', function () {    $user = auth()->user();
     if (!$user || !in_array($user->role, ['admin', 'cajero'])) {
         abort(403);
     }

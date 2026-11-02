@@ -12,7 +12,7 @@
                     <x-filament::button wire:click="aplicarPeriodo('personalizado')" :color="$periodo === 'personalizado' ? 'primary' : 'gray'" size="sm">Fechas</x-filament::button>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <a href="#" wire:click.prevent="exportarCSV()" style="display: inline-flex; align-items: center; gap: 6px; background: #059669; color: white; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; text-decoration: none; cursor: pointer;">
+                    <a href="{{ route('admin.reportes.exportar', array_filter(['periodo' => $periodo, 'fechaInicio' => $fechaInicio, 'fechaFin' => $fechaFin])) }}" style="display: inline-flex; align-items: center; gap: 6px; background: #059669; color: white; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; text-decoration: none; cursor: pointer;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         CSV
                     </a>
@@ -137,6 +137,87 @@
                         <span style="color: #374151; font-size: 12px; font-weight: 600;">{{ $mesesConDatos }}</span>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        {{-- ==================== DESGLOSE MES A MES ==================== --}}
+        @php
+            $maxMesVentas = collect($desgloseMensual)->max('ventas') ?: 0;
+            $totalMesesPedidos = collect($desgloseMensual)->sum('pedidos');
+            $totalMesesVentas = collect($desgloseMensual)->sum('ventas');
+        @endphp
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+            <div style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 16px;">🗓️</span>
+                <h3 style="margin: 0; font-size: 14px; font-weight: 600; color: #374151;">Cómo vamos mes a mes</h3>
+                <span style="color: #9ca3af; font-size: 12px; margin-left: auto;">Últimos 12 meses</span>
+            </div>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; min-width: 640px;">
+                    <thead>
+                        <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                            <th style="text-align: left; padding: 10px 16px; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase;">Mes</th>
+                            <th style="text-align: center; padding: 10px 16px; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase;">Pedidos</th>
+                            <th style="text-align: right; padding: 10px 16px; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase;">Ventas</th>
+                            <th style="text-align: right; padding: 10px 16px; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase;">Promedio</th>
+                            <th style="text-align: right; padding: 10px 16px; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase;">Variación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($desgloseMensual as $mes)
+                            <tr style="border-bottom: 1px solid #f3f4f6; {{ $mes['actual'] ? 'background: #fffbeb;' : '' }}">
+                                <td style="padding: 10px 16px; font-weight: 500; color: #374151; white-space: nowrap;">
+                                    {{ $mes['label'] }}
+                                    @if($mes['actual'])
+                                        <span style="display: inline-block; margin-left: 6px; background: #fef3c7; color: #b45309; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.03em;">en curso</span>
+                                    @endif
+                                </td>
+                                <td style="padding: 10px 16px; text-align: center; color: #6b7280;">{{ number_format($mes['pedidos']) }}</td>
+                                <td style="padding: 10px 16px; text-align: right; min-width: 140px;">
+                                    <span style="font-weight: 600; color: #059669;">${{ number_format($mes['ventas'], 0, ',', '.') }}</span>
+                                    @if($maxMesVentas > 0)
+                                        <div style="margin-top: 4px; height: 4px; border-radius: 9999px; background: #f3f4f6; overflow: hidden;">
+                                            <div style="height: 4px; border-radius: 9999px; background: #10b981; width: {{ max(2, (int) round(($mes['ventas'] / $maxMesVentas) * 100)) }}%;"></div>
+                                        </div>
+                                    @endif
+                                </td>
+                                <td style="padding: 10px 16px; text-align: right; color: #6b7280;">${{ number_format($mes['promedio'], 0, ',', '.') }}</td>
+                                <td style="padding: 10px 16px; text-align: right; white-space: nowrap;">
+                                    @if($mes['variacion'] === null)
+                                        <span style="color: #9ca3af; font-size: 12px;">—</span>
+                                    @elseif($mes['variacion'] > 0)
+                                        <span style="display: inline-flex; align-items: center; gap: 2px; background: #ecfdf5; color: #059669; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 9999px;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                                            +{{ number_format($mes['variacion'], 1, ',', '.') }}%
+                                        </span>
+                                    @elseif($mes['variacion'] < 0)
+                                        <span style="display: inline-flex; align-items: center; gap: 2px; background: #fef2f2; color: #ef4444; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 9999px;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                                            {{ number_format($mes['variacion'], 1, ',', '.') }}%
+                                        </span>
+                                    @else
+                                        <span style="color: #9ca3af; font-size: 12px;">0%</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" style="padding: 32px 16px; text-align: center; color: #9ca3af;">Sin datos</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                    @if(count($desgloseMensual) > 0)
+                        <tfoot>
+                            <tr style="background: #f9fafb; border-top: 2px solid #e5e7eb;">
+                                <td style="padding: 10px 16px; font-weight: 700; color: #374151;">Total 12 meses</td>
+                                <td style="padding: 10px 16px; text-align: center; font-weight: 700; color: #374151;">{{ number_format($totalMesesPedidos) }}</td>
+                                <td style="padding: 10px 16px; text-align: right; font-weight: 700; color: #059669;">${{ number_format($totalMesesVentas, 0, ',', '.') }}</td>
+                                <td style="padding: 10px 16px; text-align: right; font-weight: 600; color: #374151;">{{ $totalMesesPedidos > 0 ? '$' . number_format($totalMesesVentas / $totalMesesPedidos, 0, ',', '.') : '$0' }}</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    @endif
+                </table>
             </div>
         </div>
 
