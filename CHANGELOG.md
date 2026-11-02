@@ -1,5 +1,21 @@
 # Changelog — Diego's Pizza
 
+## [02-11-2026] — Fix: efectivo del Historial no cuadraba con Cierre de Caja (pedidos mixtos)
+
+### Problema
+El efectivo mostrado en el Historial de Pedidos no coincidía con el del Cierre de Caja. Ej. domingo 01-nov: cierre $230.300 vs historial $210.300 (diferencia $20.000).
+
+### Causa raíz
+`HistorialPedidos::filtrar()` agrupaba por `pedido.metodo_pago`. Los pedidos con `metodo_pago = 'mixto'` no caían en ninguna de las 3 tarjetas (efectivo/tarjeta/transferencia), solo en el total general. El pedido #4 del 01-nov tenía $20.000 efectivo + $6.000 transferencia y no se desglosaba.
+
+### Cambios
+- **`HistorialPedidos.php`**: las tarjetas por método ahora suman **pagos confirmados agrupados por `pagos.metodo`** (igual que el Cierre), sobre los pedidos del rango filtrado. Los pagos mixtos se reparten correctamente en efectivo/tarjeta/transferencia.
+- Verificado: 0 pedidos sin pago completo y 0 pagos cruzados entre días en los últimos 30 días, por lo que las 3 tarjetas cuadran exactamente con el total.
+
+### Puntos de Restauración
+- Tag: `pre-fix-historial-efectivo-mixto` (commit `4ad9eb5`)
+- Deploy: commit `3923442`
+
 ## [13-10-2026] — Feature: banner del menú personalizable + hero reducido
 
 ### Cambios
