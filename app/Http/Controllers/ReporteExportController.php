@@ -23,7 +23,7 @@ class ReporteExportController extends Controller
 
         $pedidos = ReporteService::pedidosQuery($desde, $hasta)
             ->with('cliente')
-            ->select('id', 'numero_pedido', 'created_at', 'subtotal', 'descuento_puntos', 'descuento_manual', 'total', 'origen', 'estado')
+            ->select('id', 'numero_pedido', 'cliente_id', 'created_at', 'subtotal', 'descuento_puntos', 'descuento_manual', 'total', 'origen', 'estado')
             ->orderBy('created_at', 'desc')
             ->get();
 
