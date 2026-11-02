@@ -126,9 +126,16 @@ class HistorialPedidos extends Page
         $this->totalPedidos = $sinCancelados->count();
 
         if ($this->isAdmin) {
-            $this->totalEfectivo = (float) (clone $sinCancelados)->where('metodo_pago', 'efectivo')->sum(fn($p) => (float) $p->total);
-            $this->totalTarjeta = (float) (clone $sinCancelados)->where('metodo_pago', 'tarjeta')->sum(fn($p) => (float) $p->total);
-            $this->totalTransferencia = (float) (clone $sinCancelados)->where('metodo_pago', 'transferencia')->sum(fn($p) => (float) $p->total);
+            // Sumar pagos confirmados por método (los pedidos "mixto" se reparten correctamente)
+            $porMetodo = Pago::whereIn('pedido_id', $sinCancelados->pluck('id'))
+                ->where('confirmado', true)
+                ->selectRaw('metodo, SUM(monto) as total')
+                ->groupBy('metodo')
+                ->pluck('total', 'metodo');
+
+            $this->totalEfectivo = (float) ($porMetodo['efectivo'] ?? 0);
+            $this->totalTarjeta = (float) ($porMetodo['tarjeta'] ?? 0);
+            $this->totalTransferencia = (float) ($porMetodo['transferencia'] ?? 0);
         }
     }
 
