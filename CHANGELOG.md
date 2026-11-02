@@ -1,5 +1,21 @@
 # Changelog — Diego's Pizza
 
+## [02-11-2026] — Fix: exportación CSV de Reportes + desglose mes a mes
+
+### Problema
+Al pulsar el botón CSV en Reportes aparecía "error al cargar la página". El botón usaba `wire:click="exportarCSV()"` y el método devolvía un `Response`, que Livewire no puede manejar como descarga.
+
+### Cambios
+- **Nueva ruta GET** `GET /admin/reportes/exportar` (`admin.reportes.exportar`) → `ReporteExportController@exportar`. Descarga por URL real, sin pasar por Livewire.
+- **`ReporteService`** (nuevo): centraliza el rango de fechas, las comparativas (semana martes→lunes, mes, acumulado anual) y el desglose mensual, para que la pantalla y el CSV calculen exactamente igual.
+- **Exportación CSV**: incluye detalle de pedidos, resumen, comparativas y nueva sección **DESGLOSE MES A MES (últimos 12 meses)** con pedidos, ventas, promedio y variación. BOM UTF-8 + separador `;` (abre bien en Excel).
+- **Reportes**: nueva tarjeta **"Cómo vamos mes a mes"** con los últimos 12 meses, barras relativas de ventas, promedio por pedido y variación vs mes anterior. El mes en curso se marca con etiqueta "en curso".
+- Corregido `cliente_id` en el `select()` del CSV para que aparezcan los nombres de los clientes (antes salía "N/A").
+
+### Puntos de Restauración
+- Tag: `pre-fix-csv-mes-a-mes` (commit `8eb1ba2`)
+- Deploy: commits `8a52d24` + `382cd60`
+
 ## [02-11-2026] — Fix: efectivo del Historial no cuadraba con Cierre de Caja (pedidos mixtos)
 
 ### Problema
