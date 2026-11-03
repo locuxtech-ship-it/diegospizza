@@ -1,5 +1,15 @@
 # Changelog — Diego's Pizza
 
+## [02-11-2026] — Mejora: ocultar buscador global del panel
+
+### Cambios
+- Desactivado el buscador global del topbar en el panel de administración con `->globalSearch(false)` en `AdminPanelProvider`.
+- Ya no aparece el campo de búsqueda en el banner superior de la consola.
+
+### Puntos de Restauración
+- Tag: `pre-ocultar-buscador` (commit `37f5e76`)
+- Deploy: commit `0c52f67`
+
 ## [02-11-2026] — Feature: selector de mes en el resumen de Clientes
 
 ### Cambios
