@@ -56,7 +56,6 @@ class ClientesResumenWidget extends Widget
             'totalClientes' => $totalClientes,
             'nuevosMes' => $nuevosMes,
             'nuevosMesAnterior' => $nuevosMesAnterior,
-            'diferenciaNuevos' => $nuevosMes - $nuevosMesAnterior,
             'ranking' => $ranking,
             'totalMes' => $totalMes,
             'topVentas' => $topVentas,

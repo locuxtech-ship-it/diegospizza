@@ -14,13 +14,7 @@
             <p style="margin: 0; color: #059669; font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Nuevos en {{ $mesLabel }}</p>
             <p style="margin: 4px 0 0 0; color: #065f46; font-size: 28px; font-weight: 700;">{{ number_format($nuevosMes) }}</p>
             <p style="margin: 2px 0 0 0; color: #059669; font-size: 12px;">
-                @if($diferenciaNuevos > 0)
-                    +{{ $diferenciaNuevos }} vs mes anterior ({{ $nuevosMesAnterior }})
-                @elseif($diferenciaNuevos < 0)
-                    {{ $diferenciaNuevos }} vs mes anterior ({{ $nuevosMesAnterior }})
-                @else
-                    igual que el mes anterior ({{ $nuevosMesAnterior }})
-                @endif
+                Mes anterior completo: {{ number_format($nuevosMesAnterior) }}
             </p>
         </div>
 
