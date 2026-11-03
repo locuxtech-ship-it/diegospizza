@@ -5,7 +5,7 @@
 @endphp
 
 @if (! $isHome)
-    <div style="margin-inline-start: 0.75rem;">
+    <div style="display: inline-flex; align-items: center; margin-inline-end: 0.25rem;">
         <x-filament::button
             color="gray"
             size="sm"

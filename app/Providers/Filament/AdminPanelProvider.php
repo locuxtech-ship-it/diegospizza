@@ -79,7 +79,7 @@ class AdminPanelProvider extends PanelProvider
     public function boot(): void
     {
         FilamentView::registerRenderHook(
-            'panels::topbar.logo.after',
+            'panels::topbar.start',
             fn (): string => view('partials.back-button')->render()
         );
 
