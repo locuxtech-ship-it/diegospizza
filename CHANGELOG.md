@@ -1,5 +1,19 @@
 # Changelog — Diego's Pizza
 
+## [02-11-2026] — Feature: resumen y ranking mensual en Clientes
+
+### Cambios
+- **Nueva tarjeta de métricas** en **Ventas → Clientes**:
+  - Clientes totales registrados.
+  - Clientes nuevos del mes en curso (con referencia del mes anterior completo).
+  - Facturación de los Top 10 clientes del mes y qué % representa de las ventas del mes.
+- **Ranking "Clientes que más pidieron — [mes]"**: top 10 por número de pedidos (desempate por dinero), con pedidos, dinero generado, % de las ventas del mes y barra comparativa. El nombre enlaza a la vista del cliente.
+- Solo cuenta pedidos no cancelados del mes en curso. Implementado como header widget (`ClientesResumenWidget`), sin tocar la tabla de clientes existente.
+
+### Puntos de Restauración
+- Tag: `pre-fix-ranking-clientes` (commit `16cfebc`)
+- Deploy: commits `4dd36f5` + `b5d3df4`
+
 ## [02-11-2026] — Fix: exportación CSV de Reportes + desglose mes a mes
 
 ### Problema
