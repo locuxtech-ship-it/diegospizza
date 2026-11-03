@@ -79,6 +79,11 @@ class AdminPanelProvider extends PanelProvider
     public function boot(): void
     {
         FilamentView::registerRenderHook(
+            'panels::topbar.logo.after',
+            fn (): string => view('partials.back-button')->render()
+        );
+
+        FilamentView::registerRenderHook(
             'panels::head.start',
             fn (): string => '<meta name="theme-color" content="#f47b20">
                 <meta name="apple-mobile-web-app-capable" content="yes">
