@@ -1,5 +1,21 @@
 <div style="display: flex; flex-direction: column; gap: 16px;">
 
+    {{-- Filtro de mes --}}
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px 16px;">
+        <div>
+            <h3 style="margin: 0; font-size: 15px; font-weight: 600; color: #111827;">Resumen de clientes</h3>
+            <p style="margin: 2px 0 0 0; font-size: 12px; color: #6b7280;">Mostrando {{ $mesLabel }}</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <button type="button" wire:click="mesAnterior" title="Mes anterior" style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid #d1d5db; border-radius: 8px; background: white; color: #374151; font-size: 18px; line-height: 1; cursor: pointer;">‹</button>
+            <input type="month" wire:model.live="mes" max="{{ now()->format('Y-m') }}" style="border: 1px solid #d1d5db; border-radius: 8px; padding: 6px 10px; font-size: 13px; color: #374151; background: white;">
+            <button type="button" wire:click="mesSiguiente" @disabled($esMesActual) title="Mes siguiente" style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid #d1d5db; border-radius: 8px; background: white; color: #374151; font-size: 18px; line-height: 1; cursor: pointer; {{ $esMesActual ? 'opacity: .4; cursor: not-allowed;' : '' }}">›</button>
+            @unless($esMesActual)
+                <button type="button" wire:click="irMesActual" style="display: inline-flex; align-items: center; gap: 4px; border: 1px solid #d1d5db; border-radius: 8px; background: white; color: #374151; font-size: 12px; font-weight: 500; padding: 6px 10px; cursor: pointer;">Mes actual</button>
+            @endunless
+        </div>
+    </div>
+
     {{-- Métricas del mes --}}
     <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;">
         {{-- Total clientes --}}

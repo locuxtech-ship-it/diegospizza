@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Models\Cliente;
 use App\Models\Pedido;
 use Filament\Widgets\Widget;
+use Illuminate\Support\Carbon;
 
 class ClientesResumenWidget extends Widget
 {
@@ -15,13 +16,55 @@ class ClientesResumenWidget extends Widget
 
     protected int | string | array $columnSpan = 'full';
 
+    /** Mes seleccionado en formato Y-m. */
+    public string $mes = '';
+
+    public function mount(): void
+    {
+        $this->mes = now()->format('Y-m');
+    }
+
+    public function mesAnterior(): void
+    {
+        $this->mes = $this->mesCarbon()->subMonth()->format('Y-m');
+    }
+
+    public function mesSiguiente(): void
+    {
+        $siguiente = $this->mesCarbon()->addMonth();
+
+        if ($siguiente->lte(now()->startOfMonth())) {
+            $this->mes = $siguiente->format('Y-m');
+        }
+    }
+
+    public function irMesActual(): void
+    {
+        $this->mes = now()->format('Y-m');
+    }
+
+    private function mesCarbon(): Carbon
+    {
+        if (preg_match('/^\d{4}-\d{2}$/', $this->mes)) {
+            try {
+                return Carbon::createFromFormat('Y-m-d', $this->mes . '-01')->startOfMonth();
+            } catch (\Throwable) {
+                // Continúa con el mes actual
+            }
+        }
+
+        return now()->startOfMonth();
+    }
+
     protected function getViewData(): array
     {
-        $inicio = now()->startOfMonth();
-        $fin = now()->endOfMonth();
+        $inicio = $this->mesCarbon()->startOfMonth();
+        $fin = $inicio->copy()->endOfMonth();
 
-        $inicioMesAnterior = $inicio->copy()->subMonth();
-        $finMesAnterior = $inicio->copy()->subDay()->endOfDay();
+        $inicioMesAnterior = $inicio->copy()->subMonth()->startOfMonth();
+        $finMesAnterior = $inicio->copy()->subMonth()->endOfMonth();
+
+        $esMesActual = $inicio->isSameMonth(now());
 
         $totalClientes = Cliente::count();
         $nuevosMes = Cliente::whereBetween('created_at', [$inicio, $fin])->count();
@@ -60,7 +103,9 @@ class ClientesResumenWidget extends Widget
             'totalMes' => $totalMes,
             'topVentas' => $topVentas,
             'topPorcentaje' => $topPorcentaje,
-            'mesLabel' => $nombres[(int) now()->month] . ' ' . now()->year,
+            'mesLabel' => $nombres[(int) $inicio->month] . ' ' . $inicio->year,
+            'esMesActual' => $esMesActual,
+            'mesInput' => $inicio->format('Y-m'),
         ];
     }
 }
