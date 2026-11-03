@@ -39,6 +39,7 @@ class AdminPanelProvider extends PanelProvider
                 : asset('images/logo.svg'))
             ->brandLogoHeight('2.5rem')
             ->homeUrl('/admin/comandas')
+            ->globalSearch(false)
             ->colors([
                 'primary' => Color::Red,
             ])
