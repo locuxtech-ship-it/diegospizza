@@ -1,5 +1,18 @@
 # Changelog — Diego's Pizza
 
+## [02-11-2026] — Feature: selector de mes en el resumen de Clientes
+
+### Cambios
+- **Filtro de mes** en la tarjeta de resumen de **Ventas → Clientes**:
+  - Selector de mes (`input type="month"`), botones ‹ / › y botón "Mes actual".
+  - El ranking, los clientes nuevos y el % de facturación se recalculan para el mes elegido.
+  - No permite avanzar a meses futuros.
+- Ahora se puede consultar el top de clientes y los nuevos clientes de cualquier mes anterior.
+
+### Puntos de Restauración
+- Tag: `pre-filtro-clientes-mes` (commit `a160a38`)
+- Deploy: commit `ae53eeb`
+
 ## [02-11-2026] — Feature: resumen y ranking mensual en Clientes
 
 ### Cambios
