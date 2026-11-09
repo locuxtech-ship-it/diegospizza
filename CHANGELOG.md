@@ -1,5 +1,26 @@
 # Changelog — Diego's Pizza
 
+## [09-11-2026] — Feature: tiempo promedio de entrega en Reportes
+
+### Cambios
+- **Nueva tarjeta "⏱ Tiempo de entrega"** en **Ventas → Reportes** (debajo de Venta Total / Pedidos / Precio Promedio):
+  - **Promedio**, **Mediana**, **Más rápido**, **Más lento** y **Pedidos medidos** — todo en minutos.
+  - Respeta el filtro de período del reporte (hoy, ayer, 7 días, 30 días, personalizado).
+  - Mide `fecha_entrega - created_at` en pedidos finalizados (dato ya existente, sin migración).
+  - Si no hay pedidos finalizados en el período muestra mensaje "Sin datos".
+- **CSV export**:
+  - Nueva columna **"Tiempo Entrega (min)"** por cada pedido.
+  - Nueva sección **TIEMPO DE ENTREGA** en el resumen (Pedidos Medidos, Promedio, Mediana, Más Rápido, Más Lento).
+- Nuevo método compartido `ReporteService::tiemposEntrega()` (promedio + mediana calculada en PHP).
+
+### Datos de referencia (producción)
+- Histórico: 3.096 pedidos — promedio **57 min**, mediana 53 min.
+- Últimos 30 días: 689 pedidos — promedio **50 min**, mediana 47 min.
+
+### Puntos de Restauración
+- Tag: `pre-tiempos-entrega` (commit `2fdd326`)
+- Deploy: commit `648b3cc`
+
 ## [03-11-2026] — Mejora: botón "Volver" en el topbar
 
 ### Cambios
