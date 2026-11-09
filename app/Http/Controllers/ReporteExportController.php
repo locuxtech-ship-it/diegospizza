@@ -23,7 +23,7 @@ class ReporteExportController extends Controller
 
         $pedidos = ReporteService::pedidosQuery($desde, $hasta)
             ->with('cliente')
-            ->select('id', 'numero_pedido', 'cliente_id', 'created_at', 'subtotal', 'descuento_puntos', 'descuento_manual', 'total', 'origen', 'estado')
+            ->select('id', 'numero_pedido', 'cliente_id', 'created_at', 'fecha_entrega', 'subtotal', 'descuento_puntos', 'descuento_manual', 'total', 'origen', 'estado')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -33,19 +33,24 @@ class ReporteExportController extends Controller
 
         $comparativa = ReporteService::comparativa();
         $desglose = ReporteService::desgloseMensual(12);
+        $tiempos = ReporteService::tiemposEntrega($desde, $hasta);
 
         $nombreArchivo = 'reporte_ventas'
             . ($desde ? '_' . $desde->format('Y-m-d') : '')
             . ($hasta ? '_al_' . $hasta->format('Y-m-d') : '')
             . '.csv';
 
-        $callback = function () use ($pedidos, $totalVentas, $totalPedidos, $promedioPedido, $comparativa, $desglose) {
+        $callback = function () use ($pedidos, $totalVentas, $totalPedidos, $promedioPedido, $comparativa, $desglose, $tiempos) {
             $file = fopen('php://output', 'w');
             fwrite($file, "\xEF\xBB\xBF"); // BOM UTF-8 (Excel)
 
-            fputcsv($file, ['Pedido', 'Fecha', 'Hora', 'Cliente', 'Subtotal', 'Dcto Puntos', 'Dcto Manual', 'Total', 'Origen', 'Estado'], ';');
+            fputcsv($file, ['Pedido', 'Fecha', 'Hora', 'Cliente', 'Subtotal', 'Dcto Puntos', 'Dcto Manual', 'Total', 'Origen', 'Estado', 'Tiempo Entrega (min)'], ';');
 
             foreach ($pedidos as $p) {
+                $tiempoEntrega = ($p->fecha_entrega && $p->fecha_entrega >= $p->created_at)
+                    ? (int) round(abs($p->fecha_entrega->diffInMinutes($p->created_at)))
+                    : '';
+
                 fputcsv($file, [
                     $p->numero_pedido,
                     $p->created_at->format('d/m/Y'),
@@ -57,6 +62,7 @@ class ReporteExportController extends Controller
                     number_format($p->total, 0, ',', '.'),
                     $p->origen,
                     $p->estado,
+                    $tiempoEntrega,
                 ], ';');
             }
 
@@ -77,6 +83,14 @@ class ReporteExportController extends Controller
             fputcsv($file, ['Variacion Mensual', self::porcentaje($comparativa['porcentajeMensual'])], ';');
             fputcsv($file, ['Acumulado Anual', '$' . number_format($comparativa['acumuladoAnual'], 0, ',', '.')], ';');
             fputcsv($file, ['Promedio Mensual', '$' . number_format($comparativa['promedioMensualAnual'], 0, ',', '.')], ';');
+
+            fputcsv($file, [], ';');
+            fputcsv($file, ['TIEMPO DE ENTREGA (pedido a finalizacion)'], ';');
+            fputcsv($file, ['Pedidos Medidos', $tiempos['pedidos']], ';');
+            fputcsv($file, ['Promedio', $tiempos['promedio'] . ' min'], ';');
+            fputcsv($file, ['Mediana', $tiempos['mediana'] . ' min'], ';');
+            fputcsv($file, ['Mas Rapido', $tiempos['minimo'] . ' min'], ';');
+            fputcsv($file, ['Mas Lento', $tiempos['maximo'] . ' min'], ';');
 
             fputcsv($file, [], ';');
             fputcsv($file, ['DESGLOSE MES A MES (ultimos 12 meses)'], ';');

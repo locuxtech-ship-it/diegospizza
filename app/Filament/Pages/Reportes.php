@@ -7,6 +7,7 @@ use App\Services\ReporteService;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use UnitEnum;
 
@@ -59,6 +60,7 @@ class Reportes extends Page
     public int $mesesConDatos = 0;
 
     public array $desgloseMensual = [];
+    public array $tiemposEntrega = [];
 
     public function mount(): void
     {
@@ -133,6 +135,10 @@ class Reportes extends Page
         $this->cargarSaboresMasVendidos($query);
         $this->cargarTamaniosMasVendidos($query);
         $this->cargarMitadesMasVendidas($query);
+
+        $desde = $this->fechaInicio ? Carbon::parse($this->fechaInicio)->startOfDay() : null;
+        $hasta = $this->fechaFin ? Carbon::parse($this->fechaFin)->endOfDay() : null;
+        $this->tiemposEntrega = ReporteService::tiemposEntrega($desde, $hasta);
     }
 
     private function cargarDiaMasVendido($baseQuery): void

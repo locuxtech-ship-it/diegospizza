@@ -65,6 +65,48 @@ class ReporteService
     }
 
     /**
+     * Tiempo de entrega (pedido -> finalizado) de los pedidos finalizados en el rango.
+     * Usa fecha_entrega (se guarda al finalizar) - created_at.
+     * Devuelve pedidos medidos, promedio, mediana, mínimo y máximo en minutos.
+     */
+    public static function tiemposEntrega(?Carbon $desde = null, ?Carbon $hasta = null): array
+    {
+        $minutos = self::pedidosQuery($desde, $hasta)
+            ->where('pedidos.estado', 'finalizado')
+            ->whereNotNull('pedidos.fecha_entrega')
+            ->whereColumn('pedidos.fecha_entrega', '>=', 'pedidos.created_at')
+            ->selectRaw('TIMESTAMPDIFF(MINUTE, pedidos.created_at, pedidos.fecha_entrega) as mins')
+            ->pluck('mins')
+            ->map(fn ($v) => (int) $v)
+            ->sort()
+            ->values();
+
+        $total = $minutos->count();
+
+        if ($total === 0) {
+            return [
+                'pedidos' => 0,
+                'promedio' => 0,
+                'mediana' => 0,
+                'minimo' => 0,
+                'maximo' => 0,
+            ];
+        }
+
+        $mediana = $total % 2 === 1
+            ? $minutos[(int) ($total - 1) / 2]
+            : (int) round(($minutos[$total / 2 - 1] + $minutos[$total / 2]) / 2);
+
+        return [
+            'pedidos' => $total,
+            'promedio' => (int) round($minutos->sum() / $total),
+            'mediana' => $mediana,
+            'minimo' => $minutos->first(),
+            'maximo' => $minutos->last(),
+        ];
+    }
+
+    /**
      * Comparativas: semana actual/anterior (martes a lunes), mes actual/anterior y acumulado anual.
      */
     public static function comparativa(): array

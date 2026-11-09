@@ -240,6 +240,44 @@
             </div>
         </div>
 
+        {{-- ==================== TIEMPO DE ENTREGA ==================== --}}
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+            <div style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 16px;">⏱</span>
+                <h3 style="margin: 0; font-size: 14px; font-weight: 600; color: #374151;">Tiempo de entrega</h3>
+                <span style="margin-left: auto; font-size: 12px; color: #9ca3af;">del pedido a la finalización · {{ $this->etiquetaPeriodo() }}</span>
+            </div>
+
+            @if(($tiemposEntrega['pedidos'] ?? 0) > 0)
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; padding: 16px;">
+                    <div style="background: linear-gradient(to bottom right, #eff6ff, #dbeafe); border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px; text-align: center;">
+                        <p style="margin: 0; color: #3b82f6; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Promedio</p>
+                        <p style="margin: 4px 0 0 0; color: #1e3a5f; font-size: 22px; font-weight: 700;">{{ $tiemposEntrega['promedio'] }} min</p>
+                    </div>
+                    <div style="background: linear-gradient(to bottom right, #f5f3ff, #ede9fe); border: 1px solid #ddd6fe; border-radius: 10px; padding: 12px; text-align: center;">
+                        <p style="margin: 0; color: #7c3aed; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Mediana</p>
+                        <p style="margin: 4px 0 0 0; color: #4c1d95; font-size: 22px; font-weight: 700;">{{ $tiemposEntrega['mediana'] }} min</p>
+                    </div>
+                    <div style="background: linear-gradient(to bottom right, #f0fdf4, #dcfce7); border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px; text-align: center;">
+                        <p style="margin: 0; color: #16a34a; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Más rápido</p>
+                        <p style="margin: 4px 0 0 0; color: #14532d; font-size: 22px; font-weight: 700;">{{ $tiemposEntrega['minimo'] }} min</p>
+                    </div>
+                    <div style="background: linear-gradient(to bottom right, #fef2f2, #fee2e2); border: 1px solid #fecaca; border-radius: 10px; padding: 12px; text-align: center;">
+                        <p style="margin: 0; color: #ef4444; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Más lento</p>
+                        <p style="margin: 4px 0 0 0; color: #991b1b; font-size: 22px; font-weight: 700;">{{ $tiemposEntrega['maximo'] }} min</p>
+                    </div>
+                    <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; text-align: center;">
+                        <p style="margin: 0; color: #6b7280; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Pedidos medidos</p>
+                        <p style="margin: 4px 0 0 0; color: #374151; font-size: 22px; font-weight: 700;">{{ $tiemposEntrega['pedidos'] }}</p>
+                    </div>
+                </div>
+            @else
+                <div style="padding: 24px 16px; text-align: center; color: #9ca3af; font-size: 13px;">
+                    Sin pedidos finalizados en este período para medir el tiempo de entrega.
+                </div>
+            @endif
+        </div>
+
         {{-- Detailed tables --}}
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             {{-- Dia que mas vendes --}}
