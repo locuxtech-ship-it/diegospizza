@@ -26,6 +26,8 @@ class Pedido extends Model
         'notas',
         'motivo_cancelacion',
         'fecha_entrega',
+        'en_camino_at',
+        'entregado_at',
     ];
 
     protected function casts(): array
@@ -38,6 +40,8 @@ class Pedido extends Model
             'total' => 'decimal:2',
             'numero_pedido' => 'integer',
             'fecha_entrega' => 'datetime',
+            'en_camino_at' => 'datetime',
+            'entregado_at' => 'datetime',
         ];
     }
 
@@ -52,6 +56,22 @@ class Pedido extends Model
 
         static::created(function ($pedido) {
             $pedido->sendNotification('pendiente_pago');
+        });
+
+        static::updating(function ($pedido) {
+            // Marca de tiempo de fases de entrega: un solo punto que cubre
+            // cambiarEstado() (PDV/modal), PedidosTable y PedidoForm.
+            if (!$pedido->isDirty('estado')) {
+                return;
+            }
+
+            if ($pedido->estado === 'en_camino' && !$pedido->isDirty('en_camino_at')) {
+                $pedido->en_camino_at = now();
+            }
+
+            if ($pedido->estado === 'entregado' && !$pedido->isDirty('entregado_at')) {
+                $pedido->entregado_at = now();
+            }
         });
 
         static::saved(function ($pedido) {

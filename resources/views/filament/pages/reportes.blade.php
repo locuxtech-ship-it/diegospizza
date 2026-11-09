@@ -278,6 +278,56 @@
             @endif
         </div>
 
+        {{-- ==================== TIEMPOS POR FASE ==================== --}}
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+            <div style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 16px;">🛵</span>
+                <h3 style="margin: 0; font-size: 14px; font-weight: 600; color: #374151;">Tiempos por fase</h3>
+                <span style="font-size: 12px; color: #9ca3af;">preparación → en ruta → entregado · {{ $this->etiquetaPeriodo() }}</span>
+            </div>
+
+            @php
+                $fases = [
+                    ['icono' => '🍳', 'titulo' => 'Preparación', 'sub' => 'pedido → salir a ruta', 'datos' => $tiemposFases['preparacion'] ?? null],
+                    ['icono' => '🛵', 'titulo' => 'En ruta', 'sub' => 'salir → llegar', 'datos' => $tiemposFases['ruta'] ?? null],
+                    ['icono' => '⏱️', 'titulo' => 'Total entrega', 'sub' => 'pedido → llegar', 'datos' => $tiemposFases['total'] ?? null],
+                ];
+                $fasesConDatos = collect($fases)->sum(fn ($f) => $f['datos']['pedidos'] ?? 0);
+            @endphp
+
+            @if($fasesConDatos > 0)
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; padding: 16px;">
+                    @foreach($fases as $fase)
+                        <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px; text-align: center;">
+                            <p style="margin: 0; font-size: 22px;">{{ $fase['icono'] }}</p>
+                            <p style="margin: 4px 0 0 0; color: #374151; font-size: 14px; font-weight: 600;">{{ $fase['titulo'] }}</p>
+                            <p style="margin: 0; color: #9ca3af; font-size: 11px;">{{ $fase['sub'] }}</p>
+
+                            @if(($fase['datos']['pedidos'] ?? 0) > 0)
+                                <div style="display: flex; justify-content: center; gap: 24px; margin-top: 10px;">
+                                    <div>
+                                        <p style="margin: 0; color: #6b7280; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Promedio</p>
+                                        <p style="margin: 2px 0 0 0; color: #1e3a5f; font-size: 20px; font-weight: 700;">{{ $fase['datos']['promedio'] }} min</p>
+                                    </div>
+                                    <div>
+                                        <p style="margin: 0; color: #6b7280; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Mediana</p>
+                                        <p style="margin: 2px 0 0 0; color: #4c1d95; font-size: 20px; font-weight: 700;">{{ $fase['datos']['mediana'] }} min</p>
+                                    </div>
+                                </div>
+                                <p style="margin: 8px 0 0 0; color: #9ca3af; font-size: 11px;">{{ $fase['datos']['pedidos'] }} pedidos medidos</p>
+                            @else
+                                <p style="margin: 12px 0 0 0; color: #9ca3af; font-size: 12px;">Sin datos aún — se mide desde ahora</p>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div style="padding: 24px 16px; text-align: center; color: #9ca3af; font-size: 13px;">
+                    Aún no hay pedidos con fases registradas. A partir de ahora se captura cuándo sale y cuándo llega cada pedido.
+                </div>
+            @endif
+        </div>
+
         {{-- Detailed tables --}}
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             {{-- Dia que mas vendes --}}

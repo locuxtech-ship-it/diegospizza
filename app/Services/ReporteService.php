@@ -78,10 +78,55 @@ class ReporteService
             ->selectRaw('TIMESTAMPDIFF(MINUTE, pedidos.created_at, pedidos.fecha_entrega) as mins')
             ->pluck('mins')
             ->map(fn ($v) => (int) $v)
-            ->sort()
-            ->values();
+            ->all();
 
-        $total = $minutos->count();
+        return self::estadisticas($minutos);
+    }
+
+    /**
+     * Tiempos por fase: preparación (pedido -> en camino), en ruta (en camino ->
+     * entregado) y total (pedido -> entregado). Solo pide en_camino_at/entregado_at;
+     * el histórico sin fases no aporta datos (en_camino_at es NULL).
+     */
+    public static function tiemposFases(?Carbon $desde = null, ?Carbon $hasta = null): array
+    {
+        $rows = self::pedidosQuery($desde, $hasta)
+            ->select('pedidos.created_at', 'pedidos.en_camino_at', 'pedidos.entregado_at')
+            ->get();
+
+        $preparacion = [];
+        $ruta = [];
+        $total = [];
+
+        foreach ($rows as $row) {
+            if ($row->en_camino_at && $row->en_camino_at->gte($row->created_at)) {
+                $preparacion[] = (int) round($row->created_at->diffInMinutes($row->en_camino_at));
+            }
+
+            if ($row->en_camino_at && $row->entregado_at && $row->entregado_at->gte($row->en_camino_at)) {
+                $ruta[] = (int) round($row->en_camino_at->diffInMinutes($row->entregado_at));
+            }
+
+            if ($row->entregado_at && $row->entregado_at->gte($row->created_at)) {
+                $total[] = (int) round($row->created_at->diffInMinutes($row->entregado_at));
+            }
+        }
+
+        return [
+            'preparacion' => self::estadisticas($preparacion),
+            'ruta' => self::estadisticas($ruta),
+            'total' => self::estadisticas($total),
+        ];
+    }
+
+    /**
+     * Promedio, mediana, mínimo y máximo de una lista de minutos (en minutos).
+     * La mediana es robusta frente a pedidos atípicos que distorsionan el promedio.
+     */
+    private static function estadisticas(array $minutos): array
+    {
+        sort($minutos);
+        $total = count($minutos);
 
         if ($total === 0) {
             return [
@@ -94,15 +139,15 @@ class ReporteService
         }
 
         $mediana = $total % 2 === 1
-            ? $minutos[(int) ($total - 1) / 2]
+            ? $minutos[(int) (($total - 1) / 2)]
             : (int) round(($minutos[$total / 2 - 1] + $minutos[$total / 2]) / 2);
 
         return [
             'pedidos' => $total,
-            'promedio' => (int) round($minutos->sum() / $total),
+            'promedio' => (int) round(array_sum($minutos) / $total),
             'mediana' => $mediana,
-            'minimo' => $minutos->first(),
-            'maximo' => $minutos->last(),
+            'minimo' => $minutos[0],
+            'maximo' => $minutos[$total - 1],
         ];
     }
 

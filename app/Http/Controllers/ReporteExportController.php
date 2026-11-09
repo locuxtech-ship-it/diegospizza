@@ -34,13 +34,14 @@ class ReporteExportController extends Controller
         $comparativa = ReporteService::comparativa();
         $desglose = ReporteService::desgloseMensual(12);
         $tiempos = ReporteService::tiemposEntrega($desde, $hasta);
+        $fases = ReporteService::tiemposFases($desde, $hasta);
 
         $nombreArchivo = 'reporte_ventas'
             . ($desde ? '_' . $desde->format('Y-m-d') : '')
             . ($hasta ? '_al_' . $hasta->format('Y-m-d') : '')
             . '.csv';
 
-        $callback = function () use ($pedidos, $totalVentas, $totalPedidos, $promedioPedido, $comparativa, $desglose, $tiempos) {
+        $callback = function () use ($pedidos, $totalVentas, $totalPedidos, $promedioPedido, $comparativa, $desglose, $tiempos, $fases) {
             $file = fopen('php://output', 'w');
             fwrite($file, "\xEF\xBB\xBF"); // BOM UTF-8 (Excel)
 
@@ -91,6 +92,25 @@ class ReporteExportController extends Controller
             fputcsv($file, ['Mediana', $tiempos['mediana'] . ' min'], ';');
             fputcsv($file, ['Mas Rapido', $tiempos['minimo'] . ' min'], ';');
             fputcsv($file, ['Mas Lento', $tiempos['maximo'] . ' min'], ';');
+
+            fputcsv($file, [], ';');
+            fputcsv($file, ['TIEMPOS POR FASE (pedido a entrega)'], ';');
+            fputcsv($file, ['Fase', 'Pedidos', 'Promedio', 'Mediana'], ';');
+
+            $etiquetasFases = [
+                'preparacion' => 'Preparacion (pedido a salir a ruta)',
+                'ruta' => 'En ruta (salir a llegar)',
+                'total' => 'Total (pedido a llegar)',
+            ];
+            foreach ($etiquetasFases as $clave => $etiqueta) {
+                $f = $fases[$clave];
+                fputcsv($file, [
+                    $etiqueta,
+                    $f['pedidos'],
+                    $f['pedidos'] > 0 ? $f['promedio'] . ' min' : '-',
+                    $f['pedidos'] > 0 ? $f['mediana'] . ' min' : '-',
+                ], ';');
+            }
 
             fputcsv($file, [], ';');
             fputcsv($file, ['DESGLOSE MES A MES (ultimos 12 meses)'], ';');
