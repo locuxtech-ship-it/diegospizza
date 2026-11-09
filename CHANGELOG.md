@@ -1,5 +1,29 @@
 # Changelog — Diego's Pizza
 
+## [09-11-2026] — Feature: tiempos por fase de entrega (preparación, ruta, total)
+
+### Cambios
+- **Migración** `add_fases_entrega_to_pedidos_table`: 2 columnas nuevas en `pedidos`:
+  - `en_camino_at` — se registra al pasar a "En Camino"
+  - `entregado_at` — se registra al pasar a "Ha Llegado"
+  - **Backfill automático**: `entregado_at = fecha_entrega` en los 3.096 pedidos históricos finalizados (fecha_entrega no se toca).
+- **Punto único de captura**: hook `updating` en el modelo `Pedido` — cubre `cambiarEstado()` (PDV y modal), el modal de edición de Historial y el form de EditPedido (los 3 caminos que cambian estado). No se resetea si se marca dos veces.
+- **Nueva tarjeta "🛵 Tiempos por fase"** en Reportes:
+  - 🍳 **Preparación** = en_camino_at − created_at
+  - 🛵 **En ruta** = entregado_at − en_camino_at
+  - ⏱️ **Total entrega** = entregado_at − created_at
+  - Promedio + mediana + pedidos medidos por fase; respeta el filtro de período.
+  - Histórico sin fases muestra "Sin datos aún — se mide desde ahora" (en_camino_at no es reconstructible).
+- **CSV**: nueva sección "TIEMPOS POR FASE" (Fase / Pedidos / Promedio / Mediana).
+
+### Notas
+- No existe columna `tipo_servicio` en la BD: las métricas aplican a **todos** los pedidos (web y PDV).
+- Verificado en prod: backfill 3.096/3.096, hook OK (test transaccional con rollback), total histórico 58 min prom / 53 mediana (coincide con la tarjeta anterior), 30d: 689 pedidos 51/48.
+
+### Puntos de Restauración
+- Tag: `pre-tiempos-fases` (commit `191999e`)
+- Deploy: commit `4a4f067`
+
 ## [09-11-2026] — Feature: tiempo promedio de entrega en Reportes
 
 ### Cambios
