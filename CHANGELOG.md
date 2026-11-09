@@ -1,5 +1,17 @@
 # Changelog — Diego's Pizza
 
+## [09-11-2026] — Ajuste: reporte solo con tiempos de entrega por fases
+
+### Cambios
+- **Oculta la tarjeta "⏱ Tiempo de entrega"** (promedio/mediana/rápido/lento basado en `fecha_entrega`) — ya no se muestra en Reportes.
+- **Renombrada** la tarjeta de fases: "Tiempos por fase" → **"🛵 Tiempos de entrega por fases"**.
+- **CSV**: eliminada la columna "Tiempo Entrega (min)" por pedido y la sección "TIEMPO DE ENTREGA"; la sección de fases ahora se llama **"TIEMPOS DE ENTREGA POR FASES"**.
+- Limpieza: eliminado `ReporteService::tiemposEntrega()` y la propiedad `tiemposEntrega` de la página (sin usos).
+
+### Puntos de Restauración
+- Tag: `pre-ocultar-tiempos-entrega` (commit `fe40dc5`)
+- Deploy: commit `ffc416f`
+
 ## [09-11-2026] — Feature: tiempos por fase de entrega (preparación, ruta, total)
 
 ### Cambios
