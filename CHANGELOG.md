@@ -1,5 +1,17 @@
 # Changelog — Diego's Pizza
 
+## [03-11-2026] — Mejora: botón "Volver" en el topbar
+
+### Cambios
+- Botón **"← Volver"** en el inicio del topbar (`panels::topbar.start`), siempre visible aunque el menú lateral esté contraído y también en móvil/PWA.
+- Comportamiento: usa el historial del navegador (`history.back()`) solo si hay una página anterior del mismo sitio; si no, redirige al inicio (`/admin/comandas`).
+- Se oculta automáticamente en la página de inicio para evitar un "atrás" inútil.
+- En escritorio muestra ícono + "Volver"; en pantallas pequeñas solo el ícono (con tooltip).
+
+### Puntos de Restauración
+- Tag: `pre-boton-volver` (commit `a6f2d4e`)
+- Deploy: commit `af69107`
+
 ## [02-11-2026] — Mejora: ocultar buscador global del panel
 
 ### Cambios
