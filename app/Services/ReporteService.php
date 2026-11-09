@@ -69,20 +69,6 @@ class ReporteService
      * Usa fecha_entrega (se guarda al finalizar) - created_at.
      * Devuelve pedidos medidos, promedio, mediana, mínimo y máximo en minutos.
      */
-    public static function tiemposEntrega(?Carbon $desde = null, ?Carbon $hasta = null): array
-    {
-        $minutos = self::pedidosQuery($desde, $hasta)
-            ->where('pedidos.estado', 'finalizado')
-            ->whereNotNull('pedidos.fecha_entrega')
-            ->whereColumn('pedidos.fecha_entrega', '>=', 'pedidos.created_at')
-            ->selectRaw('TIMESTAMPDIFF(MINUTE, pedidos.created_at, pedidos.fecha_entrega) as mins')
-            ->pluck('mins')
-            ->map(fn ($v) => (int) $v)
-            ->all();
-
-        return self::estadisticas($minutos);
-    }
-
     /**
      * Tiempos por fase: preparación (pedido -> en camino), en ruta (en camino ->
      * entregado) y total (pedido -> entregado). Solo pide en_camino_at/entregado_at;

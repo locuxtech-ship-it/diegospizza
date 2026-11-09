@@ -60,7 +60,6 @@ class Reportes extends Page
     public int $mesesConDatos = 0;
 
     public array $desgloseMensual = [];
-    public array $tiemposEntrega = [];
     public array $tiemposFases = [];
 
     public function mount(): void
@@ -139,7 +138,6 @@ class Reportes extends Page
 
         $desde = $this->fechaInicio ? Carbon::parse($this->fechaInicio)->startOfDay() : null;
         $hasta = $this->fechaFin ? Carbon::parse($this->fechaFin)->endOfDay() : null;
-        $this->tiemposEntrega = ReporteService::tiemposEntrega($desde, $hasta);
         $this->tiemposFases = ReporteService::tiemposFases($desde, $hasta);
     }
 
