@@ -16,7 +16,11 @@ class Dashboard extends BaseDashboard
     public function mount(): void
     {
         if (!auth()->user()?->isAdmin()) {
-            $this->redirect(Comandas::getUrl());
+            $this->redirect(
+                auth()->user()?->isRepartidor()
+                    ? \App\Filament\Pages\MisEntregas::getUrl()
+                    : Comandas::getUrl()
+            );
         }
     }
 }

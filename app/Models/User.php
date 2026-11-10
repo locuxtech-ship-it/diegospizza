@@ -28,7 +28,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return in_array($this->role, ['admin', 'cajero']);
+        return in_array($this->role, ['admin', 'cajero', 'repartidor']);
     }
 
     public function isAdmin(): bool
@@ -39,6 +39,11 @@ class User extends Authenticatable implements FilamentUser
     public function isCajero(): bool
     {
         return $this->role === 'cajero';
+    }
+
+    public function isRepartidor(): bool
+    {
+        return $this->role === 'repartidor';
     }
 
     public function canCancelarPedido(): bool

@@ -38,7 +38,7 @@ class AdminPanelProvider extends PanelProvider
                 ? asset('storage/' . NegocioSetting::first()->logo)
                 : asset('images/logo.svg'))
             ->brandLogoHeight('2.5rem')
-            ->homeUrl('/admin/comandas')
+            ->homeUrl(fn (): string => auth()->user()?->isRepartidor() ? '/admin/mis-entregas' : '/admin/comandas')
             ->globalSearch(false)
             ->colors([
                 'primary' => Color::Red,

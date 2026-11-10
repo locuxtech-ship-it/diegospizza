@@ -85,12 +85,22 @@
                     </div>
                     <div style="font-size: 10px; color: #6b7280; margin-top: 1px;">{{ \Carbon\Carbon::parse($pedido['created_at'], 'UTC')->setTimezone('America/Bogota')->format('d/m H:i') }}</div>
                 </div>
-                {{-- Estado: badge estado + origen --}}
+                {{-- Estado: badge estado + origen + repartidor --}}
                 <div style="padding: 8px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; justify-content: center;">
                     <span style="font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600; background: {{ $bgEstado }}; color: {{ $colorEstado }};">{{ $iconoEstado }} {{ match($pedido['estado']) { 'pendiente_pago' => 'Pend. Pago', 'en_proceso' => 'Preparación', 'en_camino' => 'En Camino', 'entregado' => 'Ha Llegado', default => '' } }}</span>
                     <span style="font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 500; {{ ($pedido['origen'] ?? 'pdv') === 'web' ? 'background: #dbeafe; color: #2563eb;' : 'background: #fef3c7; color: #d97706;' }}">
                         {{ strtoupper($pedido['origen'] ?? 'PDV') }}
                     </span>
+                    @if(empty($repartidores))
+                        <span style="font-size: 9px; color: #9ca3af;">🛵 Sin repartidores</span>
+                    @else
+                        <select wire:change="asignarRepartidor({{ $pedido['id'] }}, $event.target.value)" onclick="event.stopPropagation()" title="Asignar repartidor" style="width: 100%; font-size: 10px; padding: 2px 4px; border-radius: 4px; border: 1px solid #d1d5db; background: white; color: #374151; cursor: pointer;">
+                            <option value="">🛵 Sin repartidor</option>
+                            @foreach($repartidores as $rep)
+                                <option value="{{ $rep['id'] }}" @selected((int) ($pedido['repartidor_id'] ?? 0) === (int) $rep['id'])>{{ $rep['name'] }}</option>
+                            @endforeach
+                        </select>
+                    @endif
                 </div>
                 {{-- Total: monto + pago --}}
                 <div style="padding: 8px; text-align: center;">
@@ -240,6 +250,16 @@
                                 <p style="margin: 4px 0 0 0; font-size: 12px; color: #6b7280;" title="{{ $dir }}">{{ $dir }}</p>
                                 @if(!empty($pedido['cliente']['telefono']))
                                     <p style="margin: 2px 0 0 0; font-size: 12px; color: #6b7280;">📞 {{ $pedido['cliente']['telefono'] }}</p>
+                                @endif
+                                @if(empty($repartidores))
+                                    <p style="margin: 4px 0 0 0; font-size: 11px; color: #9ca3af;">🛵 Sin repartidores registrados</p>
+                                @else
+                                    <select wire:change="asignarRepartidor({{ $pedido['id'] }}, $event.target.value)" onclick="event.stopPropagation()" title="Asignar repartidor" style="width: 100%; margin-top: 6px; font-size: 12px; padding: 4px 6px; border-radius: 6px; border: 1px solid #d1d5db; background: #f9fafb; color: #374151; cursor: pointer;">
+                                        <option value="">🛵 Asignar repartidor...</option>
+                                        @foreach($repartidores as $rep)
+                                            <option value="{{ $rep['id'] }}" @selected((int) ($pedido['repartidor_id'] ?? 0) === (int) $rep['id'])>{{ $rep['name'] }}</option>
+                                        @endforeach
+                                    </select>
                                 @endif
 
                                 @php $productos = $this->getProductosPedido($pedido['id']); @endphp

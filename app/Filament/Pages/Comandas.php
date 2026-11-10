@@ -8,6 +8,7 @@ use App\Models\Pago;
 use App\Models\Pedido;
 use App\Models\PedidoProducto;
 use App\Models\Punto;
+use App\Models\User;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Notifications\Notification;
@@ -48,6 +49,7 @@ class Comandas extends Page
     public $enCamino = [];
     public $haLlegado = [];
     public $todos = [];
+    public $repartidores = [];
     public $prevPendientePagoIds = '';
     public $pdvNuevosPedidosJson = '';
     public $vistaLista = true;
@@ -90,6 +92,11 @@ class Comandas extends Page
     {
         // Convertir pedidos antiguos "pendiente" a "en_proceso"
         Pedido::where('estado', 'pendiente')->update(['estado' => 'en_proceso']);
+
+        $this->repartidores = User::where('role', 'repartidor')
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->toArray();
 
         $this->pendientePago = Pedido::with('cliente')
             ->where('estado', 'pendiente_pago')
@@ -159,7 +166,6 @@ class Comandas extends Page
 
         $estados = ['pendiente_pago', 'en_proceso', 'en_camino', 'entregado'];
         if (!in_array($nuevoEstado, $estados)) return;
-
         $etiquetas = [
             'pendiente_pago' => '⏳ Pendiente de Pago',
             'en_proceso' => '👨‍🍳 En preparación',
@@ -171,6 +177,33 @@ class Comandas extends Page
 
         Notification::make()
             ->title("Pedido #{$pedido->numero_pedido} → {$etiquetas[$nuevoEstado]}")
+            ->success()
+            ->send();
+
+        $this->cargarPedidos();
+    }
+
+    public function asignarRepartidor(int $pedidoId, $repartidorId): void
+    {
+        $pedido = Pedido::find($pedidoId);
+        if (!$pedido) return;
+
+        $nuevoId = null;
+        $nombreRepartidor = null;
+
+        if ($repartidorId !== null && $repartidorId !== '') {
+            $repartidor = User::where('role', 'repartidor')->find((int) $repartidorId);
+            if (!$repartidor) return;
+            $nuevoId = $repartidor->id;
+            $nombreRepartidor = $repartidor->name;
+        }
+
+        $pedido->update(['repartidor_id' => $nuevoId]);
+
+        Notification::make()
+            ->title($nuevoId
+                ? "Pedido #{$pedido->numero_pedido} asignado a 🛵 {$nombreRepartidor}"
+                : "Pedido #{$pedido->numero_pedido} sin repartidor")
             ->success()
             ->send();
 

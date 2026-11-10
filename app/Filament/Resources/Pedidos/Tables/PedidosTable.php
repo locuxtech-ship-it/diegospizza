@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Pedidos\Tables;
 
 use App\Models\Pedido;
+use App\Models\User;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -41,6 +42,11 @@ class PedidosTable
                     ->searchable(),
                 TextColumn::make('estado')
                     ->searchable(),
+                TextColumn::make('repartidor.name')
+                    ->label('Repartidor')
+                    ->placeholder('—')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('metodo_pago')
                     ->searchable(),
                 TextColumn::make('fecha_entrega')
@@ -118,6 +124,16 @@ class PedidosTable
                                 'transferencia' => 'Transferencia',
                                 'mixto' => 'Mixto',
                             ]),
+                        Select::make('repartidor_id')
+                            ->label('Repartidor')
+                            ->options(fn () => User::where('role', 'repartidor')
+                                ->orderBy('name')
+                                ->pluck('name', 'id')
+                                ->toArray())
+                            ->searchable()
+                            ->preload()
+                            ->nullable()
+                            ->placeholder('Sin repartidor'),
                         Textarea::make('notas')
                             ->columnSpanFull(),
                         Textarea::make('motivo_cancelacion')
@@ -129,6 +145,7 @@ class PedidosTable
                             $record->update(collect($data)->only([
                                 'cliente_id', 'origen', 'estado', 'metodo_pago',
                                 'notas', 'motivo_cancelacion', 'fecha_entrega',
+                                'repartidor_id',
                             ])->toArray());
                             return;
                         }

@@ -77,6 +77,7 @@ class UserResource extends Resource
                     ->options([
                         'admin' => 'Administrador',
                         'cajero' => 'Cajero',
+                        'repartidor' => 'Repartidor',
                     ])
                     ->required(),
             ]);
@@ -95,7 +96,11 @@ class UserResource extends Resource
                 TextColumn::make('role')
                     ->label('Rol')
                     ->badge()
-                    ->color(fn ($state) => $state === 'admin' ? 'danger' : 'warning'),
+                    ->color(fn ($state) => match ($state) {
+                        'admin' => 'danger',
+                        'repartidor' => 'info',
+                        default => 'warning',
+                    }),
             ])
             ->toolbarActions([
                 CreateAction::make()

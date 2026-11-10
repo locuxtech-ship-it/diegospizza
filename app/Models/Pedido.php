@@ -13,6 +13,7 @@ class Pedido extends Model
 {
     protected $fillable = [
         'cliente_id',
+        'repartidor_id',
         'numero_pedido',
         'subtotal',
         'descuento_puntos',
@@ -28,6 +29,7 @@ class Pedido extends Model
         'fecha_entrega',
         'en_camino_at',
         'entregado_at',
+        'llegada_at',
     ];
 
     protected function casts(): array
@@ -42,6 +44,7 @@ class Pedido extends Model
             'fecha_entrega' => 'datetime',
             'en_camino_at' => 'datetime',
             'entregado_at' => 'datetime',
+            'llegada_at' => 'datetime',
         ];
     }
 
@@ -151,6 +154,11 @@ class Pedido extends Model
     public function cliente(): BelongsTo
     {
         return $this->belongsTo(Cliente::class);
+    }
+
+    public function repartidor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'repartidor_id');
     }
 
     public function productos(): HasMany

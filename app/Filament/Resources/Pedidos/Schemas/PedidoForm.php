@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Pedidos\Schemas;
 
 use App\Models\Cliente;
+use App\Models\User;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
@@ -53,6 +54,17 @@ class PedidoForm
                                 'transferencia' => 'Transferencia',
                                 'mixto' => 'Mixto',
                             ]),
+
+                        Select::make('repartidor_id')
+                            ->label('Repartidor')
+                            ->options(fn () => User::where('role', 'repartidor')
+                                ->orderBy('name')
+                                ->pluck('name', 'id')
+                                ->toArray())
+                            ->searchable()
+                            ->preload()
+                            ->nullable()
+                            ->placeholder('Sin repartidor'),
 
                         Textarea::make('notas')
                             ->columnSpanFull(),
