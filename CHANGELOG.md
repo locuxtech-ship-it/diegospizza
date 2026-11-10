@@ -1,5 +1,30 @@
 # Changelog — Diego's Pizza
 
+## [10-11-2026] — Feature: Módulo de Repartidores (Fases 1-3)
+
+### Cambios
+- **Nuevo rol `repartidor`**: opción "Repartidor" en el select de Roles (Usuarios) + badge azul. Puede iniciar sesión en `/admin` pero **solo ve una página: "🛵 Mis Entregas"** (todas las demás quedan bloqueadas: Comandas, Reportes, Historial, Configuración, Clientes, etc.).
+- **Migración** `add_repartidor_to_pedidos_table`: columnas `repartidor_id` (FK → users, nullable, `nullOnDelete`) y `llegada_at` (marca "ya llegó"). Sin tocar datos existentes.
+- **Asignación en cualquier momento** (admin y cajero): select de repartidor en la tarjeta del Kanban y en la vista Lista de Comandas (también en EditPedido y en el modal de edición de la tabla de Pedidos). Se puede reasignar o quitar cuando quiera. Si aún no hay repartidores creados muestra "🛵 Sin repartidores".
+- **Página "🛵 Mis Entregas"** (mobile-first): tarjetas con #pedido, total, cliente, dirección, teléfono y estado, agrupadas en En Ruta / En Preparación / Entregados Hoy, con `wire:poll` automático.
+  - Botón **"📍 Ya llegué"** → guarda `llegada_at` sin cambiar estado (nunca se pisa en doble toque).
+  - Botón **"✅ Entregado"** → cambia estado a `entregado` con confirmación; `entregado_at` lo dispara el hook existente del modelo.
+  - **Seguridad**: solo puede avanzar sus propios pedidos (`pedidoPropio()` filtra por `repartidor_id`).
+- **homeUrl dinámico**: repartidor aterriza en `/admin/mis-entregas`, el resto en `/admin/comandas`; el Dashboard redirige al repartidor a Mis Entregas.
+- **Métricas por repartidor**: pendiente (Fase 4).
+
+### Puntos de Restauración
+- Tag: `pre-modulo-repartidores` (commit `aa47fcd`)
+- Deploy: commit `8226675`
+
+### Verificado en producción
+- Migración aplicada: columnas `repartidor_id` + `llegada_at` presentes ✓
+- `canAccessPanel(repartidor)` = true; `MisEntregas::canAccess` = true; Comandas/Reportes/Historial/Configuración/Usuarios/Pedidos = false ✓
+- `homeUrl` repartidor = `/admin/mis-entregas` ✓
+- Flujo con rollback: asignar → llegada (doble toque no pisa) → entregado (hook `entregado_at`) → guard de pedido ajeno ✓
+- Render Livewire con botones `llegue`/`entregue` + `wire:confirm` ✓
+- Logs sin errores, HTTP 200 ✓
+
 ## [09-11-2026] — Ajuste: reporte solo con tiempos de entrega por fases
 
 ### Cambios
