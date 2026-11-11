@@ -48,7 +48,7 @@ class HistorialPedidos extends Page
 
     public function abrirDetalle(int $pedidoId): void
     {
-        $pedido = Pedido::with('cliente')->find($pedidoId);
+        $pedido = Pedido::with(['cliente', 'repartidor'])->find($pedidoId);
         if (!$pedido) return;
 
         $this->detallePedido = $pedido->toArray();

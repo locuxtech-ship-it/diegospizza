@@ -22,6 +22,7 @@
                 ['titulo' => '🚗 En Ruta', 'pedidos' => $enReparto, 'color' => '#2563eb', 'bg' => '#eff6ff', 'borde' => '#bfdbfe'],
                 ['titulo' => '👨‍🍳 En Preparación', 'pedidos' => $enPreparacion, 'color' => '#ea580c', 'bg' => '#fff7ed', 'borde' => '#fed7aa'],
                 ['titulo' => '✅ Entregados Hoy', 'pedidos' => $entregadosHoy, 'color' => '#16a34a', 'bg' => '#f0fdf4', 'borde' => '#bbf7d0'],
+                ['titulo' => '📚 Entregados (días anteriores)', 'pedidos' => $entregadosAnteriores, 'color' => '#6b7280', 'bg' => '#f9fafb', 'borde' => '#e5e7eb', 'historico' => true],
             ];
         @endphp
 
@@ -69,6 +70,10 @@
                                     ✅ Entregado
                                 </button>
                             </div>
+                        @elseif(!empty($seccion['historico']))
+                            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #f3f4f6; font-size: 12px; color: #6b7280; font-weight: 600;">
+                                ✅ Entregado el {{ !empty($pedido['entregado_at']) ? \Carbon\Carbon::parse($pedido['entregado_at'])->format('d/m/Y H:i') : '—' }}@if($marcadoLlegada) · 📍 Llegada {{ \Carbon\Carbon::parse($pedido['llegada_at'])->format('H:i') }}@endif
+                            </div>
                         @else
                             <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #f3f4f6; font-size: 12px; color: #16a34a; font-weight: 600;">
                                 ✅ Entregado a las {{ !empty($pedido['entregado_at']) ? \Carbon\Carbon::parse($pedido['entregado_at'])->format('H:i') : '—' }}
@@ -77,9 +82,15 @@
                     </div>
                 @empty
                     <div style="background: #f9fafb; border: 1px dashed #d1d5db; border-radius: 12px; padding: 20px; text-align: center; color: #9ca3af; font-size: 13px; margin-bottom: 10px;">
-                        Sin pedidos aquí 🍕
+                        {{ !empty($seccion['historico']) ? 'Sin entregas anteriores todavía 📚' : 'Sin pedidos aquí 🍕' }}
                     </div>
                 @endforelse
+
+                @if(!empty($seccion['historico']) && count($seccion['pedidos']) >= $historialLimite)
+                    <button wire:click="cargarMasHistorial" style="width: 100%; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 1px dashed #9ca3af; background: white; color: #6b7280; cursor: pointer;">
+                        📚 Ver más entregas (ya ves {{ count($seccion['pedidos']) }})
+                    </button>
+                @endif
             </div>
         @endforeach
     </div>

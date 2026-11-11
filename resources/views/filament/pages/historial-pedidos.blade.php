@@ -182,6 +182,16 @@
                     @if($dir)
                     <p style="margin: 0; font-size: 13px; color: #6b7280;">📍 {{ $dir }}</p>
                     @endif
+                    @if(!empty($detallePedido['repartidor_id']))
+                        <p style="margin: 4px 0 0 0; font-size: 13px; color: #1e40af; font-weight: 600;">🛵 Entregó: {{ $detallePedido['repartidor']['name'] ?? 'Repartidor' }}
+                            @if(!empty($detallePedido['entregado_at']))
+                                · ✅ {{ \Carbon\Carbon::parse($detallePedido['entregado_at'], 'UTC')->setTimezone('America/Bogota')->format('d/m H:i') }}
+                            @endif
+                            @if(!empty($detallePedido['llegada_at']))
+                                · 📍 {{ \Carbon\Carbon::parse($detallePedido['llegada_at'], 'UTC')->setTimezone('America/Bogota')->format('d/m H:i') }}
+                            @endif
+                        </p>
+                    @endif
                 </div>
 
                 {{-- Productos --}}

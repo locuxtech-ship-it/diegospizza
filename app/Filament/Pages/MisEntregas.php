@@ -28,6 +28,12 @@ class MisEntregas extends Page
     /** Pedidos asignados entregados hoy (marcados por este repartidor) */
     public array $entregadosHoy = [];
 
+    /** Entregas de días anteriores (histórico personal, paginado) */
+    public array $entregadosAnteriores = [];
+
+    /** Cuántos pedidos del histórico carga a la vez */
+    public int $historialLimite = 20;
+
     public static function canAccess(): bool
     {
         return auth()->user()?->isRepartidor() ?? false;
@@ -61,6 +67,22 @@ class MisEntregas extends Page
             ->whereDate('entregado_at', today())
             ->get()
             ->toArray();
+
+        $this->entregadosAnteriores = $base()
+            ->where('estado', 'entregado')
+            ->whereNotNull('entregado_at')
+            ->whereDate('entregado_at', '<', today())
+            ->orderBy('entregado_at', 'desc')
+            ->limit($this->historialLimite)
+            ->get()
+            ->toArray();
+    }
+
+    /** Carga 20 entregas anteriores más */
+    public function cargarMasHistorial(): void
+    {
+        $this->historialLimite += 20;
+        $this->cargarPedidos();
     }
 
     /** Solo pedidos asignados a ESTE repartidor */
