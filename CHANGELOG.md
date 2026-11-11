@@ -1,5 +1,14 @@
 # Changelog — Diego's Pizza
 
+## [10-11-2026] — Ajuste: enlace de acceso para repartidores en Configuración
+
+### Cambios
+- **Tarjeta "🛵 Enlace para Repartidores"** al inicio de Configuración: muestra la URL de acceso (`/admin`), botón **"📋 Copiar enlace"** (copiado al portapapeles con confirmación) y la nota de que se crean en **Usuarios** con el rol "Repartidor".
+
+### Puntos de Restauración
+- Tag: `pre-enlace-repartidores` (commit `1069c38`)
+- Deploy: commit `82d5d4c`
+
 ## [10-11-2026] — Feature: Módulo de Repartidores (Fases 1-3)
 
 ### Cambios
