@@ -1,5 +1,26 @@
 # Changelog — Diego's Pizza
 
+## [10-11-2026] — Feature: métricas por repartidor en Reportes (Fase 4)
+
+### Cambios
+- **Nueva tabla "🛵 Métricas por repartidor"** en Reportes (debajo de Tiempos de entrega por fases), con el filtro de período activo: **Repartidor | Entregas | Prom. en ruta | Prom. total | Prom. en puerta**.
+  - *En ruta*: en_camino → entregado · *Total*: pedido → entregado · *En puerta*: llegada → entregado
+  - Ordenada por número de entregas (de mayor a menor)
+- **CSV**: nueva sección **"METRICAS POR REPARTIDOR"** con las mismas columnas.
+- Servicio: nuevo `ReporteService::metricasRepartidores()` (solo pedidos entregados con repartidor asignado en el período; el histórico no tiene repartidor).
+- Estado vacío: *"Sin pedidos entregados con repartidor asignado en este período"*.
+
+### Puntos de Restauración
+- Tag: `pre-metricas-repartidores` (commit `28b74e9`)
+- Deploy: commit `3530d1f`
+
+### Verificado en producción
+- Servicio con datos de prueba (rollback): 1 repartidor, entregas=1, ruta 40 min ✓
+- Tarjeta visible con columnas completas ✓
+- CSV: sección + header + fila de datos ✓
+- Sin datos → estado vacío en tabla y CSV ✓
+- Logs sin errores nuevos, HTTP 200 ✓
+
 ## [10-11-2026] — Ajuste: enlace de acceso para repartidores en Configuración
 
 ### Cambios
