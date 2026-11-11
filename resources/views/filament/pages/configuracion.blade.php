@@ -13,6 +13,17 @@
             </div>
         @endif
 
+        {{-- Enlace de acceso para repartidores --}}
+        <div x-data="{ copiado: false }" style="background: linear-gradient(to right, #eff6ff, white); border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 240px;">
+                <p style="margin: 0; font-size: 14px; font-weight: 700; color: #1e3a5f;">🛵 Enlace para Repartidores</p>
+                <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280;">Comparte este enlace con tus repartidores para que inicien sesión en su perfil (ven directo a "Mis Entregas"):</p>
+                <p style="margin: 8px 0 0 0; font-size: 15px; font-weight: 700; color: #2563eb; word-break: break-all;">{{ url('/admin') }}</p>
+                <p style="margin: 6px 0 0 0; font-size: 12px; color: #9ca3af;">Se crean en <strong>Usuarios</strong> con el rol "Repartidor".</p>
+            </div>
+            <button type="button" @click="navigator.clipboard.writeText('{{ url('/admin') }}').then(() => { copiado = true; setTimeout(() => copiado = false, 2000); })" style="padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; border: 1px solid #2563eb; background: #2563eb; color: white; cursor: pointer; white-space: nowrap;" x-text="copiado ? '✅ Copiado' : '📋 Copiar enlace'"></button>
+        </div>
+
         <form wire:submit.prevent="save" style="display: flex; flex-direction: column; gap: 20px;">
             {{-- Negocio --}}
             <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
