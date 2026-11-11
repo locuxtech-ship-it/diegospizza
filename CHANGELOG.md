@@ -1,5 +1,21 @@
 # Changelog — Diego's Pizza
 
+## [11-11-2026] — Feature: histórico de entregas del repartidor + quién entregó en el Historial
+
+### Cambios
+- **"🛵 Mis Entregas" — nueva sección "📚 Entregados (días anteriores)"**: el repartidor ve sus entregas de días pasados (fecha + hora de entrega y hora de llegada), paginadas de 20 en 20 con botón **"📚 Ver más entregas"**. Los pedidos de hoy siguen en su sección "✅ Entregados Hoy".
+- **Historial → modal del pedido**: ahora muestra **"🛵 Entregó: [nombre]"** con la **hora de entrega** (✅) y la **hora de llegada** (📍) cuando el pedido tiene repartidor asignado. Solo aparece en pedidos posteriores al 10-11-2026 (los anteriores no tienen repartidor).
+
+### Puntos de Restauración
+- Tag: `pre-historico-entregas` (commit `38692d4`)
+- Deploy: commit `02be36f`
+
+### Verificado en producción (datos de prueba con rollback)
+- Sección histórica: 3 entregas anteriores visibles con fecha, botón "Ver más" oculto con <20 y `cargarMasHistorial` sube el límite a 40 ✓
+- Modal Historial con repartidor: "Entregó: Juan" + hora entrega + hora llegada ✓
+- Pedido antiguo sin repartidor: no se muestra la línea ✓
+- Logs sin errores nuevos, HTTP 200 ✓
+
 ## [10-11-2026] — Feature: métricas por repartidor en Reportes (Fase 4)
 
 ### Cambios
