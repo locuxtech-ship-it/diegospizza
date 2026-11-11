@@ -290,6 +290,46 @@
             @endif
         </div>
 
+        {{-- ==================== MÉTRICAS POR REPARTIDOR ==================== --}}
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+            <div style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 16px;">🛵</span>
+                <h3 style="margin: 0; font-size: 14px; font-weight: 600; color: #374151;">Métricas por repartidor</h3>
+                <span style="font-size: 12px; color: #9ca3af;">pedidos entregados con repartidor asignado · {{ $this->etiquetaPeriodo() }}</span>
+            </div>
+
+            @if(count($metricasRepartidores) > 0)
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <thead>
+                            <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                                <th style="padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.05em;">Repartidor</th>
+                                <th style="padding: 10px 16px; text-align: center; font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.05em;">Entregas</th>
+                                <th style="padding: 10px 16px; text-align: center; font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.05em;">Prom. en ruta</th>
+                                <th style="padding: 10px 16px; text-align: center; font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.05em;">Prom. total</th>
+                                <th style="padding: 10px 16px; text-align: center; font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.05em;">Prom. en puerta</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($metricasRepartidores as $m)
+                                <tr style="border-bottom: 1px solid #f3f4f6;">
+                                    <td style="padding: 10px 16px; font-weight: 600; color: #111827;">🛵 {{ $m['repartidor'] }}</td>
+                                    <td style="padding: 10px 16px; text-align: center; font-weight: 700; color: #1e3a5f;">{{ $m['entregas'] }}</td>
+                                    <td style="padding: 10px 16px; text-align: center; color: #2563eb;">{{ $m['ruta']['pedidos'] > 0 ? $m['ruta']['promedio'] . ' min' : '—' }}</td>
+                                    <td style="padding: 10px 16px; text-align: center; color: #7c3aed;">{{ $m['total']['pedidos'] > 0 ? $m['total']['promedio'] . ' min' : '—' }}</td>
+                                    <td style="padding: 10px 16px; text-align: center; color: #16a34a;">{{ $m['puerta']['pedidos'] > 0 ? $m['puerta']['promedio'] . ' min' : '—' }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div style="padding: 24px 16px; text-align: center; color: #9ca3af; font-size: 13px;">
+                    Sin pedidos entregados con repartidor asignado en este período. Asigna repartidores desde PDV y las métricas empezarán a llenarse.
+                </div>
+            @endif
+        </div>
+
         {{-- Detailed tables --}}
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             {{-- Dia que mas vendes --}}

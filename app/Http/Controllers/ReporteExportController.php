@@ -34,13 +34,14 @@ class ReporteExportController extends Controller
         $comparativa = ReporteService::comparativa();
         $desglose = ReporteService::desgloseMensual(12);
         $fases = ReporteService::tiemposFases($desde, $hasta);
+        $repartidores = ReporteService::metricasRepartidores($desde, $hasta);
 
         $nombreArchivo = 'reporte_ventas'
             . ($desde ? '_' . $desde->format('Y-m-d') : '')
             . ($hasta ? '_al_' . $hasta->format('Y-m-d') : '')
             . '.csv';
 
-        $callback = function () use ($pedidos, $totalVentas, $totalPedidos, $promedioPedido, $comparativa, $desglose, $fases) {
+        $callback = function () use ($pedidos, $totalVentas, $totalPedidos, $promedioPedido, $comparativa, $desglose, $fases, $repartidores) {
             $file = fopen('php://output', 'w');
             fwrite($file, "\xEF\xBB\xBF"); // BOM UTF-8 (Excel)
 
@@ -95,6 +96,20 @@ class ReporteExportController extends Controller
                     $f['pedidos'],
                     $f['pedidos'] > 0 ? $f['promedio'] . ' min' : '-',
                     $f['pedidos'] > 0 ? $f['mediana'] . ' min' : '-',
+                ], ';');
+            }
+
+            fputcsv($file, [], ';');
+            fputcsv($file, ['METRICAS POR REPARTIDOR'], ';');
+            fputcsv($file, ['Repartidor', 'Entregas', 'Prom. en ruta', 'Prom. total', 'Prom. en puerta'], ';');
+
+            foreach ($repartidores as $m) {
+                fputcsv($file, [
+                    $m['repartidor'],
+                    $m['entregas'],
+                    $m['ruta']['pedidos'] > 0 ? $m['ruta']['promedio'] . ' min' : '-',
+                    $m['total']['pedidos'] > 0 ? $m['total']['promedio'] . ' min' : '-',
+                    $m['puerta']['pedidos'] > 0 ? $m['puerta']['promedio'] . ' min' : '-',
                 ], ';');
             }
 

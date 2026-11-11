@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Pedido;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
@@ -103,6 +104,62 @@ class ReporteService
             'ruta' => self::estadisticas($ruta),
             'total' => self::estadisticas($total),
         ];
+    }
+
+    /**
+     * Métricas por repartidor de los pedidos entregados en el rango:
+     * entregas, promedio en ruta (en_camino -> entregado), promedio total
+     * (pedido -> entregado) y promedio en puerta (llegada -> entregado).
+     * Solo aplica a pedidos con repartidor asignado (el histórico no tiene).
+     */
+    public static function metricasRepartidores(?Carbon $desde = null, ?Carbon $hasta = null): array
+    {
+        $rows = self::pedidosQuery($desde, $hasta)
+            ->whereNotNull('pedidos.repartidor_id')
+            ->whereNotNull('pedidos.entregado_at')
+            ->select('pedidos.repartidor_id', 'pedidos.created_at', 'pedidos.en_camino_at', 'pedidos.entregado_at', 'pedidos.llegada_at')
+            ->get();
+
+        $acumulado = [];
+
+        foreach ($rows as $row) {
+            $id = (int) $row->repartidor_id;
+            $acumulado[$id] ??= ['entregas' => 0, 'ruta' => [], 'total' => [], 'puerta' => []];
+            $acumulado[$id]['entregas']++;
+
+            if ($row->en_camino_at && $row->entregado_at && $row->entregado_at->gte($row->en_camino_at)) {
+                $acumulado[$id]['ruta'][] = (int) round($row->en_camino_at->diffInMinutes($row->entregado_at));
+            }
+
+            if ($row->entregado_at && $row->entregado_at->gte($row->created_at)) {
+                $acumulado[$id]['total'][] = (int) round($row->created_at->diffInMinutes($row->entregado_at));
+            }
+
+            if ($row->llegada_at && $row->entregado_at && $row->entregado_at->gte($row->llegada_at)) {
+                $acumulado[$id]['puerta'][] = (int) round($row->llegada_at->diffInMinutes($row->entregado_at));
+            }
+        }
+
+        if (!$acumulado) {
+            return [];
+        }
+
+        $nombres = User::whereIn('id', array_keys($acumulado))->pluck('name', 'id');
+
+        $resultado = [];
+        foreach ($acumulado as $id => $datos) {
+            $resultado[] = [
+                'repartidor' => $nombres[$id] ?? "Usuario #{$id}",
+                'entregas' => $datos['entregas'],
+                'ruta' => self::estadisticas($datos['ruta']),
+                'total' => self::estadisticas($datos['total']),
+                'puerta' => self::estadisticas($datos['puerta']),
+            ];
+        }
+
+        usort($resultado, fn ($a, $b) => $b['entregas'] <=> $a['entregas']);
+
+        return $resultado;
     }
 
     /**

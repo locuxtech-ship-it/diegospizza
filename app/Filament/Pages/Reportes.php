@@ -61,6 +61,7 @@ class Reportes extends Page
 
     public array $desgloseMensual = [];
     public array $tiemposFases = [];
+    public array $metricasRepartidores = [];
 
     public function mount(): void
     {
@@ -139,6 +140,7 @@ class Reportes extends Page
         $desde = $this->fechaInicio ? Carbon::parse($this->fechaInicio)->startOfDay() : null;
         $hasta = $this->fechaFin ? Carbon::parse($this->fechaFin)->endOfDay() : null;
         $this->tiemposFases = ReporteService::tiemposFases($desde, $hasta);
+        $this->metricasRepartidores = ReporteService::metricasRepartidores($desde, $hasta);
     }
 
     private function cargarDiaMasVendido($baseQuery): void
