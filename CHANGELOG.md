@@ -1,5 +1,32 @@
 # Changelog — Diego's Pizza
 
+## [13-11-2026] — Feature: alerta sutil de cambios de estado en el PDV (v4.4)
+
+### Cambios
+- **Alerta de cambios de estado en el PDV**: nuevo fetch silencioso cada 5s (`GET /api/pedidos/estados-hoy`) que compara el estado de los pedidos de hoy. Cuando un pedido cambia de estado — sea desde el PDV, desde "🛵 Mis Entregas" del repartidor o por cualquier otro origen —:
+  - **Toast discreto** (esquina superior derecha): `🛵 #12 → En Camino` con cliente, icono y color del estado destino. Dura solo 5s, **sin sonido, sin vibración, sin notificación del sistema y sin titilar la pestaña** (a diferencia de la alerta de pedidos nuevos, que es llamativa a propósito).
+  - **Destello** (glow 1.5s, repetido a los ~5.5s cuando la tarjeta ya se movió) en la tarjeta que cambió de columna — funciona en vista Kanban y vista Lista (`data-pedido-id` en ambas).
+  - Si el cambio lo acaba de hacer el usuario del PDV (botones Aceptar / Enviar / Llegó / Finalizar / Cancelar), **no** muestra el toast — solo el destello de confirmación.
+  - Colores por estado: pendiente 🔴 · preparación 🟠 · en camino 🔵 · ha llegado 🟣 · finalizado 🟢 · cancelado ⚪.
+
+### Diagnóstico (mecanismo de notificaciones unificado — verificado, sin cambios)
+- **WhatsApp**: `Pedido::saved()` detecta **cualquier** cambio de estado sin importar el origen (PDV `cambiarEstado()` o repartidor `entregue()` usan el mismo `$pedido->update()`). Prueba controlada con spy + rollback en producción: 4/4 ✓
+- **Evidencia real 13/11**: 11 entregas por repartidores → 10/10 mensajes "Ha llegado" enviados en el **minuto exacto** del `entregado_at`; el único sin mensaje es un cliente **sin WhatsApp** (WAHA: "recipient is not on WhatsApp" — el envío sí se intentó).
+- **BOT**: `sendOrderStatus()` lee el estado directo de la BD (sin caché) → siempre sincronizado.
+- **PDV**: `wire:poll.keep-alive.5s` es sintaxis válida de Livewire 4.3 (`keep-alive` mantiene el polling con la pestaña en segundo plano); cero errores de poll en logs.
+- Fallos históricos de WhatsApp explicados: números sin WhatsApp + timeouts puntuales de WAHA (01/11, 03/11, 06/11).
+
+### Puntos de Restauración
+- Tag: `pre-unificacion-notificaciones` (commit `97a6dc3`)
+- Deploy: commit `3ed29a4`
+
+### Verificado en producción (datos de prueba con rollback)
+- Blade del PDV renderiza con `data-pedido-id`, JS `pdvVerificarEstados`, fetch `/api/pedidos/estados-hoy` y CSS `pdvGlowEstado` ✓
+- Endpoint autenticado: HTTP 200, 25 pedidos de hoy, pedido de prueba presente con estado y cliente ✓
+- Sin sesión: HTTP 200 con lista vacía ✓
+- Spy de WhatsApp: 0 envíos reales durante las pruebas ✓
+- Logs sin errores nuevos tras el deploy; endpoint externo HTTP 200 ✓
+
 ## [11-11-2026] — Feature: histórico de entregas del repartidor + quién entregó en el Historial
 
 ### Cambios
