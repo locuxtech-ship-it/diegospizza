@@ -1,5 +1,26 @@
 # Changelog — Diego's Pizza
 
+## [13-11-2026] — Ajuste: repartidor solo ve "Mis Entregas" + historial del día completo (v4.5)
+
+### Cambios
+- **Navegación del repartidor**: ahora ve **únicamente "🛵 Mis Entregas"**. Se restringieron las dos opciones que se colaban:
+  - **"Orden Manual"** (`ManualOrder`): nuevo `canAccess()` → solo admin y cajero (antes cualquier rol podía abrir la página).
+  - **"Productos"** (`ProductoResource`): nuevo `canViewAny()` → solo admin y cajero (el cajero conserva su acceso a productos).
+- **"✅ Entregados Hoy" en Mis Entregas = historial real del día**: la consulta ahora filtra por `entregado_at = hoy` con estado `entregado` **o** `finalizado`. Antes, cuando el PDV finalizaba el pedido, el repartidor **perdía el registro** de esa entrega (sección vacía). Ejemplo real: Miguel pasó de **1 a 10** entregas visibles y Sebastián de **0 a 8**.
+- **Histórico de días anteriores**: mismo criterio (incluye los ya finalizados) — antes también los perdía.
+- **Tarjeta de pedido finalizado**: badge **"🎉 Finalizado"** (antes mostraba el estado en crudo) y **sin botones de acción** ("📍 Ya llegué" / "✅ Entregado") — solo se muestran en pedidos activos.
+
+### Puntos de Restauración
+- Tag: `pre-ajustes-repartidor` (commit `6450ca8`)
+- Deploy: commit `e2ae71e`
+
+### Verificado en producción
+- Nav repartidor: **solo "Mis Entregas"** ✓ · Nav cajero: conserva Orden Manual y Productos ✓ · Nav admin: sin cambios (14 opciones) ✓
+- Repartidor → `/admin/nuevo-pedido`, `/admin/productos`, `/admin/comandas`: **HTTP 403** ✓ · `/admin/mis-entregas`: **200** ✓
+- Entregados Hoy: Miguel **10** (9 finalizados), Sebastián **8** (8 finalizados), Henry 0 ✓
+- Botones de acción solo en pedidos activos (botones = activos en los 3 repartidores) ✓
+- Logs sin errores nuevos tras el deploy ✓
+
 ## [13-11-2026] — Feature: alerta sutil de cambios de estado en el PDV (v4.4)
 
 ### Cambios
