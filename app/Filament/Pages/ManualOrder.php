@@ -28,6 +28,11 @@ class ManualOrder extends Page
 
     protected string $view = 'filament.pages.manual-order';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user() && in_array(auth()->user()->role, ['admin', 'cajero']);
+    }
+
     public $categoriaActiva = null;
     public $carrito = [];
     public $nombre = '';

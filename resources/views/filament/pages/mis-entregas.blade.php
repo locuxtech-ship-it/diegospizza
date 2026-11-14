@@ -55,11 +55,11 @@
                                 @endif
                             </div>
                             <span style="font-size: 10px; padding: 3px 8px; border-radius: 10px; font-weight: 600; white-space: nowrap; background: {{ $seccion['bg'] }}; color: {{ $seccion['color'] }};">
-                                {{ match($pedido['estado']) { 'pendiente_pago' => '⏳ Pend. Pago', 'en_proceso' => '👨‍🍳 Preparación', 'en_camino' => '🚗 En Ruta', 'entregado' => '📍 Entregado', default => $pedido['estado'] } }}
+                                {{ match($pedido['estado']) { 'pendiente_pago' => '⏳ Pend. Pago', 'en_proceso' => '👨‍🍳 Preparación', 'en_camino' => '🚗 En Ruta', 'entregado' => '📍 Entregado', 'finalizado' => '🎉 Finalizado', default => $pedido['estado'] } }}
                             </span>
                         </div>
 
-                        @if($pedido['estado'] !== 'entregado')
+                        @if(!in_array($pedido['estado'], ['entregado', 'finalizado']))
                             <div style="display: flex; gap: 8px; margin-top: 12px;">
                                 @unless($marcadoLlegada)
                                     <button wire:click="llegue({{ $pedido['id'] }})" style="flex: 1; padding: 11px 12px; border-radius: 8px; font-size: 14px; font-weight: 700; border: 1px solid #2563eb; background: #eff6ff; color: #1e3a5f; cursor: pointer;">

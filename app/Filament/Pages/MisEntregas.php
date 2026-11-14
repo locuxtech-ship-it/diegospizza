@@ -62,14 +62,15 @@ class MisEntregas extends Page
             ->get()
             ->toArray();
 
+        // Historial del día: incluye los que el PDV ya finalizó (si no, desaparecen)
         $this->entregadosHoy = $base()
-            ->where('estado', 'entregado')
+            ->whereIn('estado', ['entregado', 'finalizado'])
             ->whereDate('entregado_at', today())
             ->get()
             ->toArray();
 
         $this->entregadosAnteriores = $base()
-            ->where('estado', 'entregado')
+            ->whereIn('estado', ['entregado', 'finalizado'])
             ->whereNotNull('entregado_at')
             ->whereDate('entregado_at', '<', today())
             ->orderBy('entregado_at', 'desc')

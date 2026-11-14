@@ -25,6 +25,12 @@ class ProductoResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'nombre';
 
+    // Solo admin y cajero (el repartidor no debe ver esta opción)
+    public static function canViewAny(): bool
+    {
+        return in_array(auth()->user()?->role, ['admin', 'cajero']);
+    }
+
     public static function canCreate(): bool
     {
         return auth()->user()?->isAdmin() ?? false;
