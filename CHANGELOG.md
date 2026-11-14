@@ -1,5 +1,28 @@
 # Changelog — Diego's Pizza
 
+## [13-11-2026] — Reseñas: detalle con doble click + orden de recientes corregido (v4.6)
+
+### Cambios
+- **Doble click en una fila abre el detalle completo** de la reseña: modal con ⭐ puntuación, cliente, teléfono, 🧾 pedido (#, total y estado), fecha, badge de visibilidad y **el comentario entero** (sin recortar, con saltos de línea y texto largo). Botones **Mostrar/Ocultar** y **Cerrar** dentro del modal (también se cierra con Esc o clic fuera). Pista visual debajo de la tabla: *"💡 Doble click sobre una fila para ver el detalle completo"*.
+- **Orden "Fecha" corregido**: en Filament el **primer clic** sobre un encabezado ordena `asc`, así que al tocar "Fecha" las reseñas **más recientes se iban a la última página**. Ahora el ciclo es: clic 1 → **más reciente primero** (desc) · clic 2 → más antiguo (asc) · clic 3 → de nuevo recientes.
+- Código nuevo: `Reviews::sortTable()` (override con alias de trait), `abrirDetalle()`, `cerrarDetalle()`, `alternarVisibilidadDetalle()`, columna "Fecha" con `data-review-id`, vista `reviews.blade.php` con handler `dblclick` + modal.
+
+### Diagnóstico de "no se ven las reseñas más recientes"
+- El orden por defecto de la tabla **sí era correcto** (más reciente arriba, verificado) — el salto al final solo ocurría tras un clic en "Fecha" (ya corregido).
+- **La última reseña en la BD es del 25/10**: no es que falte en la tabla, es que **no se están creando**. Se verificó que el flujo funciona: `review_enabled = true`, el link **sí les llega** a los clientes por WhatsApp (3 chats reales de hoy con `https://diegospizzabq.click/review/{id}`), y el formulario carga (HTTP 200). Simplemente desde el 25/10 ningún cliente ha completado uno (las reseñas recientes anteriores eran en su mayoría pruebas propias: Oliver/Vivi).
+- Nota: las reseñas se crean con `visible = false` por defecto (las 61 existentes están ocultas); ahora se puede alternar desde el propio modal.
+
+### Puntos de Restauración
+- Tag: `pre-detalle-resenas` (commit `930dd69`)
+- Deploy: commit `ed9f003`
+
+### Verificado en producción (datos reales, toggle con rollback)
+- Vista: `data-review-id` en todas las filas, handler de doble click y pista visual ✓
+- Orden por defecto = id 61 (lo más nuevo) · clic 1 sigue en 61 (desc) · clic 2 → id 1 (asc) · clic 3 → 61 ✓
+- Doble click → modal con rating 5, cliente, pedido #5 y comentario completo ✓ · Cerrar → `null` ✓
+- Alternar visibilidad desde el modal: `false → true` en BD y en el modal, con rollback ✓
+- Logs sin errores nuevos tras el deploy ✓
+
 ## [13-11-2026] — Ajuste: repartidor solo ve "Mis Entregas" + historial del día completo (v4.5)
 
 ### Cambios
