@@ -1,4 +1,12 @@
 <x-filament-panels::page>
+    <style>
+        @keyframes pdvGlowEstado {
+            0%   { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0); }
+            30%  { box-shadow: 0 0 0 5px rgba(147, 51, 234, 0.35), 0 6px 18px rgba(0, 0, 0, 0.18); }
+            100% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0); }
+        }
+        .pdv-destello { animation: pdvGlowEstado 1.5s ease-out 2; }
+    </style>
     <div style="display: flex; flex-direction: column; gap: 24px;" wire:poll.keep-alive.5s="cargarPedidos">
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
             <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px;">
@@ -75,7 +83,7 @@
                 $colorEstado = match($pedido['estado']) { 'pendiente_pago' => '#ef4444', 'en_proceso' => '#ea580c', 'en_camino' => '#2563eb', 'entregado' => '#9333ea', default => '#6b7280' };
                 $bgEstado = match($pedido['estado']) { 'pendiente_pago' => '#fee2e2', 'en_proceso' => '#ffedd5', 'en_camino' => '#dbeafe', 'entregado' => '#f3e8ff', default => '#f3f4f6' };
             @endphp
-            <div wire:click="editarPedido({{ $pedido['id'] }})" style="display: grid; grid-template-columns: 0.7fr 0.8fr 0.7fr 1.4fr auto; gap: 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; cursor: pointer; transition: background 0.15s;"
+            <div data-pedido-id="{{ $pedido['id'] }}" wire:click="editarPedido({{ $pedido['id'] }})" style="display: grid; grid-template-columns: 0.7fr 0.8fr 0.7fr 1.4fr auto; gap: 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; cursor: pointer; transition: background 0.15s;"
                  onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
                 {{-- Fecha: # + tiempo + fecha --}}
                 <div style="padding: 8px; text-align: center;">
@@ -213,7 +221,7 @@
                     <div style="padding: 12px; display: flex; flex-direction: column; gap: 12px; max-height: 500px; overflow-y: auto;">
                         @forelse($col['datos'] as $pedido)
                             @php $dir = collect([$pedido['cliente']['conjunto'] ?? '', $pedido['cliente']['torre'] ?? '', $pedido['cliente']['apto'] ?? ''])->filter()->implode(', '); @endphp
-                            <div wire:click="editarPedido({{ $pedido['id'] }})" style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); cursor: pointer;">
+                            <div data-pedido-id="{{ $pedido['id'] }}" wire:click="editarPedido({{ $pedido['id'] }})" style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); cursor: pointer;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                                     <div style="display: flex; align-items: center; gap: 6px;">
                                         <span style="background: #111827; color: white; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 4px;">#{{ $pedido['numero_pedido'] }}</span>
@@ -672,6 +680,79 @@
                 if (!document.hidden) { clearInterval(t); document.title = orig; document.removeEventListener('visibilitychange', vis); }
             });
         }
+
+        // ===== Alerta sutil de cambios de estado (repartidor, PDV, bot, etc.) =====
+        var pdvEstadosPrev = null;
+        var pdvAccionLocal = null;
+
+        // Si el cambio lo acaba de hacer el usuario de este PDV, no toast (solo destello)
+        document.addEventListener('click', function(e){
+            var el = e.target && e.target.closest ? e.target.closest('[wire\\:click]') : null;
+            if (!el) return;
+            var expr = el.getAttribute('wire:click') || '';
+            if (/(cambiarEstado|finalizarPedido|finalizarDesdeModal|rechazarPedido|cancelarPedido)/.test(expr)) {
+                var m = expr.match(/\d+/);
+                if (m) pdvAccionLocal = { id: parseInt(m[0], 10), ts: Date.now() };
+            }
+        }, true);
+
+        function pdvNombreEstado(e) {
+            return ({pendiente_pago:'Pendiente de Pago', en_proceso:'En Preparación', en_camino:'En Camino', entregado:'Ha Llegado', finalizado:'Finalizado', cancelado:'Cancelado'})[e] || e;
+        }
+        function pdvIconoEstado(e) {
+            return ({pendiente_pago:'⏳', en_proceso:'👨‍🍳', en_camino:'🚗', entregado:'🛵', finalizado:'🎉', cancelado:'🛑'})[e] || '📦';
+        }
+        function pdvColorEstado(e) {
+            return ({pendiente_pago:'#ef4444', en_proceso:'#ea580c', en_camino:'#2563eb', entregado:'#9333ea', finalizado:'#16a34a', cancelado:'#6b7280'})[e] || '#1e293b';
+        }
+        function pdvToastEstado(p, nuevo) {
+            var c = document.getElementById('pdv-toast-container');
+            if (!c) { c = document.createElement('div'); c.id = 'pdv-toast-container'; c.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:8px;'; document.body.appendChild(c); }
+            var color = pdvColorEstado(nuevo);
+            var n = document.createElement('div');
+            n.style.cssText = 'background:#0f172a;color:white;border-radius:10px;padding:10px 14px;box-shadow:0 8px 30px rgba(0,0,0,0.25);max-width:320px;font-family:-apple-system,sans-serif;display:flex;align-items:center;gap:10px;cursor:pointer;border-left:4px solid ' + color + ';opacity:0;transform:translateX(16px);transition:opacity .25s ease, transform .25s ease;';
+            n.innerHTML = '<span style="font-size:16px;flex-shrink:0;">' + pdvIconoEstado(nuevo) + '</span><div><div style="font-size:13px;font-weight:700;">#' + (p.numero_pedido || p.id) + ' → ' + pdvNombreEstado(nuevo) + '</div><div style="font-size:11px;color:#94a3b8;">' + (p.cliente || '') + '</div></div>';
+            n.onclick = function(){ n.remove(); };
+            c.appendChild(n);
+            requestAnimationFrame(function(){ n.style.opacity = '1'; n.style.transform = 'translateX(0)'; });
+            setTimeout(function(){
+                if (!n.parentNode) return;
+                n.style.opacity = '0'; n.style.transform = 'translateX(16px)';
+                setTimeout(function(){ n.remove(); }, 300);
+            }, 5000);
+        }
+        function pdvDestello(id) {
+            var aplicar = function(){
+                var el = document.querySelector('[data-pedido-id="' + id + '"]');
+                if (!el) return;
+                el.classList.remove('pdv-destello'); void el.offsetWidth; el.classList.add('pdv-destello');
+                setTimeout(function(){ el.classList.remove('pdv-destello'); }, 3200);
+            };
+            aplicar();
+            setTimeout(aplicar, 5500); // vuelve a brillar cuando la tarjeta ya se movió de columna
+        }
+        function pdvVerificarEstados() {
+            fetch('/api/pedidos/estados-hoy', { credentials: 'same-origin' }).then(function(r){
+                return r.json();
+            }).then(function(data){
+                var pedidos = data.pedidos || [];
+                var actual = {};
+                pedidos.forEach(function(p){ actual[p.id] = p.estado; });
+                if (pdvEstadosPrev) {
+                    pedidos.forEach(function(p){
+                        var prev = pdvEstadosPrev[p.id];
+                        if (prev === undefined || prev === p.estado) return;
+                        var esLocal = pdvAccionLocal && pdvAccionLocal.id === p.id && (Date.now() - pdvAccionLocal.ts) < 8000;
+                        if (!esLocal) pdvToastEstado(p, p.estado);
+                        pdvDestello(p.id);
+                    });
+                }
+                pdvEstadosPrev = actual;
+            }).catch(function(){ /* silencioso */ });
+        }
+        setTimeout(pdvVerificarEstados, 3000);
+        setInterval(pdvVerificarEstados, 5000);
+        // ===== Fin alerta de cambios de estado =====
 
         var pdvUltimosIds = [];
         var pdvInicializado = false;

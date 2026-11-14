@@ -94,6 +94,25 @@ Route::get('/api/pedidos/pendientes', function () {
     ]);
 });
 
+// Estados de los pedidos de hoy — alimenta la alerta sutil de cambios de estado del PDV
+Route::get('/api/pedidos/estados-hoy', function () {
+    if (!auth()->check()) {
+        return response()->json(['pedidos' => []]);
+    }
+    $pedidos = App\Models\Pedido::with('cliente')
+        ->whereDate('created_at', today())
+        ->orderBy('created_at')
+        ->get(['id', 'numero_pedido', 'estado', 'cliente_id'])
+        ->map(fn ($p) => [
+            'id' => $p->id,
+            'numero_pedido' => $p->numero_pedido,
+            'estado' => $p->estado,
+            'cliente' => $p->cliente->nombre ?? '',
+        ])
+        ->values();
+    return response()->json(['pedidos' => $pedidos]);
+});
+
 Route::get('/admin/reportes/exportar', [ReporteExportController::class, 'exportar'])->name('admin.reportes.exportar');
 
 Route::get('/admin/clientes/exportar', function () {    $user = auth()->user();
