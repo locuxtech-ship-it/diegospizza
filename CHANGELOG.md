@@ -1,5 +1,29 @@
 # Changelog — Diego's Pizza
 
+## [18-11-2026] — Fix: "Cancelar" en el borrado de pedidos ya no borra igual (v4.7)
+
+### Bug reportado
+Al presionar 🗑️ **Eliminar pedido** aparecía el diálogo *"Esta acción no se puede deshacer"*, pero aunque el usuario eligiera **Cancelar**, **el pedido se borraba igual**. Esto causó la pérdida de los pedidos **#10 y #11 del 18/11** (ids 3386 y 3387, verificado con `AUTO_INCREMENT = 3388` vs último id real `3385`).
+
+### Causa raíz
+Los botones usaban `onclick="return confirm(...)"` junto a `wire:click` de Livewire: el `confirm()` de JavaScript **no cancela la acción de Livewire** (el listener de Livewire se ejecuta de todas formas). Era un falso seguro — el único guard era el diálogo JS.
+
+### Cambio
+- Los 2 botones de eliminar (vista **Lista** y vista **Kanban** de Comandas) ahora usan **`wire:confirm` nativo de Livewire** (el mismo que ya usa "✅ Entregado" en Mis Entregas): Livewire **no despacha la acción** hasta que se confirma. Si el usuario elige Cancelar, **no se borra nada**.
+- Verificado que no quedan otros `confirm(` sueltos en el proyecto.
+
+### Nota sobre los pedidos perdidos
+- Los pedidos #10 y #11 (18/11) fueron **borrados definitivamente** (borrado físico, no reversible) — no se pueden restaurar desde la BD. Los **tickets impresos** que quedaron en papel sirven para recrearlos manualmente si hacen falta. Los **clientes** de esos pedidos sí siguen intactos (el borrado solo elimina el pedido, sus productos, pagos y puntos).
+
+### Puntos de Restauración
+- Tag: `pre-fix-confirm-borrar` (commit `d7765d4`)
+- Deploy: commit `24039a3`
+
+### Verificado en producción (pedido de prueba + rollback)
+- Vista Lista: 1 botón eliminar con `wire:confirm` nativo, 0 con el patrón viejo ✓
+- Vista Kanban: ídem ✓
+- `eliminarPedido()` sigue funcionando (pedido de prueba borrado dentro de transacción con rollback) ✓
+
 ## [13-11-2026] — Reseñas: detalle con doble click + orden de recientes corregido (v4.6)
 
 ### Cambios
