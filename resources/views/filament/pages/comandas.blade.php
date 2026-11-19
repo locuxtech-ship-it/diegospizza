@@ -165,7 +165,7 @@
                         </a>
                     @endif
                     @can('applyDiscount', auth()->user())
-                        <button wire:click.stop="eliminarPedido({{ $pedido['id'] }})" onclick="return confirm('¿Eliminar pedido #{{ $pedido['numero_pedido'] }}? Esta acción no se puede deshacer.')" style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 6px; font-size: 16px; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; cursor: pointer;" title="Eliminar pedido">🗑️</button>
+                        <button wire:click.stop="eliminarPedido({{ $pedido['id'] }})" wire:confirm="¿Eliminar pedido #{{ $pedido['numero_pedido'] }}? Esta acción no se puede deshacer." style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 6px; font-size: 16px; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; cursor: pointer;" title="Eliminar pedido">🗑️</button>
                     @endcan
                     @if($siguiente === 'en_proceso')
                         <x-filament::button wire:click.stop="cambiarEstado({{ $pedido['id'] }}, 'en_proceso')" size="sm" color="success">
@@ -305,7 +305,7 @@
                                         <a href="/admin/pedidos/{{ $pedido['id'] }}/edit" onclick="event.stopPropagation()" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; font-size: 12px; text-decoration: none; background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb;" title="Editar pedido">✏️</a>
                                         @endif
                                         @can('applyDiscount', auth()->user())
-                                        <button wire:click.stop="eliminarPedido({{ $pedido['id'] }})" onclick="return confirm('¿Eliminar pedido #{{ $pedido['numero_pedido'] }}? Esta acción no se puede deshacer.')" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; font-size: 12px; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; cursor: pointer;" title="Eliminar pedido">🗑️</button>
+                                        <button wire:click.stop="eliminarPedido({{ $pedido['id'] }})" wire:confirm="¿Eliminar pedido #{{ $pedido['numero_pedido'] }}? Esta acción no se puede deshacer." style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; font-size: 12px; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; cursor: pointer;" title="Eliminar pedido">🗑️</button>
                                         @endcan
                                         <x-filament::button wire:click.stop="abrirModalPago({{ $pedido['id'] }})" size="sm" color="gray">
                                             💳
