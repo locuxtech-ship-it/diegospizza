@@ -193,7 +193,11 @@
         <div class="pedido-head">
             <div style="text-align:left;">
                 <div class="num">#{{ $pedido->numero_pedido }}</div>
-                <div class="fecha">{{ $pedido->created_at->copy()->setTimezone('America/Bogota')->format('d/m/Y · g:i a') }}</div>
+                @php
+                    $fechaPedido = $pedido->created_at->copy()->setTimezone('America/Bogota');
+                    $fechaPedidoTxt = $fechaPedido->format('d/m/Y · g:i') . ' ' . ((int) $fechaPedido->format('G') >= 12 ? 'p. m.' : 'a. m.');
+                @endphp
+                <div class="fecha">{{ $fechaPedidoTxt }}</div>
             </div>
             <div class="total">${{ number_format((float) $pedido->total, 0, ',', '.') }}</div>
         </div>

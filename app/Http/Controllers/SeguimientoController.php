@@ -105,10 +105,8 @@ class SeguimientoController extends Controller
 
             $hora = null;
             if ($estado !== 'pending' && $horas[$def['key']]) {
-                $hora = $horas[$def['key']]
-                    ->copy()
-                    ->setTimezone('America/Bogota')
-                    ->format('g:i a');
+                $dt = $horas[$def['key']]->copy()->setTimezone('America/Bogota');
+                $hora = $dt->format('g:i') . ' ' . ((int) $dt->format('G') >= 12 ? 'p. m.' : 'a. m.');
             } elseif ($estado === 'pending') {
                 $hora = 'Pendiente';
             }
