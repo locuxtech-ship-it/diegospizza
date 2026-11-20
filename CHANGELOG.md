@@ -1,5 +1,37 @@
 # Changelog — Diego's Pizza
 
+## [20-11-2026] — Doble capacidad: cajero que también reparte (v4.9)
+
+### Necesidad
+Hay ocasiones en que el cajero sale a entregar pedidos (por la ventana o cerca de la cocina) y se quiere **llevar registro de cuántos entrega**. El sistema era "o cajero o repartidor" (una sola columna `role`).
+
+### Decisión
+**Opción B (elegida)**: usuario con doble capacidad en vez de un segundo usuario falso. El segundo usuario habría partido los reportes en dos identidades y obligaba a cerrar/abrir sesión para marcar entregas.
+
+### Cambios
+- **Migración** `2026_11_20_130000_add_puede_repartir_to_users_table`: columna `users.puede_repartir` (boolean, default false) + backfill → los 4 repartidores actuales quedaron en `true` (4/4 verificado).
+- **`User::puedeRepartir()`**: rol repartidor **o** bandera activada; **admin siempre `false`** (aunque tenga la bandera). Scope `User::repartidores()` = mismos criterios + excluye admin.
+- **Mis Entregas**: `canAccess()` ahora usa `puedeRepartir()` — el cajero con la capacidad puede abrir su vista (solo ve pedidos asignados a él: llegué / entregado / histórico).
+- **Dropdowns de asignación** (Comandas ×2, PedidosTable, PedidoForm): ahora usan el scope `repartidores()` — el cajero con la capacidad **aparece en el dropdown**.
+- **Usuarios (solo admin)**: toggle **"También sale a repartir"** en el form (solo visible cuando el rol es Cajero) + columna **"Reparte"** (🛵 Sí / No) en la tabla.
+- **Sin cambios**: home/Dashboard (el doble rol entra a **Comandas**, no a Mis Entregas), permisos de cajero, reportes (agrupan por `repartidor_id` sin filtrar rol — ya funcionaba).
+
+### Cómo se usa
+1. Admin → Configuración → Usuarios → editar al cajero → activar **"También sale a repartir"** → Guardar.
+2. En PDV (Comandas) asignar el pedido a ese cajero cuando salga a entregar.
+3. El cajero abre **🛵 Mis Entregas** desde el menú y marca 📍 llegué / ✅ entregado.
+4. En **Reportes** sus entregas aparecen bajo su nombre (con promedios de ruta/puerta).
+
+### Puntos de Restauración
+- Tag: `pre-doble-rol` (commit `f9c37cf`)
+- Deploy: commit `67f31d6`
+
+### Verificado en producción
+- Migración: columna presente, backfill 4/4 repartidores con flag ✓
+- Tinker: cajero sin flag → `false`; con flag → `true`; repartidor → `true`; admin con flag → `false` ✓
+- Scope repartidores: solo los 4 repartidores reales (sin admins) ✓
+- 0 errores en logs
+
 ## [20-11-2026] — Fix: las reseñas se ataban al pedido equivocado
 
 ### Bug reportado / detectado
