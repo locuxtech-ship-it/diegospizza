@@ -124,7 +124,10 @@
                 Pedido #{{ $pedido->numero_pedido }} — {{ $pedido->cliente?->nombre ?? 'Cliente' }}
             </div>
 
-            <form method="POST" action="{{ url('/review/' . $pedido->numero_pedido) }}" id="reviewForm">
+            {{-- La acción debe usar $pedido->id (igual que GET): numero_pedido es
+                 un contador diario chico y store() busca por id — usarlo aquí
+                 ataba la reseña a un pedido viejo con ese id. --}}
+            <form method="POST" action="{{ url('/review/' . $pedido->id) }}" id="reviewForm">
                 @csrf
                 <div class="stars">
                     @for($i = 5; $i >= 1; $i--)
