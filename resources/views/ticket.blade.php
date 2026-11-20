@@ -204,7 +204,7 @@ if ($ticketSize === '57') {
                         'outputBase64' => false,
                     ]);
                     $rawSvg = (new \chillerlan\QRCode\QRCode($options))->render($trackingUrl);
-                    // Quitar el prologo <?xml ...?> para insertarlo limpio en el HTML
+                    // Quitar el prologo XML para insertarlo limpio en el HTML
                     $svgStart = strpos($rawSvg, '<svg');
                     if ($svgStart !== false) {
                         $qrSvg = substr($rawSvg, $svgStart);
