@@ -1,5 +1,38 @@
 # Changelog — Diego's Pizza
 
+## [20-11-2026] — Seguimiento público de pedido con token (v4.8)
+
+### Qué se incluyó
+- **Página pública `/seguimiento/{token}`** (token aleatorio de 32 hex por pedido): timeline de 5 pasos con horas, badge "ACTUALIZANDO EN VIVO", auto-refresh cada 5 s, **sin datos personales** (ni nombre, teléfono ni dirección), botón "⭐ Deja tu reseña" cuando finaliza y "← Volver al menú".
+- **API `/api/seguimiento/{token}`** (JSON) que alimenta la página y la barra flotante: estado, pasos con horas, `review_url` y `seguimiento_url`.
+- **Checkout**: botón "📍 Seguir mi pedido en vivo" en el bloque de confirmación; además guarda el pedido en `localStorage` (`miPedidoSeguimiento`).
+- **Layout público (menú/checkout)**: barra flotante "Mi pedido" (rojo/naranja) que muestra el estado al cargar, se reemplaza por "⭐ Deja tu reseña" cuando finaliza, **desaparece si el pedido se cancela** y se sobreescribe con cada pedido nuevo. El botón del carrito (cart-fab) sube para no solaparse (`body.con-barra`).
+- **Ticket**: QR (SVG) + URL de seguimiento en el pie, generado con `chillerlan/php-qrcode` dentro de `try/catch` — si la librería falla, el ticket imprime igual sin QR.
+- **composer**: `chillerlan/php-qrcode ^5.0` como dependencia **directa** (ya venía de forma transitiva vía Filament, 5.0.5 — no se descargó nada nuevo).
+
+### Migración
+- `2026_11_20_090000_add_seguimiento_token_to_pedidos_table`: columna `pedidos.seguimiento_token` (única, nullable) + **backfill** de los 3.384 pedidos existentes.
+
+### Puntos de restauración
+- Tag: `pre-seguimiento` (commit `63b810f`)
+- Deploy: commit `1ed641e`
+
+### Bugs encontrados y corregidos durante el deploy
+- **Ticket 500**: un comentario `// ... <?xml ...?>` en `ticket.blade.php` salía del modo PHP (en comentarios `//`, `?>` cierra el bloque) → fix en `ccd7f40`.
+- **Horas en inglés** (`9:04 pm`) en el timeline → formato es-pa `9:04 p. m.` en `a97158a`.
+- **Barra flotante no aparecía** con la pestaña en segundo plano (`requestAnimationFrame` se pausa) → reflow forzado en `1ed641e`.
+
+### Verificado en producción
+- Migración: **3.384/3.384** pedidos con token.
+- `/seguimiento/{token}` → **200** con timeline + badge; token falso y token con formato inválido → **404**.
+- API JSON correcta; pedido `en_camino` renderiza `done, done, current, pending, pending`.
+- Ticket → **200** con `<svg>` del QR + "Escanea para seguir tu pedido" + URL completa.
+- Menú → barra "📍 Mi pedido #49 — 🚗 En camino" con enlace, `translateY(0)` (visible), **0 errores de consola**.
+- Páginas `/` y `/checkout` → 200; sin errores nuevos en logs (solo los preexistentes de WAHA/cURL).
+
+### ⚠️ Bug detectado (reportado, pendiente de aprobación)
+- **Las reseñas se pegaban al pedido equivocado**: el formulario hace `POST /review/{numero_pedido}` pero `ReviewController::store()` busca `Pedido::where('id', ...)` — como `numero_pedido` es un contador diario (números chicos) y `id` es autoincrement global, **todas las reseñas recientes quedaron atadas a pedidos de junio** (reviews 47–61, verificado en BD). GET sí usa `id`. Fix propuesto: cambiar la acción del form a `$pedido->id`.
+
 ## [18-11-2026] — Fix: "Cancelar" en el borrado de pedidos ya no borra igual (v4.7)
 
 ### Bug reportado
