@@ -238,7 +238,10 @@
             function mostrar(info) {
                 bar.hidden = false;
                 document.body.classList.add('con-barra');
-                requestAnimationFrame(function () { bar.classList.add('visible'); });
+                // Forzar reflow en vez de requestAnimationFrame: la barra se
+                // anima aunque la pestaña esté en segundo plano (rAF se pausa).
+                void bar.offsetHeight;
+                bar.classList.add('visible');
                 numEl.textContent = '📍 Mi pedido #' + info.numero;
             }
 
