@@ -19,11 +19,17 @@
 - `GET /review/3402` (pedido finalizado sin reseña) → `action="…/review/3402"` (usa **id**), ya no `/review/10` (numero_pedido) ✅
 - Sin errores nuevos en logs.
 
-### Reataje histórico (pendiente de aprobación)
+### Reataje histórico — EJECUTADO ✅
 Análisis solo-lectura de las 33 reseñas desatadas:
 - **20 reatajables con alta confianza**: candidato **único el mismo día** de la reseña (el contador diario garantiza unicidad por día), destino `finalizado`, sin reseña previa (0 conflictos). Ej.: review 61 → pedido 2838 (25/10), review 60 → 2702 (18/10)…
-- **13 sin destino seguro**: 9 no tienen ningún pedido con ese número en toda la BD (probablemente pedidos borrados), 4 tienen 2–5 candidatos en la ventana (ambigüedad).
-- Propuesta: reatajar solo las 20 (y corregir también `cliente_id`/`telefono`/`nombre` de la reseña, que quedaron con los datos del pedido equivocado), dejando las 13 restantes como están.
+- **13 sin destino seguro**: 9 no tienen ningún pedido con ese número en toda la BD (probablemente pedidos borrados), 4 tienen 2–5 candidatos en la ventana (ambigüedad). **Se dejaron como estaban.**
+
+**Ejecutado** (migración `2026_11_20_120000_reattach_reviews_to_correct_pedidos`, commit `823e1df`):
+- Backup previo: `/backups/diegospizza/pre-reataje-resenas-20261120.sql` (3.2 MB, `Dump completed` ✓)
+- Punto de restauración: tag `pre-reataje-resenas` (`018c3c2`)
+- Guardas: idempotente (solo si sigue en el pedido equivocado), fecha (UTC) debe coincidir, nunca deja 2 reseñas en un pedido, **no toca `updated_at`**
+- Corrige también `cliente_id`/`nombre`/`telefono` (quedaron con el cliente del pedido equivocado)
+- **Verificado en producción**: 20/20 con `CLI OK` + `FECHA OK`, 0 en junio, 0 destinos duplicados, 13 intactas, total de reseñas sin cambios (61), 0 errores en logs
 
 ## [20-11-2026] — Seguimiento público de pedido con token (v4.8)
 
