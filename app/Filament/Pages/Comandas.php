@@ -93,7 +93,7 @@ class Comandas extends Page
         // Convertir pedidos antiguos "pendiente" a "en_proceso"
         Pedido::where('estado', 'pendiente')->update(['estado' => 'en_proceso']);
 
-        $this->repartidores = User::where('role', 'repartidor')
+        $this->repartidores = User::repartidores()
             ->orderBy('name')
             ->get(['id', 'name'])
             ->toArray();
@@ -192,7 +192,7 @@ class Comandas extends Page
         $nombreRepartidor = null;
 
         if ($repartidorId !== null && $repartidorId !== '') {
-            $repartidor = User::where('role', 'repartidor')->find((int) $repartidorId);
+            $repartidor = User::repartidores()->find((int) $repartidorId);
             if (!$repartidor) return;
             $nuevoId = $repartidor->id;
             $nombreRepartidor = $repartidor->name;

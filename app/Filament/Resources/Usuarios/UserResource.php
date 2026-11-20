@@ -6,6 +6,7 @@ use App\Models\User;
 use BackedEnum;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -80,6 +81,12 @@ class UserResource extends Resource
                         'repartidor' => 'Repartidor',
                     ])
                     ->required(),
+                Toggle::make('puede_repartir')
+                    ->label('También sale a repartir')
+                    ->helperText('El cajero podrá asignarse pedidos y marcarlos en "Mis Entregas" sin cambiar de rol')
+                    ->default(false)
+                    // Solo tiene sentido para cajeros (rol repartidor ya reparte siempre)
+                    ->visible(fn ($get) => $get('role') === 'cajero'),
             ]);
     }
 
@@ -101,6 +108,12 @@ class UserResource extends Resource
                         'repartidor' => 'info',
                         default => 'warning',
                     }),
+                TextColumn::make('puede_repartir')
+                    ->label('Reparte')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => $state ? '🛵 Sí' : 'No')
+                    ->color(fn ($state) => $state ? 'success' : 'gray')
+                    ->alignCenter(),
             ])
             ->toolbarActions([
                 CreateAction::make()

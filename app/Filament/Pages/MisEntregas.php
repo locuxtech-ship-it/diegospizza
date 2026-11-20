@@ -36,7 +36,8 @@ class MisEntregas extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->isRepartidor() ?? false;
+        // Rol repartidor puro O usuario con capacidad extra (cajero que reparte)
+        return auth()->user()?->puedeRepartir() ?? false;
     }
 
     public function mount(): void

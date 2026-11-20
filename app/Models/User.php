@@ -19,6 +19,7 @@ class User extends Authenticatable implements FilamentUser
         'email',
         'password',
         'role',
+        'puede_repartir',
     ];
 
     protected $hidden = [
@@ -44,6 +45,31 @@ class User extends Authenticatable implements FilamentUser
     public function isRepartidor(): bool
     {
         return $this->role === 'repartidor';
+    }
+
+    /**
+     * Puede repartir: los que tienen rol repartidor O los usuarios con la
+     * capacidad extra activada (p. ej. cajero que sale a entregar).
+     * OJO: isRepartidor() sigue siendo rol puro (home/Dashboard lo usan para
+     * aterrizar en Mis Entregas — el doble rol debe entrar a Comandas).
+     */
+    public function puedeRepartir(): bool
+    {
+        if ($this->role === 'admin') {
+            return false; // el admin nunca reparte, ni con la bandera puesta
+        }
+
+        return $this->role === 'repartidor' || (bool) $this->puede_repartir;
+    }
+
+    /** Usuarios asignables como repartidor (rol repartidor o capacidad extra) */
+    public function scopeRepartidores($query)
+    {
+        return $query
+            ->where('role', '!=', 'admin')
+            ->where(function ($q) {
+                $q->where('role', 'repartidor')->orWhere('puede_repartir', true);
+            });
     }
 
     public function canCancelarPedido(): bool

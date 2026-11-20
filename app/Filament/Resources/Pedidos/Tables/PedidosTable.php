@@ -126,7 +126,7 @@ class PedidosTable
                             ]),
                         Select::make('repartidor_id')
                             ->label('Repartidor')
-                            ->options(fn () => User::where('role', 'repartidor')
+                            ->options(fn () => User::repartidores()
                                 ->orderBy('name')
                                 ->pluck('name', 'id')
                                 ->toArray())
