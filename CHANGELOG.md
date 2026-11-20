@@ -1,5 +1,30 @@
 # Changelog — Diego's Pizza
 
+## [20-11-2026] — Fix: las reseñas se ataban al pedido equivocado
+
+### Bug reportado / detectado
+**Todas las reseñas recientes quedaban pegadas a pedidos de junio.** Verificado en BD: las reviews 47–61 (23/08 → 25/10) estaban atadas a pedidos creados en junio (p. ej. la review del 25/10 quedó en el pedido id 22 creado el 10/06).
+
+### Causa raíz
+`review-form.blade.php` hacía `POST /review/{numero_pedido}` pero `ReviewController::store()` busca `Pedido::where('id', …)`. Como `numero_pedido` es un **contador diario** (1, 2, 3…) e `id` es autoincrement global, el número del día coincidía con pedidos viejos. El GET del formulario sí usaba `id` — solo el POST estaba mal. Además, como `store()` tomaba el cliente del pedido equivocado, las reseñas guardaban el **teléfono/cliente de junio** (por eso el cruce de clientes "difieren": era síntoma del mismo bug).
+
+### Cambio
+- `resources/views/public/review-form.blade.php`: la acción del form ahora usa **`$pedido->id`** (consistente con el GET y con todos los enlaces — WhatsApp, página de seguimiento y barra flotante ya usaban `id`).
+
+### Puntos de Restauración
+- Tag: `pre-fix-resena-post` (commit `41a8f23`)
+- Deploy: commit `67a5272`
+
+### Verificado en producci�n
+- `GET /review/3402` (pedido finalizado sin reseña) → `action="…/review/3402"` (usa **id**), ya no `/review/10` (numero_pedido) ✅
+- Sin errores nuevos en logs.
+
+### Reataje histórico (pendiente de aprobación)
+Análisis solo-lectura de las 33 reseñas desatadas:
+- **20 reatajables con alta confianza**: candidato **único el mismo día** de la reseña (el contador diario garantiza unicidad por día), destino `finalizado`, sin reseña previa (0 conflictos). Ej.: review 61 → pedido 2838 (25/10), review 60 → 2702 (18/10)…
+- **13 sin destino seguro**: 9 no tienen ningún pedido con ese número en toda la BD (probablemente pedidos borrados), 4 tienen 2–5 candidatos en la ventana (ambigüedad).
+- Propuesta: reatajar solo las 20 (y corregir también `cliente_id`/`telefono`/`nombre` de la reseña, que quedaron con los datos del pedido equivocado), dejando las 13 restantes como están.
+
 ## [20-11-2026] — Seguimiento público de pedido con token (v4.8)
 
 ### Qué se incluyó
