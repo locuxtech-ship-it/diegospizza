@@ -131,6 +131,59 @@
         .animate-slide-up {
             animation: slideUp 0.3s ease-out;
         }
+
+        /* ===== Barra flotante "Mi pedido" ===== */
+        .mi-pedido-bar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 45;
+            background: linear-gradient(to right, #dc2626, #ea580c);
+            color: white;
+            padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.18);
+            transform: translateY(110%);
+            transition: transform 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+        .mi-pedido-bar.visible { transform: translateY(0); }
+        .mi-pedido-bar .mp-info {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+            min-width: 0;
+        }
+        .mi-pedido-bar .mp-num { font-weight: 800; font-size: 14px; white-space: nowrap; }
+        .mi-pedido-bar .mp-estado {
+            font-size: 12px;
+            opacity: 0.92;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mi-pedido-bar .mp-cta {
+            background: white;
+            color: #dc2626;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 9px 18px;
+            border-radius: 999px;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: transform 0.15s;
+        }
+        .mi-pedido-bar .mp-cta:active { transform: scale(0.96); }
+        .mi-pedido-bar.resena .mp-cta { color: #ea580c; }
+        body.con-barra .cart-fab { bottom: 88px; }
+        @media (max-width: 640px) {
+            body.con-barra .cart-fab { bottom: 80px; }
+        }
+
         @media (min-width: 640px) {
             @keyframes fadeScale {
                 from { opacity: 0; transform: scale(0.95); }
@@ -150,6 +203,88 @@
     </div>
 
     <livewire:cart />
+
+    {{-- Barra flotante "Mi pedido": recuerda el último pedido del dispositivo --}}
+    <div class="mi-pedido-bar" id="mi-pedido-bar" hidden>
+        <div class="mp-info">
+            <span class="mp-num" id="mp-num"></span>
+            <span class="mp-estado" id="mp-estado"></span>
+        </div>
+        <a href="#" class="mp-cta" id="mp-cta">Ver →</a>
+    </div>
+
+    <script>
+        (function () {
+            var bar = document.getElementById('mi-pedido-bar');
+            var numEl = document.getElementById('mp-num');
+            var estadoEl = document.getElementById('mp-estado');
+            var cta = document.getElementById('mp-cta');
+            var ESTADOS = {
+                pendiente_pago: '⏳ Pendiente de pago',
+                pendiente: '⏳ Pendiente',
+                en_proceso: '👨‍🍳 En preparación',
+                en_camino: '🚗 En camino',
+                entregado: '📍 Entregado',
+                finalizado: '🎉 Finalizado',
+                cancelado: '❌ Cancelado'
+            };
+
+            function ocultar() {
+                bar.classList.remove('visible');
+                document.body.classList.remove('con-barra');
+                setTimeout(function () { bar.hidden = true; }, 300);
+            }
+
+            function mostrar(info) {
+                bar.hidden = false;
+                document.body.classList.add('con-barra');
+                requestAnimationFrame(function () { bar.classList.add('visible'); });
+                numEl.textContent = '📍 Mi pedido #' + info.numero;
+            }
+
+            var raw = localStorage.getItem('miPedidoSeguimiento');
+            if (!raw) return;
+            var info;
+            try { info = JSON.parse(raw); } catch (e) { return; }
+            if (!info || !info.token || !info.url) return;
+
+            // Pintar de inmediato con los datos guardados (estado "en vivo" al cargar)
+            mostrar(info);
+            estadoEl.textContent = ESTADOS[info.estado] || '👁 Seguimiento en vivo';
+            cta.textContent = 'Ver →';
+            cta.href = info.url;
+            bar.classList.remove('resena');
+
+            fetch('/api/seguimiento/' + encodeURIComponent(info.token), { headers: { 'Accept': 'application/json' } })
+                .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+                .then(function (data) {
+                    // Refresca el estado guardado (la barra queda al día aunque
+                    // el cliente no abra la página de seguimiento)
+                    info.estado = data.estado;
+                    info.numero = data.numero_pedido;
+                    localStorage.setItem('miPedidoSeguimiento', JSON.stringify(info));
+
+                    if (data.cancelado) { ocultar(); return; }
+
+                    numEl.textContent = '📍 Mi pedido #' + data.numero_pedido;
+                    estadoEl.textContent = ESTADOS[data.estado] || data.estado;
+
+                    if (data.finalizado && data.review_url) {
+                        bar.classList.add('resena');
+                        estadoEl.textContent = '¡Gracias por tu pedido!';
+                        cta.textContent = '⭐ Deja tu reseña';
+                        cta.href = data.review_url;
+                    } else {
+                        bar.classList.remove('resena');
+                        cta.textContent = 'Ver →';
+                        cta.href = info.url;
+                    }
+                })
+                .catch(function () {
+                    // Sin conexión: se queda con el último estado conocido
+                });
+        })();
+    </script>
 
     @livewireScripts
 </body>

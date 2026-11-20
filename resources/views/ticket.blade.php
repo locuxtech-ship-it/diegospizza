@@ -84,6 +84,10 @@ if ($ticketSize === '57') {
         .payment-info { margin-top: 3px; }
         .payment-info p { font-size: {{ $fsInfo }}px; }
         .footer { text-align: center; margin-top: 4px; font-size: {{ $fsFooter }}px; }
+        .tracking-box { text-align: center; margin-top: 6px; }
+        .tracking-box svg { width: {{ $ticketSize === '57' ? '30' : '36' }}mm; height: {{ $ticketSize === '57' ? '30' : '36' }}mm; margin: 0 auto; display: block; }
+        .tracking-box .tracking-label { font-size: {{ $fsFooter }}px; font-weight: {{ $negritas ? 'bold' : 'normal' }}; margin-top: 2px; }
+        .tracking-box .tracking-url { font-size: {{ max(6, $fsFooter - 1) }}px; word-break: break-all; }
         .notas { margin-top: 2px; font-size: {{ $fsInfo }}px; font-style: italic; }
         .logo-img { max-width: {{ $ticketSize === '57' ? '45' : '65' }}mm; max-height: {{ $ticketSize === '57' ? '15' : '22' }}mm; margin-bottom: 2px; }
     </style>
@@ -184,6 +188,39 @@ if ($ticketSize === '57') {
             <p>¡Gracias por tu pedido!</p>
             <p>{{ $negocio->nombre_negocio ?? "Diego's Pizza" }}</p>
         </div>
+
+        @if(!empty($pedido->seguimiento_token))
+            @php
+                // QR hacia la página de seguimiento. Se genera con try/catch:
+                // si la librería falla, el ticket igual se imprime sin QR.
+                $trackingUrl = route('seguimiento.show', ['token' => $pedido->seguimiento_token]);
+                $qrSvg = null;
+                try {
+                    $options = new \chillerlan\QRCode\QROptions([
+                        'outputType' => \chillerlan\QRCode\Output\QROutputInterface::MARKUP_SVG,
+                        'eccLevel' => \chillerlan\QRCode\Common\EccLevel::M,
+                        'scale' => 4,
+                        'addQuietzone' => true,
+                        'outputBase64' => false,
+                    ]);
+                    $rawSvg = (new \chillerlan\QRCode\QRCode($options))->render($trackingUrl);
+                    // Quitar el prologo <?xml ...?> para insertarlo limpio en el HTML
+                    $svgStart = strpos($rawSvg, '<svg');
+                    if ($svgStart !== false) {
+                        $qrSvg = substr($rawSvg, $svgStart);
+                    }
+                } catch (\Throwable $e) {
+                    $qrSvg = null;
+                }
+            @endphp
+            @if($qrSvg)
+                <div class="tracking-box">
+                    {!! $qrSvg !!}
+                    <div class="tracking-label">📍 Escanea para seguir tu pedido</div>
+                    <div class="tracking-url">{{ preg_replace('#^https?://#', '', $trackingUrl) }}</div>
+                </div>
+            @endif
+        @endif
     </div>
 
     <script>

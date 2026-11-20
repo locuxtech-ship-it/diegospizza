@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ReporteExportController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\SeguimientoController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\WhatsAppController;
 use App\Livewire\Checkout;
@@ -52,6 +53,10 @@ Route::post('/api/whatsapp/waha-webhook', [WhatsAppController::class, 'wahaWebho
 
 Route::get('/review/{pedido}', [ReviewController::class, 'showForm'])->name('review.form');
 Route::post('/review/{pedido}', [ReviewController::class, 'store'])->name('review.store');
+
+// Seguimiento público de pedido (token aleatorio, sin datos personales)
+Route::get('/seguimiento/{token}', [SeguimientoController::class, 'show'])->name('seguimiento.show');
+Route::get('/api/seguimiento/{token}', [SeguimientoController::class, 'status'])->name('seguimiento.status');
 
 Route::get('/api/agent/pendientes', function () {
     $key = request('key');

@@ -35,6 +35,8 @@ class Checkout extends Component
     public $pedidoId = null;
     public $whatsappUrl = '';
     public $whatsappComprobanteUrl = '';
+    public $seguimientoUrl = '';
+    public $seguimientoToken = '';
 
     public $clienteInfo = null;
 
@@ -232,6 +234,8 @@ class Checkout extends Component
         session()->forget('carrito');
         $this->pedidoCreado = true;
         $this->pedidoId = $pedido->numero_pedido;
+        $this->seguimientoUrl = route('seguimiento.show', ['token' => $pedido->seguimiento_token]);
+        $this->seguimientoToken = $pedido->seguimiento_token;
 
         $this->whatsappUrl = $this->generarWhatsAppUrl($pedido, $cliente);
         $telefonoTienda = '573106444759';

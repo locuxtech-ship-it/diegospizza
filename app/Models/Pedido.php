@@ -55,6 +55,12 @@ class Pedido extends Model
                 $ultimo = static::whereDate('created_at', today())->max('numero_pedido');
                 $pedido->numero_pedido = ($ultimo ?? 0) + 1;
             }
+
+            // Token aleatorio para la página pública /seguimiento/{token}
+            // (no va en $fillable: se genera solo, nunca se asigna por masa).
+            if (!$pedido->seguimiento_token) {
+                $pedido->seguimiento_token = bin2hex(random_bytes(16));
+            }
         });
 
         static::created(function ($pedido) {

@@ -67,9 +67,31 @@
                     </a>
                 @endif
 
+                <a href="{{ $seguimientoUrl }}" id="btn-seguimiento"
+                    class="inline-flex items-center justify-center gap-2 bg-white border-2 border-red-600 text-red-600 px-8 py-3.5 rounded-xl font-bold transition-all active:scale-95 shadow-sm w-full mb-3 hover:bg-red-50">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Seguir mi pedido en vivo
+                </a>
+
                 <a href="{{ route('menu') }}" wire:navigate class="inline-block bg-gradient-to-r from-red-600 to-red-500 text-white px-8 py-3 rounded-xl font-bold hover:from-red-700 hover:to-red-600 transition-all active:scale-95 shadow-sm w-full">
                     Seguir ordenando
                 </a>
+
+                @script
+                <script>
+                    // Recuerda este pedido en el dispositivo: alimenta la barra
+                    // flotante "Mi pedido" del layout público (se sobreescribe
+                    // con cada pedido nuevo).
+                    localStorage.setItem('miPedidoSeguimiento', JSON.stringify({
+                        token: @json($seguimientoToken),
+                        url: @json($seguimientoUrl),
+                        numero: @json($pedidoId)
+                    }));
+                </script>
+                @endscript
             </div>
         @else
             <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
